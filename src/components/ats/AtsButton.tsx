@@ -43,7 +43,7 @@ export const AtsButton: React.FC<AtsButtonProps> = ({
         ...style,
       }}
       onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = hoverBg[variant]; }}
-      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = vs.background || 'transparent'; }}
+      onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = (vs.background as string) || 'transparent'; }}
     >
       {icon}{children}
     </button>
