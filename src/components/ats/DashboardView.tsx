@@ -19,7 +19,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
   const [totalPostulantes, setTotalPostulantes] = useState(0);
   const [nuevosEstaSemana, setNuevosEstaSemana] = useState(0);
   const [pipelineCounts, setPipelineCounts] = useState<PipelineCount[]>([]);
-  const [recentPostulantes, setRecentPostulantes] = useState<{ id: string; nombre: string; profesion: string | null; created_at: string | null; estado_pipeline: string | null }[]>([]);
+  const [recentPostulantes, setRecentPostulantes] = useState<{ id: string; nombre: string; profesion: string | null; created_at: string | null; estado_pipeline: string | null; vacante_origen: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -29,7 +29,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
       // Fetch all postulantes with minimal fields
       const { data: allData } = await supabase
         .from('postulantes')
-        .select('id, estado_pipeline, created_at, nombre, profesion')
+        .select('id, estado_pipeline, created_at, nombre, profesion, vacante_origen')
         .order('created_at', { ascending: false });
 
       if (allData) {
@@ -145,7 +145,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
                   >
                     <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-foreground capitalize">{p.nombre.replace(/['"]/g, '').toLowerCase()}</p>
+                      <p className="text-sm font-medium text-foreground capitalize">{p.nombre.replace(/['"]/g, '').toLowerCase()} <span className="text-xs font-normal text-muted-foreground">— {p.vacante_origen || 'Sin cargo'}</span></p>
                       <p className="text-xs text-muted-foreground">{p.profesion || 'Sin profesión'} · {formatDateTime(p.created_at)}</p>
                     </div>
                   </div>
