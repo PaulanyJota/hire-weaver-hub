@@ -19,7 +19,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
   const [totalPostulantes, setTotalPostulantes] = useState(0);
   const [nuevosEstaSemana, setNuevosEstaSemana] = useState(0);
   const [pipelineCounts, setPipelineCounts] = useState<PipelineCount[]>([]);
-  const [recentPostulantes, setRecentPostulantes] = useState<{ id: string; nombre: string; profesion: string | null; created_at: string | null; estado_pipeline: string | null }[]>([]);
+  const [recentPostulantes, setRecentPostulantes] = useState<{ id: string; nombre: string; profesion: string | null; created_at: string | null; estado_pipeline: string | null; vacante_origen: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
