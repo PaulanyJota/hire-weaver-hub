@@ -29,7 +29,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
       // Fetch all postulantes with minimal fields
       const { data: allData } = await supabase
         .from('postulantes')
-        .select('id, estado_pipeline, created_at, nombre, profesion')
+        .select('id, estado_pipeline, created_at, nombre, profesion, vacante_origen')
         .order('created_at', { ascending: false });
 
       if (allData) {
