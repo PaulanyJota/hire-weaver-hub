@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { AtsButton } from './AtsButton';
 import { AtsBadge } from './AtsBadge';
 import { Icons } from './Icons';
+import { AppModal } from './AppModal';
 import { MOCK_CLIENTES, RESPONSABLES, type Vacante } from '@/data/mockData';
 
 interface VacantesViewProps {
