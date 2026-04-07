@@ -77,7 +77,7 @@ export const INITIAL_PIPELINE: PipelineEntry[] = [
   { vacanteId: 3, candidatoId: 104, etapa: 'Presentados a Cliente' },
 ];
 
-export const PIPELINE_STAGES = ['Postulantes Nuevos', 'En Screening', 'Entrevistados', 'Presentados a Cliente', 'Finalista', 'Contratado'] as const;
+export const PIPELINE_STAGES = ['Postulantes Nuevos', 'En Screening', 'Entrevistados', 'Presentados a Cliente', 'Finalista', 'Contratado', 'Descartado'] as const;
 
 export type PipelineStage = typeof PIPELINE_STAGES[number];
 
@@ -88,4 +88,5 @@ export const STAGE_COLORS: Record<PipelineStage, { bg: string; border: string; t
   'Presentados a Cliente': { bg: 'hsl(var(--kanban-presentado))', border: 'hsl(var(--kanban-presentado-border))', text: 'hsl(var(--kanban-presentado-text))', dot: 'hsl(var(--kanban-presentado-dot))' },
   'Finalista': { bg: 'hsl(var(--kanban-finalista))', border: 'hsl(var(--kanban-finalista-border))', text: 'hsl(var(--kanban-finalista-text))', dot: 'hsl(var(--kanban-finalista-dot))' },
   'Contratado': { bg: 'hsl(var(--kanban-contratado))', border: 'hsl(var(--kanban-contratado-border))', text: 'hsl(var(--kanban-contratado-text))', dot: 'hsl(var(--kanban-contratado-dot))' },
+  'Descartado': { bg: 'hsl(0 0% 95%)', border: 'hsl(0 0% 80%)', text: 'hsl(0 0% 45%)', dot: 'hsl(0 0% 60%)' },
 };
