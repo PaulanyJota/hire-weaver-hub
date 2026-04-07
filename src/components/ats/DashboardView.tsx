@@ -15,7 +15,7 @@ interface PipelineCount {
   pct: number;
 }
 
-export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante }) => {
+export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSelectPostulante }) => {
   const [totalPostulantes, setTotalPostulantes] = useState(0);
   const [nuevosEstaSemana, setNuevosEstaSemana] = useState(0);
   const [pipelineCounts, setPipelineCounts] = useState<PipelineCount[]>([]);
