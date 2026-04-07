@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { AtsButton } from './AtsButton';
 import { Icons } from './Icons';
 import { supabase } from '@/integrations/supabase/client';
+import { PIPELINE_STAGES } from '@/data/mockData';
 import type { Postulante } from '@/hooks/usePostulantes';
 
 interface TalentosViewProps {
