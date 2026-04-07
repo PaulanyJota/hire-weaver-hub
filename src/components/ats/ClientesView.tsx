@@ -347,9 +347,41 @@ export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
         <AppModal isOpen={isVacanteModalOpen} onClose={() => setIsVacanteModalOpen(false)} title={`Nueva Vacante — ${c.nombre}`}>
           <form onSubmit={handleCreateVacante} className="flex flex-col gap-4">
             <div>
-              <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Cargo *</label>
-              <input className={inputClass} placeholder="Ej: Desarrollador Fullstack" value={vacanteForm.cargo} onChange={e => setVacanteForm({ ...vacanteForm, cargo: e.target.value })} required />
+              <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Seleccionar vacante existente o crear nueva</label>
+              <select
+                className={inputClass}
+                value={vacanteForm.cargo}
+                onChange={e => {
+                  const selected = e.target.value;
+                  if (selected === '__manual__') {
+                    setVacanteForm({ cargo: '', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
+                    return;
+                  }
+                  const match = autoVacantes.find(v => v.cargo === selected);
+                  if (match) {
+                    setVacanteForm({
+                      cargo: match.cargo,
+                      tipo: match.tipo,
+                      ubicacion: match.ubicacion,
+                      renta: '',
+                      responsableId: match.responsableId,
+                    });
+                  }
+                }}
+              >
+                <option value="">— Selecciona una vacante —</option>
+                {autoVacantes.map(v => (
+                  <option key={v.id} value={v.cargo}>{v.cargo} ({v.postulantes} postulantes)</option>
+                ))}
+                <option value="__manual__">✏️ Crear cargo nuevo manualmente</option>
+              </select>
             </div>
+            {(vacanteForm.cargo === '' || !autoVacantes.some(v => v.cargo === vacanteForm.cargo)) && (
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Cargo *</label>
+                <input className={inputClass} placeholder="Ej: Desarrollador Fullstack" value={vacanteForm.cargo} onChange={e => setVacanteForm({ ...vacanteForm, cargo: e.target.value })} required />
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Tipo de Servicio</label>
