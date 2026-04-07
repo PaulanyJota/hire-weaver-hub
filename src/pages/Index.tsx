@@ -24,10 +24,17 @@ const Index = () => {
   const { toasts, show: showToast } = useAppToast();
   const { postulantes: allPostulantes, updateEstadoPipeline } = useAllPostulantes();
   const [newForm, setNewForm] = useState({ cargo: '', clienteId: '1', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
+  const [focusPostulanteId, setFocusPostulanteId] = useState<string | null>(null);
 
   const switchTab = (tab: string) => {
     setActiveTab(tab);
     setSelectedVacante(null);
+    setFocusPostulanteId(null);
+  };
+
+  const handleSelectPostulante = (id: string) => {
+    setFocusPostulanteId(id);
+    setActiveTab('talentos');
   };
 
   const handleUpdatePipeline = (vId: number, cId: number, stage: string) => {
@@ -57,7 +64,7 @@ const Index = () => {
       );
     }
     switch (activeTab) {
-      case 'dashboard': return <DashboardView onNewVacante={() => setIsCreateModalOpen(true)} />;
+      case 'dashboard': return <DashboardView onNewVacante={() => setIsCreateModalOpen(true)} onSelectPostulante={handleSelectPostulante} />;
       case 'vacantes': return (
         <VacantesView
           onViewPipeline={(cargo) => showToast(`Pipeline de "${cargo}" próximamente`)}
@@ -65,7 +72,7 @@ const Index = () => {
           showToast={showToast}
         />
       );
-      case 'talentos': return <TalentosView showToast={showToast} />;
+      case 'talentos': return <TalentosView showToast={showToast} initialPostulanteId={focusPostulanteId} />;
       case 'pipeline': return <SupabasePipelineView postulantes={allPostulantes} updateEstadoPipeline={updateEstadoPipeline} showToast={showToast} />;
       case 'clientes': return <ClientesView showToast={showToast} />;
       case 'settings': return (

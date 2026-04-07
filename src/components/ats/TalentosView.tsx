@@ -7,6 +7,7 @@ import type { Postulante } from '@/hooks/usePostulantes';
 
 interface TalentosViewProps {
   showToast: (msg: string) => void;
+  initialPostulanteId?: string | null;
 }
 
 const getAvatar = (nombre: string) =>
@@ -29,7 +30,7 @@ const formatDate = (d: string | null) => {
   return new Date(d).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
 };
 
-export const TalentosView: React.FC<TalentosViewProps> = ({ showToast }) => {
+export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPostulanteId }) => {
   const [allPostulantes, setAllPostulantes] = useState<Postulante[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCargo, setSelectedCargo] = useState<string | null>(null);
@@ -37,17 +38,28 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    const fetch = async () => {
+    const fetchData = async () => {
       setLoading(true);
       const { data } = await supabase
         .from('postulantes')
         .select('*')
         .order('created_at', { ascending: false });
-      if (data) setAllPostulantes(data);
+      if (data) {
+        setAllPostulantes(data);
+        // Auto-open a specific postulante if requested
+        if (initialPostulanteId) {
+          const match = data.find(p => p.id === initialPostulanteId);
+          if (match) {
+            setSelectedPostulante(match);
+            const cargo = normalizeCargo(match.vacante_origen);
+            if (cargo !== '__system__') setSelectedCargo(cargo);
+          }
+        }
+      }
       setLoading(false);
     };
-    fetch();
-  }, []);
+    fetchData();
+  }, [initialPostulanteId]);
 
   // Group by normalized cargo
   const grouped = useMemo(() => {
