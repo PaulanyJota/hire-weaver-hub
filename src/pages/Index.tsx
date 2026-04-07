@@ -80,7 +80,8 @@ const Index = () => {
           onShareVacante={v => setVacanteToShare(v)}
         />
       );
-      case 'talentos': return <TalentosView showToast={showToast} />;
+      case 'talentos': return <TalentosView showToast={showToast} postulantes={postulantes} loading={postulantesLoading} />;
+      case 'pipeline': return <SupabasePipelineView postulantes={postulantes} updateEstadoPipeline={updateEstadoPipeline} showToast={showToast} />;
       case 'clientes': return <ClientesView showToast={showToast} />;
       case 'settings': return (
         <div className="flex items-center justify-center h-96">
