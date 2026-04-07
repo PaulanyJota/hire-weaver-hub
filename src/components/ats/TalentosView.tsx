@@ -1,47 +1,226 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { AtsButton } from './AtsButton';
 import { Icons } from './Icons';
+import { supabase } from '@/integrations/supabase/client';
 import type { Postulante } from '@/hooks/usePostulantes';
 
 interface TalentosViewProps {
   showToast: (msg: string) => void;
-  postulantes: Postulante[];
-  loading: boolean;
-  page: number;
-  totalPages: number;
-  totalCount: number;
-  onPageChange: (p: number) => void;
-  searchQuery: string;
-  onSearchChange: (q: string) => void;
 }
 
 const getAvatar = (nombre: string) =>
   nombre.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
 
-export const TalentosView: React.FC<TalentosViewProps> = ({
-  showToast, postulantes, loading, page, totalPages, totalCount, onPageChange, searchQuery, onSearchChange,
-}) => {
-  const pageNumbers = () => {
-    const pages: (number | '...')[] = [];
-    if (totalPages <= 7) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      pages.push(1);
-      if (page > 3) pages.push('...');
-      for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i);
-      if (page < totalPages - 2) pages.push('...');
-      pages.push(totalPages);
-    }
-    return pages;
-  };
+/** Strip trailing date/time stamps from vacante_origen to normalize grouping */
+const normalizeCargo = (raw: string | null): string => {
+  if (!raw) return 'Sin vacante';
+  // Remove trailing date patterns like "2026-04-01 09:16:18" or "2026-04-01 1"
+  let cleaned = raw.replace(/\s+\d{4}-\d{2}-\d{2}[\s\d:]*$/, '').trim();
+  // Remove leading "Postulo " or "Re: "
+  cleaned = cleaned.replace(/^(Postulo\s+|Re:\s+)/i, '').trim();
+  // Remove "Nueva Clave..." type system emails
+  if (cleaned.toLowerCase().includes('nueva clave') || cleaned.toLowerCase().includes('api')) return '__system__';
+  return cleaned || 'Sin vacante';
+};
 
+const formatDate = (d: string | null) => {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+};
+
+export const TalentosView: React.FC<TalentosViewProps> = ({ showToast }) => {
+  const [allPostulantes, setAllPostulantes] = useState<Postulante[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedCargo, setSelectedCargo] = useState<string | null>(null);
+  const [selectedPostulante, setSelectedPostulante] = useState<Postulante | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  useEffect(() => {
+    const fetch = async () => {
+      setLoading(true);
+      const { data } = await supabase
+        .from('postulantes')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (data) setAllPostulantes(data);
+      setLoading(false);
+    };
+    fetch();
+  }, []);
+
+  // Group by normalized cargo
+  const grouped = useMemo(() => {
+    const map: Record<string, Postulante[]> = {};
+    for (const p of allPostulantes) {
+      const cargo = normalizeCargo(p.vacante_origen);
+      if (cargo === '__system__') continue;
+      if (!map[cargo]) map[cargo] = [];
+      map[cargo].push(p);
+    }
+    // Sort by count desc
+    return Object.entries(map).sort((a, b) => b[1].length - a[1].length);
+  }, [allPostulantes]);
+
+  const filteredGrouped = useMemo(() => {
+    if (!searchQuery.trim()) return grouped;
+    const q = searchQuery.toLowerCase();
+    return grouped.filter(([cargo, posts]) =>
+      cargo.toLowerCase().includes(q) || posts.some(p => p.nombre.toLowerCase().includes(q))
+    );
+  }, [grouped, searchQuery]);
+
+  const cargoPostulantes = useMemo(() => {
+    if (!selectedCargo) return [];
+    const entry = grouped.find(([c]) => c === selectedCargo);
+    return entry ? entry[1] : [];
+  }, [selectedCargo, grouped]);
+
+  // === Profile View ===
+  if (selectedPostulante) {
+    const p = selectedPostulante;
+    return (
+      <div style={{ animation: 'fadeSlide 0.3s' }}>
+        <button
+          onClick={() => setSelectedPostulante(null)}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 bg-transparent border-none cursor-pointer transition-colors"
+        >
+          ← Volver a {selectedCargo}
+        </button>
+
+        <div className="bg-card rounded-2xl border border-border p-8 max-w-3xl">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-16 h-16 rounded-full bg-primary/10 text-primary text-xl font-bold flex items-center justify-center">
+              {getAvatar(p.nombre)}
+            </div>
+            <div>
+              <h1 className="text-xl font-bold text-foreground">{p.nombre}</h1>
+              <p className="text-sm text-muted-foreground">{p.profesion || 'Sin profesión'}</p>
+            </div>
+            <span className="ml-auto text-xs px-3 py-1 rounded-full bg-primary/10 text-primary font-semibold">
+              {p.estado_pipeline || 'Nuevo'}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6 mb-8">
+            {[
+              { label: 'Email', value: p.email },
+              { label: 'Teléfono', value: p.telefono },
+              { label: 'Experiencia', value: p.experiencia },
+              { label: 'Pretensión de Renta', value: p.pretension_renta },
+              { label: 'Match Score', value: p.match_score != null ? `${p.match_score}%` : null },
+              { label: 'Fecha Postulación', value: formatDate(p.fecha_postulacion) },
+              { label: 'Fuente', value: p.fuente },
+              { label: 'Vacante Origen', value: p.vacante_origen },
+            ].map(({ label, value }) => (
+              <div key={label}>
+                <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-1">{label}</p>
+                <p className="text-sm font-medium text-foreground">{value || '—'}</p>
+              </div>
+            ))}
+          </div>
+
+          {p.habilidades && p.habilidades.length > 0 && (
+            <div className="mb-6">
+              <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-2">Habilidades</p>
+              <div className="flex flex-wrap gap-2">
+                {p.habilidades.map(h => (
+                  <span key={h} className="px-2.5 py-1 bg-muted text-secondary-foreground text-xs font-medium rounded-lg">{h}</span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {p.notas && (
+            <div className="mb-6">
+              <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-2">Notas</p>
+              <p className="text-sm text-foreground bg-muted p-4 rounded-xl whitespace-pre-wrap">{p.notas}</p>
+            </div>
+          )}
+
+          <div className="flex gap-3 mt-4">
+            {p.email && (
+              <AtsButton variant="secondary" small onClick={() => window.open(`mailto:${p.email}`)}>
+                ✉ Enviar Email
+              </AtsButton>
+            )}
+            {p.telefono && (
+              <AtsButton small onClick={() => window.open(`https://wa.me/56${p.telefono?.replace(/\D/g, '')}`, '_blank')}>
+                💬 WhatsApp
+              </AtsButton>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // === Postulantes List for a Cargo ===
+  if (selectedCargo) {
+    return (
+      <div style={{ animation: 'fadeSlide 0.3s' }}>
+        <button
+          onClick={() => setSelectedCargo(null)}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 bg-transparent border-none cursor-pointer transition-colors"
+        >
+          ← Volver a cargos
+        </button>
+
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-bold text-foreground tracking-tight">{selectedCargo}</h1>
+            <p className="text-sm text-muted-foreground mt-1">{cargoPostulantes.length} postulantes</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {cargoPostulantes.map(t => (
+            <div
+              key={t.id}
+              onClick={() => setSelectedPostulante(t)}
+              className="bg-card rounded-2xl p-5 border border-border transition-all hover:shadow-md hover:border-primary/30 cursor-pointer"
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center">{getAvatar(t.nombre)}</div>
+                  <div>
+                    <p className="font-semibold text-foreground">{t.nombre}</p>
+                    <p className="text-xs text-muted-foreground">{t.profesion || 'Sin profesión'}</p>
+                  </div>
+                </div>
+                <span className="text-xs px-2 py-0.5 rounded-md bg-muted text-muted-foreground font-medium">
+                  {t.estado_pipeline || 'Nuevo'}
+                </span>
+              </div>
+
+              <div className="flex gap-6">
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase font-semibold">Experiencia</p>
+                  <p className="text-sm font-semibold text-foreground">{t.experiencia || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase font-semibold">Pretensión</p>
+                  <p className="text-sm font-semibold text-foreground">{t.pretension_renta || '—'}</p>
+                </div>
+                <div>
+                  <p className="text-[10px] text-muted-foreground uppercase font-semibold">Match</p>
+                  <p className="text-sm font-semibold text-foreground">{t.match_score ?? 0}%</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  // === Cargo List (grouped) ===
   return (
     <div style={{ animation: 'fadeSlide 0.3s' }}>
       <div className="flex items-center justify-between mb-8">
         <div>
           <h1 className="text-2xl font-bold text-foreground tracking-tight">Repositorio de Talentos</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            {totalCount} postulantes en la base de datos.
+            {allPostulantes.length} postulantes en {grouped.length} cargos.
           </p>
         </div>
         <AtsButton icon={Icons.plus} onClick={() => showToast('Abriendo importador de CVs (PDF/Word)...')}>Importar CVs</AtsButton>
@@ -50,13 +229,13 @@ export const TalentosView: React.FC<TalentosViewProps> = ({
       {/* Search */}
       <div className="flex items-end gap-4 mb-8 bg-card p-5 rounded-2xl border border-border">
         <div className="flex-1">
-          <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Buscar Postulante</label>
+          <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Buscar cargo o postulante</label>
           <div className="relative">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{Icons.search}</span>
             <input
-              placeholder="Nombre, profesión o email..."
+              placeholder="Operario, Gruero, Ejecutivo..."
               value={searchQuery}
-              onChange={e => { onSearchChange(e.target.value); onPageChange(1); }}
+              onChange={e => setSearchQuery(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-muted border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
             />
           </div>
@@ -65,97 +244,44 @@ export const TalentosView: React.FC<TalentosViewProps> = ({
 
       {loading ? (
         <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">Cargando postulantes...</div>
-      ) : postulantes.length === 0 ? (
-        <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">No se encontraron postulantes.</div>
+      ) : filteredGrouped.length === 0 ? (
+        <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">No se encontraron cargos.</div>
       ) : (
-        <>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {postulantes.map(t => (
-              <div key={t.id} className="bg-card rounded-2xl p-5 border border-border transition-all hover:shadow-md hover:border-primary/30">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center">{getAvatar(t.nombre)}</div>
-                    <div>
-                      <p className="font-semibold text-foreground">{t.nombre}</p>
-                      <p className="text-xs text-muted-foreground">{t.profesion || 'Sin profesión'}</p>
-                    </div>
-                  </div>
-                  <span className="text-xs px-2 py-0.5 rounded-md bg-muted text-muted-foreground font-medium">
-                    {t.estado_pipeline || 'Nuevo'}
-                  </span>
+        <div className="flex flex-col gap-3">
+          {filteredGrouped.map(([cargo, posts]) => (
+            <div
+              key={cargo}
+              onClick={() => setSelectedCargo(cargo)}
+              className="bg-card rounded-2xl p-5 border border-border transition-all hover:shadow-md hover:border-primary/30 cursor-pointer flex items-center justify-between"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary text-sm font-bold flex items-center justify-center">
+                  📋
                 </div>
-
-                <div className="flex gap-6 mb-4">
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">Experiencia</p>
-                    <p className="text-sm font-semibold text-foreground">{t.experiencia || '—'}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">Pretensión</p>
-                    <p className="text-sm font-semibold text-foreground">{t.pretension_renta || '—'}</p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-muted-foreground uppercase font-semibold">Match</p>
-                    <p className="text-sm font-semibold text-foreground">{t.match_score ?? 0}%</p>
-                  </div>
-                </div>
-
-                {t.habilidades && t.habilidades.length > 0 && (
-                  <div className="mb-4">
-                    <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-1.5">Habilidades</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {t.habilidades.map(h => (
-                        <span key={h} className="px-2 py-0.5 bg-muted text-secondary-foreground text-[11px] font-medium rounded-md">{h}</span>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                <div className="flex gap-2">
-                  <AtsButton variant="secondary" small onClick={() => showToast(`Perfil de ${t.nombre}`)} style={{ flex: 1 }}>Ver Perfil</AtsButton>
-                  <AtsButton small onClick={() => showToast(`Asignando a ${t.nombre}...`)} style={{ flex: 1 }}>Asignar</AtsButton>
+                <div>
+                  <p className="font-semibold text-foreground">{cargo}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{posts.length} postulante{posts.length !== 1 ? 's' : ''}</p>
                 </div>
               </div>
-            ))}
-          </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 mt-8">
-              <button
-                onClick={() => onPageChange(page - 1)}
-                disabled={page === 1}
-                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-border bg-card text-foreground disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted transition-colors cursor-pointer"
-              >
-                ← Anterior
-              </button>
-              {pageNumbers().map((p, i) =>
-                p === '...' ? (
-                  <span key={`e${i}`} className="px-2 text-muted-foreground">…</span>
-                ) : (
-                  <button
-                    key={p}
-                    onClick={() => onPageChange(p as number)}
-                    className={`w-9 h-9 text-sm font-medium rounded-lg border cursor-pointer transition-colors ${
-                      p === page
-                        ? 'bg-primary text-primary-foreground border-primary'
-                        : 'border-border bg-card text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    {p}
-                  </button>
-                )
-              )}
-              <button
-                onClick={() => onPageChange(page + 1)}
-                disabled={page === totalPages}
-                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-border bg-card text-foreground disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted transition-colors cursor-pointer"
-              >
-                Siguiente →
-              </button>
+              <div className="flex items-center gap-3">
+                {/* Mini avatars */}
+                <div className="flex -space-x-2">
+                  {posts.slice(0, 3).map(p => (
+                    <div key={p.id} className="w-7 h-7 rounded-full bg-muted border-2 border-card text-[9px] font-bold text-muted-foreground flex items-center justify-center">
+                      {getAvatar(p.nombre)}
+                    </div>
+                  ))}
+                  {posts.length > 3 && (
+                    <div className="w-7 h-7 rounded-full bg-muted border-2 border-card text-[9px] font-bold text-muted-foreground flex items-center justify-center">
+                      +{posts.length - 3}
+                    </div>
+                  )}
+                </div>
+                <span className="text-muted-foreground">→</span>
+              </div>
             </div>
-          )}
-        </>
+          ))}
+        </div>
       )}
     </div>
   );
