@@ -23,7 +23,7 @@ const Index = () => {
   const [vacanteToShare, setVacanteToShare] = useState<Vacante | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const { toasts, show: showToast } = useAppToast();
-
+  const { postulantes, loading: postulantesLoading, updateEstadoPipeline } = usePostulantes();
   const [newForm, setNewForm] = useState({ cargo: '', clienteId: '1', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
 
   const switchTab = (tab: string) => {
