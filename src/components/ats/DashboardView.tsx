@@ -145,7 +145,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
                   >
                     <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-foreground capitalize">{p.nombre.replace(/['"]/g, '').toLowerCase()}</p>
+                      <p className="text-sm font-medium text-foreground capitalize">{p.nombre.replace(/['"]/g, '').toLowerCase()} <span className="text-xs font-normal text-muted-foreground">— {p.vacante_origen || 'Sin cargo'}</span></p>
                       <p className="text-xs text-muted-foreground">{p.profesion || 'Sin profesión'} · {formatDateTime(p.created_at)}</p>
                     </div>
                   </div>
