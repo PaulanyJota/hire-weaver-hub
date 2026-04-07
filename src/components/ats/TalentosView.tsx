@@ -97,9 +97,24 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast }) => {
               <h1 className="text-xl font-bold text-foreground">{p.nombre}</h1>
               <p className="text-sm text-muted-foreground">{p.profesion || 'Sin profesión'}</p>
             </div>
-            <span className="ml-auto text-xs px-3 py-1 rounded-full bg-primary/10 text-primary font-semibold">
-              {p.estado_pipeline || 'Nuevo'}
-            </span>
+            <select
+              value={p.estado_pipeline || 'Postulantes Nuevos'}
+              onChange={async (e) => {
+                const nuevoEstado = e.target.value;
+                const { error } = await supabase
+                  .from('postulantes')
+                  .update({ estado_pipeline: nuevoEstado })
+                  .eq('id', p.id);
+                if (!error) {
+                  setSelectedPostulante({ ...p, estado_pipeline: nuevoEstado });
+                  setAllPostulantes(prev => prev.map(x => x.id === p.id ? { ...x, estado_pipeline: nuevoEstado } : x));
+                  showToast(`Estado actualizado a "${nuevoEstado}"`);
+                }
+              }}
+              className="ml-auto text-xs px-3 py-1.5 rounded-lg border border-border bg-muted text-foreground font-semibold cursor-pointer outline-none focus:ring-2 focus:ring-primary/20"
+            >
+              {PIPELINE_STAGES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-6 mb-8">
