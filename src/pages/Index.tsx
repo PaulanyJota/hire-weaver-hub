@@ -37,19 +37,6 @@ const Index = () => {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    const nv: Vacante = {
-      id: vacantes.length + 1,
-      cargo: newForm.cargo,
-      clienteId: parseInt(newForm.clienteId),
-      tipo: newForm.tipo,
-      ubicacion: newForm.ubicacion,
-      renta: newForm.renta,
-      estado: 'Activa',
-      fecha: new Date().toISOString().split('T')[0],
-      postulantes: 0,
-      responsableId: newForm.responsableId,
-    };
-    setVacantes([nv, ...vacantes]);
     setIsCreateModalOpen(false);
     showToast('¡Vacante creada exitosamente!');
     setNewForm({ cargo: '', clienteId: '1', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
