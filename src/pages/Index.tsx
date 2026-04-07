@@ -10,7 +10,7 @@ import { AppModal } from '@/components/ats/AppModal';
 import { ToastContainer } from '@/components/ats/ToastContainer';
 import { Icons } from '@/components/ats/Icons';
 import { useAppToast } from '@/hooks/useAppToast';
-import { usePostulantes, useAllPostulantes } from '@/hooks/usePostulantes';
+import { useAllPostulantes } from '@/hooks/usePostulantes';
 import { INITIAL_VACANTES, INITIAL_PIPELINE, MOCK_CLIENTES, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
 
 const Index = () => {
@@ -23,7 +23,6 @@ const Index = () => {
   const [vacanteToShare, setVacanteToShare] = useState<Vacante | null>(null);
   const [headerSearch, setHeaderSearch] = useState('');
   const { toasts, show: showToast } = useAppToast();
-  const { postulantes, loading: postulantesLoading, page, setPage, totalPages, totalCount, searchQuery: talentosSearch, setSearchQuery: setTalentosSearch } = usePostulantes();
   const { postulantes: allPostulantes, updateEstadoPipeline } = useAllPostulantes();
   const [newForm, setNewForm] = useState({ cargo: '', clienteId: '1', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
 
@@ -81,7 +80,7 @@ const Index = () => {
           onShareVacante={v => setVacanteToShare(v)}
         />
       );
-      case 'talentos': return <TalentosView showToast={showToast} postulantes={postulantes} loading={postulantesLoading} page={page} totalPages={totalPages} totalCount={totalCount} onPageChange={setPage} searchQuery={talentosSearch} onSearchChange={setTalentosSearch} />;
+      case 'talentos': return <TalentosView showToast={showToast} />;
       case 'pipeline': return <SupabasePipelineView postulantes={allPostulantes} updateEstadoPipeline={updateEstadoPipeline} showToast={showToast} />;
       case 'clientes': return <ClientesView showToast={showToast} />;
       case 'settings': return (
