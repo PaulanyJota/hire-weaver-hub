@@ -101,6 +101,50 @@ export type Database = {
         }
         Relationships: []
       }
+      vacantes: {
+        Row: {
+          cargo: string
+          cliente_id: string
+          created_at: string
+          estado: string | null
+          id: string
+          renta: string | null
+          responsable_id: string | null
+          tipo: string | null
+          ubicacion: string | null
+        }
+        Insert: {
+          cargo: string
+          cliente_id: string
+          created_at?: string
+          estado?: string | null
+          id?: string
+          renta?: string | null
+          responsable_id?: string | null
+          tipo?: string | null
+          ubicacion?: string | null
+        }
+        Update: {
+          cargo?: string
+          cliente_id?: string
+          created_at?: string
+          estado?: string | null
+          id?: string
+          renta?: string | null
+          responsable_id?: string | null
+          tipo?: string | null
+          ubicacion?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vacantes_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
