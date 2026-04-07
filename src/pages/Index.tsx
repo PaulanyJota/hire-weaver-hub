@@ -16,7 +16,6 @@ import { INITIAL_PIPELINE, MOCK_CLIENTES, RESPONSABLES, type Vacante, type Pipel
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedVacante, setSelectedVacante] = useState<Vacante | null>(null);
-  const [vacantes, setVacantes] = useState(INITIAL_VACANTES);
   const [pipelineState, setPipelineState] = useState<PipelineEntry[]>(INITIAL_PIPELINE);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -74,10 +73,9 @@ const Index = () => {
       case 'dashboard': return <DashboardView onNewVacante={() => setIsCreateModalOpen(true)} />;
       case 'vacantes': return (
         <VacantesView
-          vacantes={vacantes}
-          onViewPipeline={v => { setSelectedVacante(v); }}
+          onViewPipeline={(cargo) => showToast(`Pipeline de "${cargo}" próximamente`)}
           onNewVacante={() => setIsCreateModalOpen(true)}
-          onShareVacante={v => setVacanteToShare(v)}
+          showToast={showToast}
         />
       );
       case 'talentos': return <TalentosView showToast={showToast} />;
