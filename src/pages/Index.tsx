@@ -21,9 +21,9 @@ const Index = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [vacanteToShare, setVacanteToShare] = useState<Vacante | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [headerSearch, setHeaderSearch] = useState('');
   const { toasts, show: showToast } = useAppToast();
-  const { postulantes, loading: postulantesLoading, page, setPage, totalPages, totalCount, searchQuery, setSearchQuery } = usePostulantes();
+  const { postulantes, loading: postulantesLoading, page, setPage, totalPages, totalCount, searchQuery: talentosSearch, setSearchQuery: setTalentosSearch } = usePostulantes();
   const { postulantes: allPostulantes, updateEstadoPipeline } = useAllPostulantes();
   const [newForm, setNewForm] = useState({ cargo: '', clienteId: '1', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
 
