@@ -24,7 +24,12 @@ const tipoColor: Record<string, string> = {
   'Outsourcing': 'yellow',
 };
 
-export const VacantesView: React.FC<VacantesViewProps> = ({ vacantes, onViewPipeline, onNewVacante, onShareVacante }) => (
+export const VacantesView: React.FC<VacantesViewProps> = ({ vacantes, onViewPipeline, onNewVacante, onShareVacante }) => {
+  const [selectedResponsable, setSelectedResponsable] = useState<string | null>(null);
+  const respData = selectedResponsable ? RESPONSABLES.find(r => r.id === selectedResponsable) : null;
+  const respVacantes = selectedResponsable ? vacantes.filter(v => v.responsableId === selectedResponsable) : [];
+
+  return (
   <div style={{ animation: 'fadeSlide 0.3s' }}>
     <div className="flex items-center justify-between mb-8">
       <div>
@@ -63,10 +68,13 @@ export const VacantesView: React.FC<VacantesViewProps> = ({ vacantes, onViewPipe
                 {(() => {
                   const resp = RESPONSABLES.find(r => r.id === v.responsableId);
                   return resp ? (
-                    <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setSelectedResponsable(resp.id)}
+                      className="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0"
+                    >
                       <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">{resp.iniciales}</span>
                       <span className="text-sm text-muted-foreground">{resp.nombre.split(' ')[0]}</span>
-                    </div>
+                    </button>
                   ) : '—';
                 })()}
               </td>
@@ -90,5 +98,39 @@ export const VacantesView: React.FC<VacantesViewProps> = ({ vacantes, onViewPipe
         </tbody>
       </table>
     </div>
+
+    {/* Modal de Responsable */}
+    <AppModal isOpen={!!selectedResponsable} onClose={() => setSelectedResponsable(null)} title={`Vacantes de ${respData?.nombre || ''}`} width={600}>
+      {respData && (
+        <div className="flex flex-col gap-4">
+          <div className="flex items-center gap-3 mb-2">
+            <span className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center">{respData.iniciales}</span>
+            <div>
+              <p className="font-semibold text-foreground">{respData.nombre}</p>
+              <p className="text-xs text-muted-foreground">{respVacantes.length} vacante{respVacantes.length !== 1 ? 's' : ''} asignada{respVacantes.length !== 1 ? 's' : ''}</p>
+            </div>
+          </div>
+          {respVacantes.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-6">Sin vacantes asignadas.</p>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {respVacantes.map(v => (
+                <div key={v.id} className="flex items-center justify-between p-3 bg-muted rounded-xl">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{v.cargo}</p>
+                    <p className="text-xs text-muted-foreground">{MOCK_CLIENTES.find(c => c.id === v.clienteId)?.nombre} · {v.ubicacion}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <AtsBadge color={estadoColor[v.estado] || 'gray'}>{v.estado}</AtsBadge>
+                    <span className="text-xs font-mono text-muted-foreground">{v.postulantes} post.</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </AppModal>
   </div>
-);
+  );
+};
