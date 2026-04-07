@@ -105,12 +105,9 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast }) => {
             {[
               { label: 'Email', value: p.email },
               { label: 'Teléfono', value: p.telefono },
-              { label: 'Experiencia', value: p.experiencia },
               { label: 'Pretensión de Renta', value: p.pretension_renta },
-              { label: 'Match Score', value: p.match_score != null ? `${p.match_score}%` : null },
+              { label: 'Estado Pipeline', value: p.estado_pipeline },
               { label: 'Fecha Postulación', value: formatDate(p.fecha_postulacion) },
-              { label: 'Fuente', value: p.fuente },
-              { label: 'Vacante Origen', value: p.vacante_origen },
             ].map(({ label, value }) => (
               <div key={label}>
                 <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-1">{label}</p>
@@ -184,27 +181,12 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast }) => {
                   <div className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center">{getAvatar(t.nombre)}</div>
                   <div>
                     <p className="font-semibold text-foreground">{t.nombre}</p>
-                    <p className="text-xs text-muted-foreground">{t.profesion || 'Sin profesión'}</p>
+                    <p className="text-xs text-muted-foreground">{t.email || 'Sin email'}</p>
                   </div>
                 </div>
                 <span className="text-xs px-2 py-0.5 rounded-md bg-muted text-muted-foreground font-medium">
                   {t.estado_pipeline || 'Nuevo'}
                 </span>
-              </div>
-
-              <div className="flex gap-6">
-                <div>
-                  <p className="text-[10px] text-muted-foreground uppercase font-semibold">Experiencia</p>
-                  <p className="text-sm font-semibold text-foreground">{t.experiencia || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted-foreground uppercase font-semibold">Pretensión</p>
-                  <p className="text-sm font-semibold text-foreground">{t.pretension_renta || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] text-muted-foreground uppercase font-semibold">Match</p>
-                  <p className="text-sm font-semibold text-foreground">{t.match_score ?? 0}%</p>
-                </div>
               </div>
             </div>
           ))}
