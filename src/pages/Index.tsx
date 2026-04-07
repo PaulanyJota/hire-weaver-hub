@@ -81,7 +81,7 @@ const Index = () => {
           onShareVacante={v => setVacanteToShare(v)}
         />
       );
-      case 'talentos': return <TalentosView showToast={showToast} postulantes={postulantes} loading={postulantesLoading} page={page} totalPages={totalPages} totalCount={totalCount} onPageChange={setPage} searchQuery={searchQuery} onSearchChange={setSearchQuery} />;
+      case 'talentos': return <TalentosView showToast={showToast} postulantes={postulantes} loading={postulantesLoading} page={page} totalPages={totalPages} totalCount={totalCount} onPageChange={setPage} searchQuery={talentosSearch} onSearchChange={setTalentosSearch} />;
       case 'pipeline': return <SupabasePipelineView postulantes={allPostulantes} updateEstadoPipeline={updateEstadoPipeline} showToast={showToast} />;
       case 'clientes': return <ClientesView showToast={showToast} />;
       case 'settings': return (
@@ -114,8 +114,8 @@ const Index = () => {
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{Icons.search}</span>
             <input
               placeholder="Buscar vacantes, candidatos, clientes..."
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
+              value={headerSearch}
+              onChange={e => setHeaderSearch(e.target.value)}
               className="w-full pl-9 pr-4 py-2 bg-muted border border-transparent rounded-lg text-sm outline-none focus:bg-card focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all"
             />
           </div>
