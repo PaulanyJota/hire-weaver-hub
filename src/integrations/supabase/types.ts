@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      clientes: {
+        Row: {
+          contacto: string | null
+          created_at: string
+          email: string | null
+          estado: string
+          id: string
+          industria: string | null
+          nombre: string
+        }
+        Insert: {
+          contacto?: string | null
+          created_at?: string
+          email?: string | null
+          estado?: string
+          id?: string
+          industria?: string | null
+          nombre: string
+        }
+        Update: {
+          contacto?: string | null
+          created_at?: string
+          email?: string | null
+          estado?: string
+          id?: string
+          industria?: string | null
+          nombre?: string
+        }
+        Relationships: []
+      }
       postulantes: {
         Row: {
           created_at: string | null
