@@ -30,9 +30,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onToggle
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-5" style={{ minHeight: 64 }}>
         {!collapsed && (
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">N</div>
-            <span className="font-bold text-sm" style={{ color: 'hsl(var(--sidebar-text-hover))' }}>NODO Talentos</span>
+          <div className="flex items-center gap-2">
+            <img src={nodoLogo} alt="Nodo Conectando Talentos" className="h-8 w-8 rounded-lg object-cover" />
+            <span className="font-bold text-sm" style={{ color: 'hsl(var(--sidebar-text-hover))' }}>Nodo</span>
           </div>
         )}
         <button
