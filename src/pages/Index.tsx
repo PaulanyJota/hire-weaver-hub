@@ -11,12 +11,11 @@ import { ToastContainer } from '@/components/ats/ToastContainer';
 import { Icons } from '@/components/ats/Icons';
 import { useAppToast } from '@/hooks/useAppToast';
 import { useAllPostulantes } from '@/hooks/usePostulantes';
-import { INITIAL_VACANTES, INITIAL_PIPELINE, MOCK_CLIENTES, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
+import { INITIAL_PIPELINE, MOCK_CLIENTES, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedVacante, setSelectedVacante] = useState<Vacante | null>(null);
-  const [vacantes, setVacantes] = useState(INITIAL_VACANTES);
   const [pipelineState, setPipelineState] = useState<PipelineEntry[]>(INITIAL_PIPELINE);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -38,19 +37,6 @@ const Index = () => {
 
   const handleCreate = (e: React.FormEvent) => {
     e.preventDefault();
-    const nv: Vacante = {
-      id: vacantes.length + 1,
-      cargo: newForm.cargo,
-      clienteId: parseInt(newForm.clienteId),
-      tipo: newForm.tipo,
-      ubicacion: newForm.ubicacion,
-      renta: newForm.renta,
-      estado: 'Activa',
-      fecha: new Date().toISOString().split('T')[0],
-      postulantes: 0,
-      responsableId: newForm.responsableId,
-    };
-    setVacantes([nv, ...vacantes]);
     setIsCreateModalOpen(false);
     showToast('¡Vacante creada exitosamente!');
     setNewForm({ cargo: '', clienteId: '1', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
@@ -74,10 +60,9 @@ const Index = () => {
       case 'dashboard': return <DashboardView onNewVacante={() => setIsCreateModalOpen(true)} />;
       case 'vacantes': return (
         <VacantesView
-          vacantes={vacantes}
-          onViewPipeline={v => { setSelectedVacante(v); }}
+          onViewPipeline={(cargo) => showToast(`Pipeline de "${cargo}" próximamente`)}
           onNewVacante={() => setIsCreateModalOpen(true)}
-          onShareVacante={v => setVacanteToShare(v)}
+          showToast={showToast}
         />
       );
       case 'talentos': return <TalentosView showToast={showToast} />;
