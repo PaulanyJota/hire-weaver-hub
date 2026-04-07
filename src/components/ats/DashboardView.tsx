@@ -55,8 +55,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
         }));
         setPipelineCounts(counts);
 
-        // Recent activity (last 5)
-        setRecentPostulantes(allData.slice(0, 5));
+        // Recent new postulantes only (estado_pipeline = 'Postulantes Nuevos')
+        setRecentPostulantes(allData.filter(p => p.estado_pipeline === 'Postulantes Nuevos').slice(0, 5));
       }
 
       setLoading(false);
@@ -75,15 +75,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
     { title: 'Tasa de Colocación', value: `${tasaColocacion}%`, trend: `${contratados} contratados`, icon: '📈', accent: '#7C3AED', bg: '#F5F3FF' },
   ];
 
-  const formatTimeAgo = (dateStr: string | null) => {
+  const formatDateTime = (dateStr: string | null) => {
     if (!dateStr) return '';
-    const diff = Date.now() - new Date(dateStr).getTime();
-    const mins = Math.floor(diff / 60000);
-    if (mins < 60) return `Hace ${mins} min`;
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `Hace ${hours}h`;
-    const days = Math.floor(hours / 24);
-    return `Hace ${days}d`;
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' }) + ' · ' + d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -137,7 +132,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
             </div>
 
             <div className="bg-card rounded-2xl p-6 border border-border">
-              <h3 className="text-sm font-semibold text-foreground mb-5">Últimos Postulantes</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-5">Nuevos Postulantes</h3>
               <div className="flex flex-col gap-4">
                 {recentPostulantes.map((p, i) => (
                   <div
@@ -148,7 +143,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
                     <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-foreground">{p.nombre}</p>
-                      <p className="text-xs text-muted-foreground">{p.profesion || 'Sin profesión'} · {formatTimeAgo(p.created_at)}</p>
+                      <p className="text-xs text-muted-foreground">{p.profesion || 'Sin profesión'} · {formatDateTime(p.created_at)}</p>
                     </div>
                   </div>
                 ))}
