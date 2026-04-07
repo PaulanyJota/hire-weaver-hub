@@ -132,7 +132,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
             </div>
 
             <div className="bg-card rounded-2xl p-6 border border-border">
-              <h3 className="text-sm font-semibold text-foreground mb-5">Últimos Postulantes</h3>
+              <h3 className="text-sm font-semibold text-foreground mb-5">Nuevos Postulantes</h3>
               <div className="flex flex-col gap-4">
                 {recentPostulantes.map((p, i) => (
                   <div
