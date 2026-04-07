@@ -2,7 +2,7 @@ import React from 'react';
 import { AtsButton } from './AtsButton';
 import { AtsBadge } from './AtsBadge';
 import { Icons } from './Icons';
-import { MOCK_CLIENTES, type Vacante } from '@/data/mockData';
+import { MOCK_CLIENTES, RESPONSABLES, type Vacante } from '@/data/mockData';
 
 interface VacantesViewProps {
   vacantes: Vacante[];
@@ -40,7 +40,7 @@ export const VacantesView: React.FC<VacantesViewProps> = ({ vacantes, onViewPipe
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border">
-            {['Cargo', 'Cliente', 'Servicio', 'Estado', 'Postulantes', 'Acciones'].map(h => (
+            {['Cargo', 'Cliente', 'Responsable', 'Servicio', 'Estado', 'Postulantes', 'Acciones'].map(h => (
               <th key={h} className="text-left px-5 py-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider">{h}</th>
             ))}
           </tr>
@@ -57,6 +57,17 @@ export const VacantesView: React.FC<VacantesViewProps> = ({ vacantes, onViewPipe
               </td>
               <td className="px-5 py-4 text-muted-foreground">
                 {MOCK_CLIENTES.find(c => c.id === v.clienteId)?.nombre || '—'}
+              </td>
+              <td className="px-5 py-4">
+                {(() => {
+                  const resp = RESPONSABLES.find(r => r.id === v.responsableId);
+                  return resp ? (
+                    <div className="flex items-center gap-2">
+                      <span className="w-7 h-7 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center justify-center">{resp.iniciales}</span>
+                      <span className="text-sm text-muted-foreground">{resp.nombre.split(' ')[0]}</span>
+                    </div>
+                  ) : '—';
+                })()}
               </td>
               <td className="px-5 py-4">
                 <AtsBadge color={tipoColor[v.tipo] || 'gray'}>{v.tipo}</AtsBadge>

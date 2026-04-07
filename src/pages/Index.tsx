@@ -9,7 +9,7 @@ import { AppModal } from '@/components/ats/AppModal';
 import { ToastContainer } from '@/components/ats/ToastContainer';
 import { Icons } from '@/components/ats/Icons';
 import { useAppToast } from '@/hooks/useAppToast';
-import { INITIAL_VACANTES, INITIAL_PIPELINE, MOCK_CLIENTES, type Vacante, type PipelineEntry } from '@/data/mockData';
+import { INITIAL_VACANTES, INITIAL_PIPELINE, MOCK_CLIENTES, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -22,7 +22,7 @@ const Index = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const { toasts, show: showToast } = useAppToast();
 
-  const [newForm, setNewForm] = useState({ cargo: '', clienteId: '1', tipo: 'Reclutamiento', ubicacion: '', renta: '' });
+  const [newForm, setNewForm] = useState({ cargo: '', clienteId: '1', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
 
   const switchTab = (tab: string) => {
     setActiveTab(tab);
@@ -46,11 +46,12 @@ const Index = () => {
       estado: 'Activa',
       fecha: new Date().toISOString().split('T')[0],
       postulantes: 0,
+      responsableId: newForm.responsableId,
     };
     setVacantes([nv, ...vacantes]);
     setIsCreateModalOpen(false);
     showToast('¡Vacante creada exitosamente!');
-    setNewForm({ cargo: '', clienteId: '1', tipo: 'Reclutamiento', ubicacion: '', renta: '' });
+    setNewForm({ cargo: '', clienteId: '1', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
   };
 
   const inputClass = "w-full px-3 py-2 bg-muted border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all";
@@ -156,6 +157,12 @@ const Index = () => {
               <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Renta</label>
               <input className={inputClass} placeholder="Ej: $2.0M - $2.5M" value={newForm.renta} onChange={e => setNewForm({ ...newForm, renta: e.target.value })} />
             </div>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Responsable</label>
+            <select className={inputClass} value={newForm.responsableId} onChange={e => setNewForm({ ...newForm, responsableId: e.target.value })}>
+              {RESPONSABLES.map(r => <option key={r.id} value={r.id}>{r.iniciales} — {r.nombre}</option>)}
+            </select>
           </div>
           <div className="flex justify-end gap-2 mt-2">
             <button type="button" onClick={() => setIsCreateModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-muted-foreground bg-muted rounded-lg border-none cursor-pointer hover:bg-border transition-colors">Cancelar</button>

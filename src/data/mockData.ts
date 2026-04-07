@@ -7,6 +7,18 @@ export interface Cliente {
   estado: string;
 }
 
+export interface Responsable {
+  id: string;
+  nombre: string;
+  iniciales: string;
+}
+
+export const RESPONSABLES: Responsable[] = [
+  { id: 'JRB', nombre: 'Jose Luis Romero', iniciales: 'JRB' },
+  { id: 'AWV', nombre: 'Alan Willson Vergara', iniciales: 'AWV' },
+  { id: 'JGP', nombre: 'Jorge Gabler Perez-Cotapos', iniciales: 'JGP' },
+];
+
 export interface Vacante {
   id: number;
   cargo: string;
@@ -17,6 +29,7 @@ export interface Vacante {
   estado: string;
   fecha: string;
   postulantes: number;
+  responsableId: string;
 }
 
 export interface Talento {
@@ -43,9 +56,9 @@ export const MOCK_CLIENTES: Cliente[] = [
 ];
 
 export const INITIAL_VACANTES: Vacante[] = [
-  { id: 1, cargo: 'Desarrollador Fullstack Senior', clienteId: 1, tipo: 'Reclutamiento', ubicacion: 'Remoto / Santiago', renta: '$2.5M - $3.0M', estado: 'Activa', fecha: '2026-04-01', postulantes: 24 },
-  { id: 2, cargo: 'Operario de Bodega', clienteId: 2, tipo: 'EST', ubicacion: 'Quilicura', renta: '$600.000', estado: 'Activa', fecha: '2026-04-05', postulantes: 156 },
-  { id: 3, cargo: 'Jefe de Operaciones', clienteId: 3, tipo: 'Outsourcing', ubicacion: 'Concepción', renta: '$1.8M - $2.2M', estado: 'Pausada', fecha: '2026-03-20', postulantes: 12 },
+  { id: 1, cargo: 'Desarrollador Fullstack Senior', clienteId: 1, tipo: 'Reclutamiento', ubicacion: 'Remoto / Santiago', renta: '$2.5M - $3.0M', estado: 'Activa', fecha: '2026-04-01', postulantes: 24, responsableId: 'JRB' },
+  { id: 2, cargo: 'Operario de Bodega', clienteId: 2, tipo: 'EST', ubicacion: 'Quilicura', renta: '$600.000', estado: 'Activa', fecha: '2026-04-05', postulantes: 156, responsableId: 'AWV' },
+  { id: 3, cargo: 'Jefe de Operaciones', clienteId: 3, tipo: 'Outsourcing', ubicacion: 'Concepción', renta: '$1.8M - $2.2M', estado: 'Pausada', fecha: '2026-03-20', postulantes: 12, responsableId: 'JGP' },
 ];
 
 export const MOCK_TALENTOS: Talento[] = [
