@@ -81,7 +81,7 @@ const Index = () => {
           onShareVacante={v => setVacanteToShare(v)}
         />
       );
-      case 'talentos': return <TalentosView showToast={showToast} postulantes={postulantes} loading={postulantesLoading} page={page} totalPages={totalPages} totalCount={totalCount} onPageChange={setPage} searchQuery={talentosSearch} onSearchChange={setTalentosSearch} />;
+      case 'talentos': return <TalentosView showToast={showToast} />;
       case 'pipeline': return <SupabasePipelineView postulantes={allPostulantes} updateEstadoPipeline={updateEstadoPipeline} showToast={showToast} />;
       case 'clientes': return <ClientesView showToast={showToast} />;
       case 'settings': return (
