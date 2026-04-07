@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatName } from '@/lib/utils';
 import { AtsButton } from './AtsButton';
 import { Icons } from './Icons';
 import { supabase } from '@/integrations/supabase/client';
@@ -145,7 +146,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
                   >
                     <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-foreground capitalize">{p.nombre.replace(/['"]/g, '').toLowerCase()} <span className="text-xs font-normal text-muted-foreground">— {p.vacante_origen || 'Sin cargo'}</span></p>
+                      <p className="text-sm font-medium text-foreground">{formatName(p.nombre)} <span className="text-xs font-normal text-muted-foreground">— {p.vacante_origen || 'Sin cargo'}</span></p>
                       <p className="text-xs text-muted-foreground">{p.profesion || 'Sin profesión'} · {formatDateTime(p.created_at)}</p>
                     </div>
                   </div>
