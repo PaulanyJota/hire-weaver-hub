@@ -77,9 +77,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
 
   const formatDateTime = (dateStr: string | null) => {
     if (!dateStr) return '';
-    const d = new Date(dateStr);
+    const normalized = /[zZ]|[+-]\d{2}:?\d{2}$/.test(dateStr) ? dateStr : `${dateStr}Z`;
+    const d = new Date(normalized);
     const fecha = d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', timeZone: 'America/Santiago' });
-    const hora = d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' });
+    const hora = d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'America/Santiago' });
     return `${fecha} · ${hora}`;
   };
 
