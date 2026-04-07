@@ -1,0 +1,1 @@
+UPDATE public.postulantes SET estado_pipeline = 'Descartado' WHERE estado_pipeline = 'Postulantes Nuevos';
