@@ -83,7 +83,7 @@ export const SupabasePipelineView: React.FC<SupabasePipelineViewProps> = ({ post
                       <div className="flex items-center gap-2.5 mb-3">
                         <div className="w-8 h-8 rounded-full bg-primary/10 text-primary text-[11px] font-bold flex items-center justify-center">{getAvatar(c.nombre)}</div>
                         <div className="flex-1">
-                          <p className="text-sm font-semibold text-foreground">{c.nombre}</p>
+                          <p className="text-sm font-semibold text-foreground">{formatName(c.nombre)}</p>
                           <p className="text-[11px] text-muted-foreground">{c.profesion || 'Sin profesión'} · {c.experiencia || '—'}</p>
                         </div>
                       </div>

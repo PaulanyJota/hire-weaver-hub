@@ -187,7 +187,7 @@ export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
               {p.nombre.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
             </div>
             <div>
-              <h2 className="text-xl font-bold text-foreground">{p.nombre}</h2>
+              <h2 className="text-xl font-bold text-foreground">{formatName(p.nombre)}</h2>
               <p className="text-sm text-muted-foreground">{p.profesion || '—'}</p>
             </div>
           </div>
@@ -265,7 +265,7 @@ export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
                     onClick={() => setSelectedPostulante(p)}
                     className="border-b border-border last:border-0 hover:bg-muted/30 cursor-pointer transition-colors"
                   >
-                    <td className="px-4 py-3 font-medium text-foreground">{p.nombre}</td>
+                    <td className="px-4 py-3 font-medium text-foreground">{formatName(p.nombre)}</td>
                     <td className="px-4 py-3 text-muted-foreground">{p.email || '—'}</td>
                     <td className="px-4 py-3">
                       <AtsBadge color={p.estado_pipeline === 'Contratado' ? 'green' : p.estado_pipeline === 'Descartado' ? 'red' : 'blue'}>

@@ -111,7 +111,7 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
               {getAvatar(p.nombre)}
             </div>
             <div>
-              <h1 className="text-xl font-bold text-foreground">{p.nombre}</h1>
+              <h1 className="text-xl font-bold text-foreground">{formatName(p.nombre)}</h1>
               <p className="text-sm text-muted-foreground">{p.profesion || 'Sin profesión'}</p>
             </div>
             <select
@@ -213,7 +213,7 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center">{getAvatar(t.nombre)}</div>
                   <div>
-                    <p className="font-semibold text-foreground">{t.nombre}</p>
+                    <p className="font-semibold text-foreground">{formatName(t.nombre)}</p>
                     <p className="text-xs text-muted-foreground">{t.email || 'Sin email'}</p>
                   </div>
                 </div>
