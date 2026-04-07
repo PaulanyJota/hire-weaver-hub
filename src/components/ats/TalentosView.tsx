@@ -105,12 +105,9 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast }) => {
             {[
               { label: 'Email', value: p.email },
               { label: 'Teléfono', value: p.telefono },
-              { label: 'Experiencia', value: p.experiencia },
               { label: 'Pretensión de Renta', value: p.pretension_renta },
-              { label: 'Match Score', value: p.match_score != null ? `${p.match_score}%` : null },
+              { label: 'Estado Pipeline', value: p.estado_pipeline },
               { label: 'Fecha Postulación', value: formatDate(p.fecha_postulacion) },
-              { label: 'Fuente', value: p.fuente },
-              { label: 'Vacante Origen', value: p.vacante_origen },
             ].map(({ label, value }) => (
               <div key={label}>
                 <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-1">{label}</p>
