@@ -1,0 +1,1 @@
+DELETE FROM public.clientes WHERE nombre IN ('TechCorp Solutions', 'Retail S.A.', 'Europcar', 'Nodo Talentos', 'Cliente Logístico', 'Cliente Servicios');
