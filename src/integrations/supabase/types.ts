@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      postulantes: {
+        Row: {
+          created_at: string | null
+          cv_url: string | null
+          email: string | null
+          estado_pipeline: string | null
+          experiencia: string | null
+          fecha_postulacion: string | null
+          fuente: string | null
+          habilidades: string[] | null
+          id: string
+          match_score: number | null
+          nombre: string
+          notas: string | null
+          pretension_renta: string | null
+          profesion: string | null
+          telefono: string | null
+          vacante_origen: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          cv_url?: string | null
+          email?: string | null
+          estado_pipeline?: string | null
+          experiencia?: string | null
+          fecha_postulacion?: string | null
+          fuente?: string | null
+          habilidades?: string[] | null
+          id?: string
+          match_score?: number | null
+          nombre: string
+          notas?: string | null
+          pretension_renta?: string | null
+          profesion?: string | null
+          telefono?: string | null
+          vacante_origen?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          cv_url?: string | null
+          email?: string | null
+          estado_pipeline?: string | null
+          experiencia?: string | null
+          fecha_postulacion?: string | null
+          fuente?: string | null
+          habilidades?: string[] | null
+          id?: string
+          match_score?: number | null
+          nombre?: string
+          notas?: string | null
+          pretension_renta?: string | null
+          profesion?: string | null
+          telefono?: string | null
+          vacante_origen?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
