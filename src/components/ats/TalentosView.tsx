@@ -1,13 +1,18 @@
 import React from 'react';
 import { AtsButton } from './AtsButton';
 import { Icons } from './Icons';
-import { MOCK_TALENTOS } from '@/data/mockData';
+import type { Postulante } from '@/hooks/usePostulantes';
 
 interface TalentosViewProps {
   showToast: (msg: string) => void;
+  postulantes: Postulante[];
+  loading: boolean;
 }
 
-export const TalentosView: React.FC<TalentosViewProps> = ({ showToast }) => (
+const getAvatar = (nombre: string) =>
+  nombre.split(' ').map(w => w[0]).join('').slice(0, 2).toUpperCase();
+
+export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, postulantes, loading }) => (
   <div style={{ animation: 'fadeSlide 0.3s' }}>
     <div className="flex items-center justify-between mb-8">
       <div>
@@ -38,47 +43,58 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast }) => (
       <AtsButton>Buscar</AtsButton>
     </div>
 
-    {/* Cards */}
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-      {MOCK_TALENTOS.map(t => (
-        <div key={t.id} className="bg-card rounded-2xl p-5 border border-border transition-all hover:shadow-md hover:border-primary/30">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center">{t.avatar}</div>
+    {loading ? (
+      <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">Cargando postulantes...</div>
+    ) : postulantes.length === 0 ? (
+      <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">No hay postulantes en la base de datos.</div>
+    ) : (
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {postulantes.map(t => (
+          <div key={t.id} className="bg-card rounded-2xl p-5 border border-border transition-all hover:shadow-md hover:border-primary/30">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-primary/10 text-primary text-sm font-bold flex items-center justify-center">{getAvatar(t.nombre)}</div>
+                <div>
+                  <p className="font-semibold text-foreground">{t.nombre}</p>
+                  <p className="text-xs text-muted-foreground">{t.profesion || 'Sin profesión'}</p>
+                </div>
+              </div>
+              <button className="text-border hover:text-warning transition-colors bg-transparent border-none cursor-pointer">{Icons.star}</button>
+            </div>
+
+            <div className="flex gap-6 mb-4">
               <div>
-                <p className="font-semibold text-foreground">{t.nombre}</p>
-                <p className="text-xs text-muted-foreground">{t.profesion}</p>
+                <p className="text-[10px] text-muted-foreground uppercase font-semibold">Experiencia</p>
+                <p className="text-sm font-semibold text-foreground">{t.experiencia || '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase font-semibold">Pretensión</p>
+                <p className="text-sm font-semibold text-foreground">{t.pretension_renta || '—'}</p>
+              </div>
+              <div>
+                <p className="text-[10px] text-muted-foreground uppercase font-semibold">Match</p>
+                <p className="text-sm font-semibold text-foreground">{t.match_score ?? 0}%</p>
               </div>
             </div>
-            <button className="text-border hover:text-warning transition-colors bg-transparent border-none cursor-pointer">{Icons.star}</button>
-          </div>
 
-          <div className="flex gap-6 mb-4">
-            <div>
-              <p className="text-[10px] text-muted-foreground uppercase font-semibold">Experiencia</p>
-              <p className="text-sm font-semibold text-foreground">{t.experiencia}</p>
-            </div>
-            <div>
-              <p className="text-[10px] text-muted-foreground uppercase font-semibold">Pretensión</p>
-              <p className="text-sm font-semibold text-foreground">{t.renta}</p>
-            </div>
-          </div>
+            {t.habilidades && t.habilidades.length > 0 && (
+              <div className="mb-4">
+                <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-1.5">Habilidades</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {t.habilidades.map(h => (
+                    <span key={h} className="px-2 py-0.5 bg-muted text-secondary-foreground text-[11px] font-medium rounded-md">{h}</span>
+                  ))}
+                </div>
+              </div>
+            )}
 
-          <div className="mb-4">
-            <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-1.5">Habilidades</p>
-            <div className="flex flex-wrap gap-1.5">
-              {t.habilidades.map(h => (
-                <span key={h} className="px-2 py-0.5 bg-muted text-secondary-foreground text-[11px] font-medium rounded-md">{h}</span>
-              ))}
+            <div className="flex gap-2">
+              <AtsButton variant="secondary" small onClick={() => showToast(`Perfil de ${t.nombre}`)} style={{ flex: 1 }}>Ver Perfil</AtsButton>
+              <AtsButton small onClick={() => showToast(`Asignando a ${t.nombre}...`)} style={{ flex: 1 }}>Asignar</AtsButton>
             </div>
           </div>
-
-          <div className="flex gap-2">
-            <AtsButton variant="secondary" small onClick={() => showToast(`Perfil de ${t.nombre}`)} style={{ flex: 1 }}>Ver Perfil</AtsButton>
-            <AtsButton small onClick={() => showToast(`Asignando a ${t.nombre}...`)} style={{ flex: 1 }}>Asignar</AtsButton>
-          </div>
-        </div>
-      ))}
-    </div>
+        ))}
+      </div>
+    )}
   </div>
 );
