@@ -3,12 +3,14 @@ import { Sidebar } from '@/components/ats/Sidebar';
 import { DashboardView } from '@/components/ats/DashboardView';
 import { VacantesView } from '@/components/ats/VacantesView';
 import { PipelineView } from '@/components/ats/PipelineView';
+import { SupabasePipelineView } from '@/components/ats/SupabasePipelineView';
 import { TalentosView } from '@/components/ats/TalentosView';
 import { ClientesView } from '@/components/ats/ClientesView';
 import { AppModal } from '@/components/ats/AppModal';
 import { ToastContainer } from '@/components/ats/ToastContainer';
 import { Icons } from '@/components/ats/Icons';
 import { useAppToast } from '@/hooks/useAppToast';
+import { usePostulantes } from '@/hooks/usePostulantes';
 import { INITIAL_VACANTES, INITIAL_PIPELINE, MOCK_CLIENTES, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
 
 const Index = () => {
