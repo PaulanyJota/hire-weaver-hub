@@ -11,7 +11,7 @@ import { ToastContainer } from '@/components/ats/ToastContainer';
 import { Icons } from '@/components/ats/Icons';
 import { useAppToast } from '@/hooks/useAppToast';
 import { useAllPostulantes } from '@/hooks/usePostulantes';
-import { INITIAL_VACANTES, INITIAL_PIPELINE, MOCK_CLIENTES, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
+import { INITIAL_PIPELINE, MOCK_CLIENTES, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
