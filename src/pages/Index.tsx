@@ -11,7 +11,8 @@ import { ToastContainer } from '@/components/ats/ToastContainer';
 import { Icons } from '@/components/ats/Icons';
 import { useAppToast } from '@/hooks/useAppToast';
 import { useAllPostulantes } from '@/hooks/usePostulantes';
-import { INITIAL_PIPELINE, MOCK_CLIENTES, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
+import { INITIAL_PIPELINE, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
+import { useClientes } from '@/hooks/useClientes';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -23,7 +24,8 @@ const Index = () => {
   const [headerSearch, setHeaderSearch] = useState('');
   const { toasts, show: showToast } = useAppToast();
   const { postulantes: allPostulantes, updateEstadoPipeline } = useAllPostulantes();
-  const [newForm, setNewForm] = useState({ cargo: '', clienteId: '1', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
+  const { clientes } = useClientes();
+  const [newForm, setNewForm] = useState({ cargo: '', clienteId: '', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
   const [focusPostulanteId, setFocusPostulanteId] = useState<string | null>(null);
 
   const switchTab = (tab: string) => {
@@ -133,7 +135,8 @@ const Index = () => {
             <div>
               <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Cliente</label>
               <select className={inputClass} value={newForm.clienteId} onChange={e => setNewForm({ ...newForm, clienteId: e.target.value })}>
-                {MOCK_CLIENTES.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
+                <option value="">— Selecciona un cliente —</option>
+                {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre}</option>)}
               </select>
             </div>
             <div>
