@@ -73,7 +73,12 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast }) => {
   const cargoPostulantes = useMemo(() => {
     if (!selectedCargo) return [];
     const entry = grouped.find(([c]) => c === selectedCargo);
-    return entry ? entry[1] : [];
+    const posts = entry ? [...entry[1]] : [];
+    return posts.sort((a, b) => {
+      const da = a.fecha_postulacion ? new Date(a.fecha_postulacion).getTime() : 0;
+      const db = b.fecha_postulacion ? new Date(b.fecha_postulacion).getTime() : 0;
+      return db - da;
+    });
   }, [selectedCargo, grouped]);
 
   // === Profile View ===
