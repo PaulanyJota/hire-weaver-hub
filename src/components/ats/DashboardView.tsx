@@ -6,6 +6,7 @@ import { PIPELINE_STAGES } from '@/data/mockData';
 
 interface DashboardViewProps {
   onNewVacante: () => void;
+  onSelectPostulante?: (id: string) => void;
 }
 
 interface PipelineCount {
@@ -18,7 +19,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante }) =>
   const [totalPostulantes, setTotalPostulantes] = useState(0);
   const [nuevosEstaSemana, setNuevosEstaSemana] = useState(0);
   const [pipelineCounts, setPipelineCounts] = useState<PipelineCount[]>([]);
-  const [recentPostulantes, setRecentPostulantes] = useState<{ nombre: string; profesion: string | null; created_at: string | null; estado_pipeline: string | null }[]>([]);
+  const [recentPostulantes, setRecentPostulantes] = useState<{ id: string; nombre: string; profesion: string | null; created_at: string | null; estado_pipeline: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante }) =>
       // Fetch all postulantes with minimal fields
       const { data: allData } = await supabase
         .from('postulantes')
-        .select('estado_pipeline, created_at, nombre, profesion')
+        .select('id, estado_pipeline, created_at, nombre, profesion')
         .order('created_at', { ascending: false });
 
       if (allData) {
@@ -139,7 +140,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante }) =>
               <h3 className="text-sm font-semibold text-foreground mb-5">Últimos Postulantes</h3>
               <div className="flex flex-col gap-4">
                 {recentPostulantes.map((p, i) => (
-                  <div key={i} className="flex items-start gap-3">
+                  <div
+                    key={i}
+                    className="flex items-start gap-3 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors"
+                    onClick={() => onSelectPostulante?.(p.id)}
+                  >
                     <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
                     <div>
                       <p className="text-sm font-medium text-foreground">{p.nombre}</p>
