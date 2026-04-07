@@ -78,7 +78,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
   const formatDateTime = (dateStr: string | null) => {
     if (!dateStr) return '';
     const d = new Date(dateStr);
-    return d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short' }) + ' · ' + d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit' });
+    const fecha = d.toLocaleDateString('es-CL', { day: '2-digit', month: 'short', timeZone: 'America/Santiago' });
+    const hora = d.toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Santiago' });
+    return `${fecha} · ${hora}`;
   };
 
   return (
@@ -142,7 +144,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
                   >
                     <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
                     <div>
-                      <p className="text-sm font-medium text-foreground">{p.nombre}</p>
+                      <p className="text-sm font-medium text-foreground">{p.nombre.replace(/['"]/g, '')}</p>
                       <p className="text-xs text-muted-foreground">{p.profesion || 'Sin profesión'} · {formatDateTime(p.created_at)}</p>
                     </div>
                   </div>
