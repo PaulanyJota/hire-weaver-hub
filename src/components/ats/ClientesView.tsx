@@ -403,7 +403,11 @@ export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
               </div>
               <div>
                 <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Renta</label>
-                <input className={inputClass} placeholder="Ej: $2.0M - $2.5M" value={vacanteForm.renta} onChange={e => setVacanteForm({ ...vacanteForm, renta: e.target.value })} />
+                <input className={inputClass} placeholder="Ej: 600.000" value={vacanteForm.renta} onChange={e => {
+                  const raw = e.target.value.replace(/\./g, '').replace(/[^0-9]/g, '');
+                  const formatted = raw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                  setVacanteForm({ ...vacanteForm, renta: formatted });
+                }} />
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-2">
