@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { formatName } from '@/lib/utils';
 import { AtsButton } from './AtsButton';
 import { Icons } from './Icons';
 import { supabase } from '@/integrations/supabase/client';

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { formatName } from '@/lib/utils';
 import { useClientes, type ClienteDB } from '@/hooks/useClientes';
 import { useVacantesReales, type VacanteReal } from '@/hooks/useVacantesReales';
 import { supabase } from '@/integrations/supabase/client';

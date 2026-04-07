@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { formatName } from '@/lib/utils';
 import { AtsButton } from './AtsButton';
 import { AtsBadge } from './AtsBadge';
 import { Icons } from './Icons';
