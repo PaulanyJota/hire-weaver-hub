@@ -402,12 +402,15 @@ export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
                 <input className={inputClass} placeholder="Ej: Santiago / Remoto" value={vacanteForm.ubicacion} onChange={e => setVacanteForm({ ...vacanteForm, ubicacion: e.target.value })} />
               </div>
               <div>
-                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Renta</label>
-                <input className={inputClass} placeholder="Ej: 600.000" value={vacanteForm.renta} onChange={e => {
-                  const raw = e.target.value.replace(/\./g, '').replace(/[^0-9]/g, '');
-                  const formatted = raw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-                  setVacanteForm({ ...vacanteForm, renta: formatted });
-                }} />
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Renta (CLP)</label>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">$</span>
+                  <input className={`${inputClass} pl-7`} placeholder="Ej: 600.000" value={vacanteForm.renta} onChange={e => {
+                    const raw = e.target.value.replace(/\./g, '').replace(/[^0-9]/g, '');
+                    const formatted = raw.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+                    setVacanteForm({ ...vacanteForm, renta: formatted });
+                  }} />
+                </div>
               </div>
             </div>
             <div className="flex justify-end gap-2 mt-2">
