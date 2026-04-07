@@ -13,6 +13,7 @@ interface SidebarProps {
 const NAV = [
   { id: 'dashboard', label: 'Dashboard', icon: Icons.dashboard },
   { id: 'vacantes', label: 'Vacantes', icon: Icons.briefcase },
+  { id: 'pipeline', label: 'Pipeline', icon: Icons.filter },
   { id: 'talentos', label: 'Talentos', icon: Icons.users },
   { id: 'clientes', label: 'Clientes', icon: Icons.building },
 ];

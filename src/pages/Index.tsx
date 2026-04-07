@@ -3,12 +3,14 @@ import { Sidebar } from '@/components/ats/Sidebar';
 import { DashboardView } from '@/components/ats/DashboardView';
 import { VacantesView } from '@/components/ats/VacantesView';
 import { PipelineView } from '@/components/ats/PipelineView';
+import { SupabasePipelineView } from '@/components/ats/SupabasePipelineView';
 import { TalentosView } from '@/components/ats/TalentosView';
 import { ClientesView } from '@/components/ats/ClientesView';
 import { AppModal } from '@/components/ats/AppModal';
 import { ToastContainer } from '@/components/ats/ToastContainer';
 import { Icons } from '@/components/ats/Icons';
 import { useAppToast } from '@/hooks/useAppToast';
+import { usePostulantes } from '@/hooks/usePostulantes';
 import { INITIAL_VACANTES, INITIAL_PIPELINE, MOCK_CLIENTES, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
 
 const Index = () => {
@@ -21,7 +23,7 @@ const Index = () => {
   const [vacanteToShare, setVacanteToShare] = useState<Vacante | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const { toasts, show: showToast } = useAppToast();
-
+  const { postulantes, loading: postulantesLoading, updateEstadoPipeline } = usePostulantes();
   const [newForm, setNewForm] = useState({ cargo: '', clienteId: '1', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
 
   const switchTab = (tab: string) => {
@@ -78,7 +80,8 @@ const Index = () => {
           onShareVacante={v => setVacanteToShare(v)}
         />
       );
-      case 'talentos': return <TalentosView showToast={showToast} />;
+      case 'talentos': return <TalentosView showToast={showToast} postulantes={postulantes} loading={postulantesLoading} />;
+      case 'pipeline': return <SupabasePipelineView postulantes={postulantes} updateEstadoPipeline={updateEstadoPipeline} showToast={showToast} />;
       case 'clientes': return <ClientesView showToast={showToast} />;
       case 'settings': return (
         <div className="flex items-center justify-center h-96">
