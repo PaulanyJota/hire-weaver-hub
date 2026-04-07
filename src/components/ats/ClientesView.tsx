@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useClientes, type ClienteDB } from '@/hooks/useClientes';
 import { useVacantesReales, type VacanteReal } from '@/hooks/useVacantesReales';
 import { supabase } from '@/integrations/supabase/client';
+import { RESPONSABLES } from '@/data/mockData';
 import { AtsBadge } from './AtsBadge';
 import { AtsButton } from './AtsButton';
 import { AppModal } from './AppModal';
@@ -26,45 +27,109 @@ interface PostulanteRow {
   fecha_postulacion: string | null;
 }
 
+interface VacanteManual {
+  id: string;
+  cargo: string;
+  tipo: string;
+  ubicacion: string;
+  renta: string;
+  estado: string;
+  responsable_id: string;
+  cliente_id: string;
+}
+
+// Unified vacante item for display
+interface VacanteItem {
+  id: string;
+  cargo: string;
+  ubicacion: string;
+  tipo: string;
+  estado: string;
+  postulantes: number;
+  source: 'auto' | 'manual';
+}
+
 const PIPELINE_STAGES = ['Postulantes Nuevos', 'En Screening', 'Entrevistados', 'Presentados a Cliente', 'Finalista', 'Contratado', 'Descartado'];
 const inputClass = "w-full px-3 py-2 bg-muted border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all";
 
 export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
   const { clientes, loading, addCliente } = useClientes();
-  const { vacantes } = useVacantesReales();
+  const { vacantes: autoVacantes } = useVacantesReales();
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [form, setForm] = useState({ nombre: '', industria: '', contacto: '', email: '' });
   const [saving, setSaving] = useState(false);
 
+  // Manual vacantes
+  const [manualVacantes, setManualVacantes] = useState<VacanteManual[]>([]);
+  const [isVacanteModalOpen, setIsVacanteModalOpen] = useState(false);
+  const [vacanteForm, setVacanteForm] = useState({ cargo: '', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
+  const [savingVacante, setSavingVacante] = useState(false);
+
   // Drill-down state
   const [selectedCliente, setSelectedCliente] = useState<ClienteDB | null>(null);
-  const [selectedVacante, setSelectedVacante] = useState<VacanteReal | null>(null);
+  const [selectedVacanteItem, setSelectedVacanteItem] = useState<VacanteItem | null>(null);
   const [postulantes, setPostulantes] = useState<PostulanteRow[]>([]);
   const [loadingPostulantes, setLoadingPostulantes] = useState(false);
   const [selectedPostulante, setSelectedPostulante] = useState<PostulanteRow | null>(null);
 
-  // Get vacantes for a client
-  const clienteVacantes = selectedCliente
-    ? vacantes.filter(v => v.clienteNombre.toLowerCase() === selectedCliente.nombre.toLowerCase())
+  // Fetch manual vacantes for selected client
+  const fetchManualVacantes = useCallback(async (clienteId: string) => {
+    const { data } = await supabase
+      .from('vacantes')
+      .select('*')
+      .eq('cliente_id', clienteId)
+      .order('created_at', { ascending: false });
+    setManualVacantes((data as VacanteManual[]) || []);
+  }, []);
+
+  useEffect(() => {
+    if (selectedCliente) fetchManualVacantes(selectedCliente.id);
+    else setManualVacantes([]);
+  }, [selectedCliente, fetchManualVacantes]);
+
+  // Build unified vacantes list for selected client
+  const clienteVacantesUnified: VacanteItem[] = selectedCliente
+    ? [
+        ...manualVacantes.map(v => ({
+          id: v.id,
+          cargo: v.cargo,
+          ubicacion: v.ubicacion,
+          tipo: v.tipo,
+          estado: v.estado,
+          postulantes: 0, // will count below
+          source: 'manual' as const,
+        })),
+        ...autoVacantes
+          .filter(v => v.clienteNombre.toLowerCase() === selectedCliente.nombre.toLowerCase())
+          .map(v => ({
+            id: v.id,
+            cargo: v.cargo,
+            ubicacion: v.ubicacion,
+            tipo: v.tipo,
+            estado: v.estado,
+            postulantes: v.postulantes,
+            source: 'auto' as const,
+          })),
+      ]
     : [];
 
   // Fetch postulantes when a vacante is selected
   useEffect(() => {
-    if (!selectedVacante) { setPostulantes([]); return; }
+    if (!selectedVacanteItem) { setPostulantes([]); return; }
     const load = async () => {
       setLoadingPostulantes(true);
       const { data } = await supabase
         .from('postulantes')
         .select('id,nombre,email,telefono,profesion,experiencia,pretension_renta,habilidades,estado_pipeline,match_score,notas,fecha_postulacion')
-        .eq('vacante_origen', selectedVacante.cargo)
+        .eq('vacante_origen', selectedVacanteItem.cargo)
         .order('fecha_postulacion', { ascending: false });
       setPostulantes((data as PostulanteRow[]) || []);
       setLoadingPostulantes(false);
     };
     load();
-  }, [selectedVacante]);
+  }, [selectedVacanteItem]);
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const handleCreateCliente = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nombre.trim()) return;
     setSaving(true);
@@ -79,9 +144,32 @@ export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
     }
   };
 
+  const handleCreateVacante = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!vacanteForm.cargo.trim() || !selectedCliente) return;
+    setSavingVacante(true);
+    const { error } = await supabase.from('vacantes').insert({
+      cargo: vacanteForm.cargo.trim(),
+      cliente_id: selectedCliente.id,
+      tipo: vacanteForm.tipo,
+      ubicacion: vacanteForm.ubicacion,
+      renta: vacanteForm.renta,
+      responsable_id: vacanteForm.responsableId,
+    } as any);
+    setSavingVacante(false);
+    if (!error) {
+      showToast('¡Vacante creada exitosamente!');
+      setVacanteForm({ cargo: '', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
+      setIsVacanteModalOpen(false);
+      fetchManualVacantes(selectedCliente.id);
+    } else {
+      showToast('Error al crear vacante');
+    }
+  };
+
   const handleBack = () => {
     if (selectedPostulante) { setSelectedPostulante(null); return; }
-    if (selectedVacante) { setSelectedVacante(null); return; }
+    if (selectedVacanteItem) { setSelectedVacanteItem(null); return; }
     if (selectedCliente) { setSelectedCliente(null); return; }
   };
 
@@ -149,13 +237,13 @@ export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
   }
 
   // ─── Lista de postulantes de una vacante ───
-  if (selectedVacante && selectedCliente) {
+  if (selectedVacanteItem && selectedCliente) {
     return (
       <div style={{ animation: 'fadeSlide 0.3s' }}>
         <button onClick={handleBack} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-primary mb-6 transition-colors">
           {Icons.arrowLeft} <span>Volver a vacantes de {selectedCliente.nombre}</span>
         </button>
-        <h1 className="text-2xl font-bold text-foreground mb-1">{selectedVacante.cargo}</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-1">{selectedVacanteItem.cargo}</h1>
         <p className="text-sm text-muted-foreground mb-6">{postulantes.length} postulantes · {selectedCliente.nombre}</p>
         {loadingPostulantes ? (
           <div className="flex justify-center py-12"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>
@@ -222,22 +310,27 @@ export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
           </div>
         </div>
 
-        <h2 className="text-lg font-semibold text-foreground mb-4">Vacantes asociadas ({clienteVacantes.length})</h2>
-        {clienteVacantes.length === 0 ? (
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-foreground">Vacantes asociadas ({clienteVacantesUnified.length})</h2>
+          <AtsButton icon={Icons.plus} small onClick={() => setIsVacanteModalOpen(true)}>Agregar Vacante</AtsButton>
+        </div>
+        {clienteVacantesUnified.length === 0 ? (
           <p className="text-sm text-muted-foreground bg-muted rounded-xl p-6 text-center">No hay vacantes asociadas a este cliente.</p>
         ) : (
           <div className="grid gap-3">
-            {clienteVacantes.map(v => (
+            {clienteVacantesUnified.map(v => (
               <div
                 key={v.id}
-                onClick={() => setSelectedVacante(v)}
+                onClick={() => setSelectedVacanteItem(v)}
                 className="bg-card rounded-xl border border-border p-4 flex items-center justify-between hover:border-primary/30 hover:shadow-sm cursor-pointer transition-all"
               >
                 <div>
-                  <h3 className="font-semibold text-foreground">{v.cargo}</h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="font-semibold text-foreground">{v.cargo}</h3>
+                    {v.source === 'manual' && <AtsBadge color="purple">Manual</AtsBadge>}
+                  </div>
                   <div className="flex items-center gap-3 mt-1 text-xs text-muted-foreground">
-                    <span>📍 {v.ubicacion}</span>
-                    <span>·</span>
+                    {v.ubicacion && <><span>📍 {v.ubicacion}</span><span>·</span></>}
                     <span>{v.tipo}</span>
                   </div>
                 </div>
@@ -249,6 +342,46 @@ export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
             ))}
           </div>
         )}
+
+        {/* Modal crear vacante */}
+        <AppModal isOpen={isVacanteModalOpen} onClose={() => setIsVacanteModalOpen(false)} title={`Nueva Vacante — ${c.nombre}`}>
+          <form onSubmit={handleCreateVacante} className="flex flex-col gap-4">
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Cargo *</label>
+              <input className={inputClass} placeholder="Ej: Desarrollador Fullstack" value={vacanteForm.cargo} onChange={e => setVacanteForm({ ...vacanteForm, cargo: e.target.value })} required />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Tipo de Servicio</label>
+                <select className={inputClass} value={vacanteForm.tipo} onChange={e => setVacanteForm({ ...vacanteForm, tipo: e.target.value })}>
+                  <option>Reclutamiento</option><option>EST</option><option>Outsourcing</option>
+                </select>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Responsable</label>
+                <select className={inputClass} value={vacanteForm.responsableId} onChange={e => setVacanteForm({ ...vacanteForm, responsableId: e.target.value })}>
+                  {RESPONSABLES.map(r => <option key={r.id} value={r.id}>{r.iniciales} — {r.nombre}</option>)}
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Ubicación</label>
+                <input className={inputClass} placeholder="Ej: Santiago / Remoto" value={vacanteForm.ubicacion} onChange={e => setVacanteForm({ ...vacanteForm, ubicacion: e.target.value })} />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Renta</label>
+                <input className={inputClass} placeholder="Ej: $2.0M - $2.5M" value={vacanteForm.renta} onChange={e => setVacanteForm({ ...vacanteForm, renta: e.target.value })} />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-2">
+              <button type="button" onClick={() => setIsVacanteModalOpen(false)} className="px-4 py-2 text-sm font-semibold text-muted-foreground bg-muted rounded-lg border-none cursor-pointer hover:bg-border transition-colors">Cancelar</button>
+              <button type="submit" disabled={savingVacante} className="px-5 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg border-none cursor-pointer hover:opacity-90 transition-opacity shadow-md disabled:opacity-50">
+                {savingVacante ? 'Guardando...' : 'Crear Vacante'}
+              </button>
+            </div>
+          </form>
+        </AppModal>
       </div>
     );
   }
@@ -269,7 +402,7 @@ export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {clientes.map(c => {
-            const numVacantes = vacantes.filter(v => v.clienteNombre.toLowerCase() === c.nombre.toLowerCase()).length;
+            const numVacantes = autoVacantes.filter(v => v.clienteNombre.toLowerCase() === c.nombre.toLowerCase()).length;
             return (
               <div key={c.id} className="bg-card rounded-2xl p-6 border border-border transition-all hover:shadow-md hover:border-primary/30">
                 <div className="flex items-center justify-between mb-4">
@@ -280,7 +413,7 @@ export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
                 </div>
                 <h3 className="font-semibold text-foreground mb-1">{c.nombre}</h3>
                 <p className="text-xs text-muted-foreground mb-1">{c.industria || '—'}</p>
-                <p className="text-xs text-muted-foreground mb-3">{numVacantes} vacantes activas</p>
+                <p className="text-xs text-muted-foreground mb-3">{numVacantes} vacantes</p>
                 <div className="flex flex-col gap-1 text-xs text-muted-foreground mb-4">
                   {c.contacto && <span>👤 {c.contacto}</span>}
                   {c.email && <span>✉️ {c.email}</span>}
@@ -293,7 +426,7 @@ export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
       )}
 
       <AppModal isOpen={isCreateOpen} onClose={() => setIsCreateOpen(false)} title="Nuevo Cliente">
-        <form onSubmit={handleCreate} className="flex flex-col gap-4">
+        <form onSubmit={handleCreateCliente} className="flex flex-col gap-4">
           <div>
             <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Nombre de la empresa *</label>
             <input className={inputClass} placeholder="Ej: Acme Corp" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} required />
