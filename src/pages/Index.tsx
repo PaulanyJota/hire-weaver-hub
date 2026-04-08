@@ -27,6 +27,30 @@ const Index = () => {
   const { clientes } = useClientes();
   const [newForm, setNewForm] = useState({ cargo: '', clienteId: '', tipo: 'Reclutamiento', ubicacion: '', renta: '', responsableId: 'JRB' });
   const [focusPostulanteId, setFocusPostulanteId] = useState<string | null>(null);
+  const [searchResults, setSearchResults] = useState<{ id: string; nombre: string; profesion: string | null }[]>([]);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!headerSearch.trim()) { setSearchResults([]); setShowSearchDropdown(false); return; }
+    const timeout = setTimeout(async () => {
+      const { data } = await supabase
+        .from('postulantes')
+        .select('id, nombre, profesion')
+        .ilike('nombre', `%${headerSearch}%`)
+        .limit(8);
+      if (data) { setSearchResults(data); setShowSearchDropdown(true); }
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [headerSearch]);
+
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setShowSearchDropdown(false);
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
 
   const switchTab = (tab: string) => {
     setActiveTab(tab);
@@ -103,14 +127,34 @@ const Index = () => {
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* Top bar */}
         <header className="flex items-center justify-between px-8 py-3 border-b border-border bg-card shrink-0">
-          <div className="relative w-80">
+          <div className="relative w-80" ref={searchRef}>
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">{Icons.search}</span>
             <input
-              placeholder="Buscar vacantes, candidatos, clientes..."
+              placeholder="Buscar postulantes por nombre..."
               value={headerSearch}
               onChange={e => setHeaderSearch(e.target.value)}
+              onFocus={() => searchResults.length > 0 && setShowSearchDropdown(true)}
               className="w-full pl-9 pr-4 py-2 bg-muted border border-transparent rounded-lg text-sm outline-none focus:bg-card focus:border-primary/40 focus:ring-2 focus:ring-primary/10 transition-all"
             />
+            {showSearchDropdown && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 max-h-72 overflow-y-auto">
+                {searchResults.map(p => (
+                  <button
+                    key={p.id}
+                    onClick={() => { handleSelectPostulante(p.id); setHeaderSearch(''); setShowSearchDropdown(false); }}
+                    className="w-full text-left px-4 py-2.5 hover:bg-muted transition-colors flex items-center gap-2 text-sm"
+                  >
+                    <span className="font-medium text-foreground">{formatName(p.nombre)}</span>
+                    {p.profesion && <span className="text-muted-foreground text-xs">— {p.profesion}</span>}
+                  </button>
+                ))}
+              </div>
+            )}
+            {showSearchDropdown && headerSearch.trim() && searchResults.length === 0 && (
+              <div className="absolute top-full left-0 right-0 mt-1 bg-card border border-border rounded-lg shadow-lg z-50 p-3 text-sm text-muted-foreground text-center">
+                Sin resultados
+              </div>
+            )}
           </div>
           <button className="relative w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary transition-colors">
             {Icons.bell}
