@@ -222,6 +222,7 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
                   {t.estado_pipeline || 'Nuevo'}
                 </span>
               </div>
+              <p className="text-xs text-muted-foreground mt-1">Postulación: {formatDate(t.fecha_postulacion)}</p>
             </div>
           ))}
         </div>
