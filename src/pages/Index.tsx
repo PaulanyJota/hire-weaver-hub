@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Sidebar } from '@/components/ats/Sidebar';
+import { supabase } from '@/integrations/supabase/client';
+import { formatName } from '@/lib/utils';
 import { DashboardView } from '@/components/ats/DashboardView';
 import { VacantesView } from '@/components/ats/VacantesView';
 import { PipelineView } from '@/components/ats/PipelineView';
