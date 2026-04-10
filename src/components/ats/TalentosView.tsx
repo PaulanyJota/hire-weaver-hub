@@ -325,7 +325,7 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
                       const phoneNumber = raw.startsWith('56') ? raw : `56${raw}`;
                       const firstName = p.nombre.split(' ')[0];
                       const cargoText = p.vacante_origen ? normalizeCargo(p.vacante_origen) : 'la vacante';
-                      const prefilledMsg = encodeURIComponent(`Hola ${firstName}, soy de Nodo Talentos. Postulaste al cargo ${cargoText} y queremos conversar contigo. ¿Tienes disponibilidad?`);
+                      const prefilledMsg = encodeURIComponent(`Hola ${firstName}, somos Nodo Talentos. Vimos tu postulación al cargo ${cargoText}. Nos gustaría conocerte mejor. ¿Puedes responder estas preguntas?\n\n1) ¿Cuántos años de experiencia tienes?\n2) ¿Cuál es tu disponibilidad?\n3) ¿Cuál es tu pretensión de renta?`);
                       return (
                         <div className="flex flex-col gap-2">
                           <button
