@@ -159,19 +159,56 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
             ))}
           </div>
 
-          {p.mensaje_postulante && (
-            <div className="mb-6">
-              <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-2 flex items-center gap-1">💬 Mensaje Inicial</p>
-              <p className="text-sm text-foreground bg-muted p-4 rounded-xl whitespace-pre-wrap">{p.mensaje_postulante}</p>
-            </div>
-          )}
+          {/* === Sección Conversación === */}
+          <div className="mb-6">
+            <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-3">💬 Conversación</p>
+            {p.mensaje_postulante || p.respuesta_agente ? (
+              <div className="flex flex-col gap-3">
+                {p.mensaje_postulante && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[80%] bg-muted p-4 rounded-2xl rounded-bl-md">
+                      <p className="text-[10px] text-muted-foreground font-semibold mb-1">Mensaje del Postulante</p>
+                      <p className="text-sm text-foreground whitespace-pre-wrap">{p.mensaje_postulante}</p>
+                    </div>
+                  </div>
+                )}
+                {p.respuesta_agente && (
+                  <div className="flex justify-end">
+                    <div className="max-w-[80%] bg-blue-50 text-blue-900 p-4 rounded-2xl rounded-br-md">
+                      <p className="text-[10px] text-blue-600 font-semibold mb-1">🤖 Respuesta del Agente IA</p>
+                      <p className="text-sm whitespace-pre-wrap">{p.respuesta_agente}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-xl">Aún no hay conversación registrada</p>
+            )}
+          </div>
 
-          {p.respuesta_agente && (
-            <div className="mb-6">
-              <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-2 flex items-center gap-1">🤖 Respuesta del Agente IA</p>
-              <p className="text-sm text-foreground bg-blue-50 p-4 rounded-xl whitespace-pre-wrap">{p.respuesta_agente}</p>
-            </div>
-          )}
+          {/* === Sección WhatsApp === */}
+          <div className="mb-6">
+            <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-3">📱 WhatsApp</p>
+            {(() => {
+              const raw = p.telefono?.replace(/\D/g, '') || '';
+              const hasPhone = raw.length >= 8 && !p.telefono?.includes('$');
+              const phoneNumber = raw.startsWith('56') ? raw : `56${raw}`;
+              return (
+                <button
+                  disabled={!hasPhone}
+                  title={hasPhone ? `Escribir a ${phoneNumber}` : 'Sin número de WhatsApp'}
+                  onClick={() => hasPhone && window.open(`https://wa.me/${phoneNumber}`, '_blank')}
+                  className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer ${
+                    hasPhone
+                      ? 'bg-green-600 hover:bg-green-700 text-white shadow-sm'
+                      : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
+                  }`}
+                >
+                  📱 {hasPhone ? 'Iniciar Conversación' : 'Sin número de WhatsApp'}
+                </button>
+              );
+            })()}
+          </div>
 
           {p.cv_url && (
             <div className="mb-6">
@@ -184,36 +221,11 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
             </div>
           )}
 
-          {p.habilidades && p.habilidades.length > 0 && (
-            <div className="mb-6">
-              <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-2">Habilidades</p>
-              <div className="flex flex-wrap gap-2">
-                {p.habilidades.map(h => (
-                  <span key={h} className="px-2.5 py-1 bg-muted text-secondary-foreground text-xs font-medium rounded-lg">{h}</span>
-                ))}
-              </div>
-            </div>
+          {p.email && (
+            <AtsButton variant="secondary" small onClick={() => window.open(`mailto:${p.email}`)}>
+              ✉ Enviar Email
+            </AtsButton>
           )}
-
-          {p.notas && (
-            <div className="mb-6">
-              <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-2">Notas</p>
-              <p className="text-sm text-foreground bg-muted p-4 rounded-xl whitespace-pre-wrap">{p.notas}</p>
-            </div>
-          )}
-
-          <div className="flex gap-3 mt-4">
-            {p.email && (
-              <AtsButton variant="secondary" small onClick={() => window.open(`mailto:${p.email}`)}>
-                ✉ Enviar Email
-              </AtsButton>
-            )}
-            {p.telefono && (
-              <AtsButton small onClick={() => window.open(`https://wa.me/56${p.telefono?.replace(/\D/g, '')}`, '_blank')}>
-                💬 WhatsApp
-              </AtsButton>
-            )}
-          </div>
         </div>
       </div>
     );
