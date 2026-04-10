@@ -24,8 +24,20 @@ const RULES: { pattern: RegExp; cliente: string }[] = [
   { pattern: /^Operario Limpieza/i, cliente: 'Daniel Achondo' },
 ];
 
+// Runtime overrides (added via UI, persist in memory for the session)
+const runtimeOverrides: Map<string, string> = new Map();
+
+export function addClienteOverride(cargoPrefix: string, clienteName: string) {
+  runtimeOverrides.set(cargoPrefix.toLowerCase(), clienteName);
+}
+
 export function getClienteForVacante(vacanteOrigen: string | null): string {
   if (!vacanteOrigen) return 'Sin cliente';
+  // Check runtime overrides first
+  const lower = vacanteOrigen.toLowerCase();
+  for (const [prefix, cliente] of runtimeOverrides) {
+    if (lower.startsWith(prefix)) return cliente;
+  }
   for (const rule of RULES) {
     if (rule.pattern.test(vacanteOrigen)) return rule.cliente;
   }
