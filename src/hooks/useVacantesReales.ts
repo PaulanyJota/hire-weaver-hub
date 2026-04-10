@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RESPONSABLES } from '@/data/mockData';
+import { getClienteForVacante } from '@/lib/clienteMapping';
 
 export interface VacanteReal {
   id: string;
@@ -51,12 +52,7 @@ function detectTipo(cargo: string): string {
 
 // Detect client from cargo keywords
 function detectCliente(cargo: string): string {
-  const lower = cargo.toLowerCase();
-  if (lower.includes('rent a car') || lower.includes('counter')) return 'Europcar';
-  if (lower.includes('movilizador') || lower.includes('lavador') || lower.includes('patio')) return 'Europcar';
-  if (lower.includes('bodega') || lower.includes('producción') || lower.includes('gruero') || lower.includes('inventario') || lower.includes('picking')) return 'Cliente Logístico';
-  if (lower.includes('limpieza')) return 'Cliente Servicios';
-  return 'Nodo Talentos';
+  return getClienteForVacante(cargo);
 }
 
 // Assign responsable round-robin based on hash
