@@ -37,6 +37,7 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
   const [selectedCargo, setSelectedCargo] = useState<string | null>(null);
   const [selectedPostulante, setSelectedPostulante] = useState<Postulante | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showConversation, setShowConversation] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -159,72 +160,109 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
             ))}
           </div>
 
-          {/* === Sección Conversación === */}
-          <div className="mb-6">
-            <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-3">💬 Conversación</p>
-            {p.mensaje_postulante || p.respuesta_agente ? (
-              <div className="flex flex-col gap-3">
-                {p.mensaje_postulante && (
-                  <div className="flex justify-start">
-                    <div className="max-w-[80%] bg-muted p-4 rounded-2xl rounded-bl-md">
-                      <p className="text-[10px] text-muted-foreground font-semibold mb-1">Mensaje del Postulante</p>
-                      <p className="text-sm text-foreground whitespace-pre-wrap">{p.mensaje_postulante}</p>
-                    </div>
-                  </div>
-                )}
-                {p.respuesta_agente && (
-                  <div className="flex justify-end">
-                    <div className="max-w-[80%] bg-blue-50 text-blue-900 p-4 rounded-2xl rounded-br-md">
-                      <p className="text-[10px] text-blue-600 font-semibold mb-1">🤖 Respuesta del Agente IA</p>
-                      <p className="text-sm whitespace-pre-wrap">{p.respuesta_agente}</p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-muted-foreground italic bg-muted/50 p-4 rounded-xl">Aún no hay conversación registrada</p>
-            )}
-          </div>
+          {/* === Botón Ver Conversación WhatsApp === */}
+          <div className="mb-6 flex flex-wrap gap-3">
+            <button
+              onClick={() => setShowConversation(true)}
+              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer bg-green-600 hover:bg-green-700 text-white shadow-sm"
+            >
+              💬 Ver conversación WhatsApp
+            </button>
 
-          {/* === Sección WhatsApp === */}
-          <div className="mb-6">
-            <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-3">📱 WhatsApp</p>
-            {(() => {
-              const raw = p.telefono?.replace(/\D/g, '') || '';
-              const hasPhone = raw.length >= 8 && !p.telefono?.includes('$');
-              const phoneNumber = raw.startsWith('56') ? raw : `56${raw}`;
-              return (
-                <button
-                  disabled={!hasPhone}
-                  title={hasPhone ? `Escribir a ${phoneNumber}` : 'Sin número de WhatsApp'}
-                  onClick={() => hasPhone && window.open(`https://wa.me/${phoneNumber}`, '_blank')}
-                  className={`inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer ${
-                    hasPhone
-                      ? 'bg-green-600 hover:bg-green-700 text-white shadow-sm'
-                      : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
-                  }`}
-                >
-                  📱 {hasPhone ? 'Iniciar Conversación' : 'Sin número de WhatsApp'}
-                </button>
-              );
-            })()}
-          </div>
-
-          {p.cv_url && (
-            <div className="mb-6">
+            {p.cv_url && (
               <button
                 onClick={() => window.open(p.cv_url!, '_blank')}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer border-none"
               >
                 📄 Ver CV
               </button>
-            </div>
-          )}
+            )}
 
-          {p.email && (
-            <AtsButton variant="secondary" small onClick={() => window.open(`mailto:${p.email}`)}>
-              ✉ Enviar Email
-            </AtsButton>
+            {p.email && (
+              <AtsButton variant="secondary" small onClick={() => window.open(`mailto:${p.email}`)}>
+                ✉ Enviar Email
+              </AtsButton>
+            )}
+          </div>
+
+          {/* === Modal Conversación WhatsApp === */}
+          {showConversation && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowConversation(false)}>
+              <div
+                className="bg-card rounded-2xl border border-border shadow-2xl w-full max-w-lg mx-4 max-h-[80vh] flex flex-col"
+                onClick={e => e.stopPropagation()}
+              >
+                {/* Header */}
+                <div className="flex items-center justify-between p-5 border-b border-border">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-green-100 text-green-700 text-sm font-bold flex items-center justify-center">
+                      {getAvatar(p.nombre)}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-foreground text-sm">{formatName(p.nombre)}</p>
+                      <p className="text-xs text-muted-foreground">Conversación registrada</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setShowConversation(false)}
+                    className="w-8 h-8 rounded-full bg-muted hover:bg-muted/80 flex items-center justify-center text-muted-foreground hover:text-foreground border-none cursor-pointer transition-colors text-lg"
+                  >
+                    ✕
+                  </button>
+                </div>
+
+                {/* Chat bubbles */}
+                <div className="flex-1 overflow-y-auto p-5">
+                  {p.mensaje_postulante || p.respuesta_agente ? (
+                    <div className="flex flex-col gap-4">
+                      {p.mensaje_postulante && (
+                        <div className="flex justify-start">
+                          <div className="max-w-[85%] bg-muted p-4 rounded-2xl rounded-bl-md">
+                            <p className="text-[10px] text-muted-foreground font-semibold mb-1.5">Mensaje del Postulante</p>
+                            <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{p.mensaje_postulante}</p>
+                          </div>
+                        </div>
+                      )}
+                      {p.respuesta_agente && (
+                        <div className="flex justify-end">
+                          <div className="max-w-[85%] bg-blue-50 text-blue-900 p-4 rounded-2xl rounded-br-md">
+                            <p className="text-[10px] text-blue-600 font-semibold mb-1.5">🤖 Respuesta del Agente IA</p>
+                            <p className="text-sm whitespace-pre-wrap leading-relaxed">{p.respuesta_agente}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center py-12">
+                      <p className="text-sm text-muted-foreground italic">Aún no hay conversación registrada</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Footer — WhatsApp button */}
+                <div className="p-5 border-t border-border">
+                  {(() => {
+                    const raw = p.telefono?.replace(/\D/g, '') || '';
+                    const hasPhone = raw.length >= 8 && !p.telefono?.includes('$');
+                    const phoneNumber = raw.startsWith('56') ? raw : `56${raw}`;
+                    return (
+                      <button
+                        disabled={!hasPhone}
+                        title={hasPhone ? `Escribir a ${phoneNumber}` : 'Sin número de WhatsApp'}
+                        onClick={() => hasPhone && window.open(`https://wa.me/${phoneNumber}`, '_blank')}
+                        className={`w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer ${
+                          hasPhone
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
+                            : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
+                        }`}
+                      >
+                        📱 {hasPhone ? 'Iniciar Conversación' : 'Sin número de WhatsApp'}
+                      </button>
+                    );
+                  })()}
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </div>
