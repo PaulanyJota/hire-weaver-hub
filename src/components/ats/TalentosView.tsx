@@ -32,6 +32,8 @@ const formatDate = (d: string | null) => {
 };
 
 export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPostulanteId }) => {
+  const [editPhone, setEditPhone] = useState('');
+  const [savingPhone, setSavingPhone] = useState(false);
   const [allPostulantes, setAllPostulantes] = useState<Postulante[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCargo, setSelectedCargo] = useState<string | null>(null);
@@ -115,7 +117,7 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
             <div>
               <h1 className="text-xl font-bold text-foreground">{formatName(p.nombre)}</h1>
               <p className="text-sm text-muted-foreground">{p.profesion || 'Sin profesión'}</p>
-              {p.telefono && (
+              {p.telefono && !p.telefono.includes('$') && (
                 <span className="inline-flex items-center gap-1.5 mt-1 px-2.5 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
                   ✅ WhatsApp contactado
                 </span>
@@ -160,29 +162,104 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
             ))}
           </div>
 
-          {/* === Botón Ver Conversación WhatsApp === */}
-          <div className="mb-6 flex flex-wrap gap-3">
-            <button
-              onClick={() => setShowConversation(true)}
-              className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer bg-green-600 hover:bg-green-700 text-white shadow-sm"
-            >
-              💬 Ver conversación WhatsApp
-            </button>
+          {/* === Sección WhatsApp unificada === */}
+          <div className="mb-6 p-4 bg-muted/40 rounded-xl border border-border">
+            {(() => {
+              const raw = p.telefono?.replace(/\D/g, '') || '';
+              const hasPhone = raw.length >= 8 && !p.telefono?.includes('$');
 
-            {p.cv_url && (
-              <button
-                onClick={() => window.open(p.cv_url!, '_blank')}
-                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer border-none"
-              >
-                📄 Ver CV
-              </button>
-            )}
+              if (hasPhone) {
+                const phoneNumber = raw.startsWith('56') ? raw : `56${raw}`;
+                return (
+                  <div className="flex flex-wrap gap-3">
+                    <button
+                      onClick={() => setShowConversation(true)}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer bg-green-600 hover:bg-green-700 text-white shadow-sm"
+                    >
+                      💬 Ver conversación WhatsApp
+                    </button>
+                    <button
+                      onClick={() => window.open(`https://wa.me/${phoneNumber}`, '_blank')}
+                      className="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                    >
+                      📱 Iniciar Conversación
+                    </button>
+                    {p.cv_url && (
+                      <button
+                        onClick={() => window.open(p.cv_url!, '_blank')}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer border-none"
+                      >
+                        📄 Ver CV
+                      </button>
+                    )}
+                    {p.email && (
+                      <AtsButton variant="secondary" small onClick={() => window.open(`mailto:${p.email}`)}>
+                        ✉ Enviar Email
+                      </AtsButton>
+                    )}
+                  </div>
+                );
+              }
 
-            {p.email && (
-              <AtsButton variant="secondary" small onClick={() => window.open(`mailto:${p.email}`)}>
-                ✉ Enviar Email
-              </AtsButton>
-            )}
+              return (
+                <div>
+                  <p className="text-xs text-muted-foreground font-semibold mb-2">📱 Sin número de WhatsApp registrado</p>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="tel"
+                      placeholder="+56 9 XXXX XXXX"
+                      value={editPhone}
+                      onChange={e => setEditPhone(e.target.value)}
+                      className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    />
+                    <button
+                      disabled={savingPhone || editPhone.replace(/\D/g, '').length < 8}
+                      onClick={async () => {
+                        setSavingPhone(true);
+                        const cleanNum = editPhone.replace(/\D/g, '');
+                        const finalNum = cleanNum.startsWith('56') ? cleanNum : `56${cleanNum}`;
+                        const { error } = await supabase
+                          .from('postulantes')
+                          .update({ telefono: finalNum })
+                          .eq('id', p.id);
+                        if (!error) {
+                          const updated = { ...p, telefono: finalNum };
+                          setSelectedPostulante(updated);
+                          setAllPostulantes(prev => prev.map(x => x.id === p.id ? { ...x, telefono: finalNum } : x));
+                          setEditPhone('');
+                          showToast('Número de WhatsApp guardado');
+                        } else {
+                          showToast('Error al guardar el número');
+                        }
+                        setSavingPhone(false);
+                      }}
+                      className={`px-4 py-2 text-sm font-semibold rounded-lg border-none transition-all cursor-pointer ${
+                        savingPhone || editPhone.replace(/\D/g, '').length < 8
+                          ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                          : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                      }`}
+                    >
+                      {savingPhone ? 'Guardando...' : 'Guardar'}
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap gap-3 mt-3">
+                    {p.cv_url && (
+                      <button
+                        onClick={() => window.open(p.cv_url!, '_blank')}
+                        className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer border-none"
+                      >
+                        📄 Ver CV
+                      </button>
+                    )}
+                    {p.email && (
+                      <AtsButton variant="secondary" small onClick={() => window.open(`mailto:${p.email}`)}>
+                        ✉ Enviar Email
+                      </AtsButton>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* === Modal Conversación WhatsApp === */}
@@ -244,20 +321,59 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
                   {(() => {
                     const raw = p.telefono?.replace(/\D/g, '') || '';
                     const hasPhone = raw.length >= 8 && !p.telefono?.includes('$');
-                    const phoneNumber = raw.startsWith('56') ? raw : `56${raw}`;
+                    if (hasPhone) {
+                      const phoneNumber = raw.startsWith('56') ? raw : `56${raw}`;
+                      return (
+                        <button
+                          onClick={() => window.open(`https://wa.me/${phoneNumber}`, '_blank')}
+                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                        >
+                          📱 Iniciar Conversación
+                        </button>
+                      );
+                    }
                     return (
-                      <button
-                        disabled={!hasPhone}
-                        title={hasPhone ? `Escribir a ${phoneNumber}` : 'Sin número de WhatsApp'}
-                        onClick={() => hasPhone && window.open(`https://wa.me/${phoneNumber}`, '_blank')}
-                        className={`w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer ${
-                          hasPhone
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
-                            : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
-                        }`}
-                      >
-                        📱 {hasPhone ? 'Iniciar Conversación' : 'Sin número de WhatsApp'}
-                      </button>
+                      <div>
+                        <p className="text-xs text-muted-foreground font-semibold mb-2">📱 Sin número registrado</p>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="tel"
+                            placeholder="+56 9 XXXX XXXX"
+                            value={editPhone}
+                            onChange={e => setEditPhone(e.target.value)}
+                            className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                          />
+                          <button
+                            disabled={savingPhone || editPhone.replace(/\D/g, '').length < 8}
+                            onClick={async () => {
+                              setSavingPhone(true);
+                              const cleanNum = editPhone.replace(/\D/g, '');
+                              const finalNum = cleanNum.startsWith('56') ? cleanNum : `56${cleanNum}`;
+                              const { error } = await supabase
+                                .from('postulantes')
+                                .update({ telefono: finalNum })
+                                .eq('id', p.id);
+                              if (!error) {
+                                const updated = { ...p, telefono: finalNum };
+                                setSelectedPostulante(updated);
+                                setAllPostulantes(prev => prev.map(x => x.id === p.id ? { ...x, telefono: finalNum } : x));
+                                setEditPhone('');
+                                showToast('Número de WhatsApp guardado');
+                              } else {
+                                showToast('Error al guardar el número');
+                              }
+                              setSavingPhone(false);
+                            }}
+                            className={`px-4 py-2 text-sm font-semibold rounded-lg border-none transition-all cursor-pointer ${
+                              savingPhone || editPhone.replace(/\D/g, '').length < 8
+                                ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                                : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                            }`}
+                          >
+                            {savingPhone ? 'Guardando...' : 'Guardar'}
+                          </button>
+                        </div>
+                      </div>
                     );
                   })()}
                 </div>
