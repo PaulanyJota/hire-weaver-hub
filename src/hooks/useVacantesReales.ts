@@ -51,12 +51,9 @@ function detectTipo(cargo: string): string {
 
 // Detect client from cargo keywords
 function detectCliente(cargo: string): string {
-  const lower = cargo.toLowerCase();
-  if (lower.includes('rent a car') || lower.includes('counter')) return 'Europcar';
-  if (lower.includes('movilizador') || lower.includes('lavador') || lower.includes('patio')) return 'Europcar';
-  if (lower.includes('bodega') || lower.includes('producción') || lower.includes('gruero') || lower.includes('inventario') || lower.includes('picking')) return 'Cliente Logístico';
-  if (lower.includes('limpieza')) return 'Cliente Servicios';
-  return 'Nodo Talentos';
+  // Use the centralized mapping
+  const { getClienteForVacante } = require('@/lib/clienteMapping');
+  return getClienteForVacante(cargo);
 }
 
 // Assign responsable round-robin based on hash
