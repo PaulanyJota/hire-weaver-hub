@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { PIPELINE_STAGES } from '@/data/mockData';
 import { useVacantesReales, type VacanteReal } from '@/hooks/useVacantesReales';
 import { useClientes } from '@/hooks/useClientes';
-import { addClienteOverride } from '@/lib/clienteMapping';
+import { addClienteOverride, getClienteForVacante } from '@/lib/clienteMapping';
 
 interface DashboardViewProps {
   onNewVacante: () => void;
@@ -202,19 +202,42 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
             <div className="bg-card rounded-2xl p-6 border border-border">
               <h3 className="text-sm font-semibold text-foreground mb-5">Nuevos Postulantes</h3>
               <div className="flex flex-col gap-4">
-                {recentPostulantes.map((p, i) => (
+                {recentPostulantes.map((p, i) => {
+                  const clienteName = getClienteForVacante(p.vacante_origen);
+                  const sinClienteFlag = clienteName === 'Sin cliente' && !!p.vacante_origen;
+                  return (
                   <div
                     key={i}
                     className="flex items-start gap-3 cursor-pointer hover:bg-muted/50 rounded-lg p-2 -m-2 transition-colors"
                     onClick={() => onSelectPostulante?.(p.id)}
                   >
                     <div className="w-2 h-2 rounded-full bg-primary mt-1.5 shrink-0" />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{formatName(p.nombre)} <span className="text-xs font-normal text-muted-foreground">— {p.vacante_origen || 'Sin cargo'}</span></p>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground">
+                        {formatName(p.nombre)} <span className="text-xs font-normal text-muted-foreground">— {p.vacante_origen || 'Sin cargo'}</span>
+                        {sinClienteFlag && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const match = sinCliente.find(v => v.cargo === p.vacante_origen);
+                              if (match) {
+                                setSelectedUnassigned(match);
+                                setSelectedClienteId('');
+                                setAssignModalOpen(true);
+                              }
+                            }}
+                            className="inline-flex items-center gap-1 ml-2 px-1.5 py-0.5 text-xs font-medium text-amber-600 bg-amber-500/10 border border-amber-500/20 rounded-md hover:bg-amber-500/20 transition-colors cursor-pointer"
+                            title={`"${p.vacante_origen}" no tiene cliente asignado — click para asignar`}
+                          >
+                            ⚠️ Asignar
+                          </button>
+                        )}
+                      </p>
                       <p className="text-xs text-muted-foreground">{p.profesion || 'Sin profesión'} · {formatDateTime(p.created_at)}</p>
                     </div>
                   </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           </div>
