@@ -114,6 +114,11 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
             <div>
               <h1 className="text-xl font-bold text-foreground">{formatName(p.nombre)}</h1>
               <p className="text-sm text-muted-foreground">{p.profesion || 'Sin profesión'}</p>
+              {p.telefono && (
+                <span className="inline-flex items-center gap-1.5 mt-1 px-2.5 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">
+                  ✅ WhatsApp contactado
+                </span>
+              )}
             </div>
             <select
               value={p.estado_pipeline || 'Postulantes Nuevos'}
