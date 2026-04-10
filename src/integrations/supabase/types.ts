@@ -56,10 +56,12 @@ export type Database = {
           habilidades: string[] | null
           id: string
           match_score: number | null
+          mensaje_postulante: string | null
           nombre: string
           notas: string | null
           pretension_renta: string | null
           profesion: string | null
+          respuesta_agente: string | null
           telefono: string | null
           vacante_origen: string | null
         }
@@ -74,10 +76,12 @@ export type Database = {
           habilidades?: string[] | null
           id?: string
           match_score?: number | null
+          mensaje_postulante?: string | null
           nombre: string
           notas?: string | null
           pretension_renta?: string | null
           profesion?: string | null
+          respuesta_agente?: string | null
           telefono?: string | null
           vacante_origen?: string | null
         }
@@ -92,10 +96,12 @@ export type Database = {
           habilidades?: string[] | null
           id?: string
           match_score?: number | null
+          mensaje_postulante?: string | null
           nombre?: string
           notas?: string | null
           pretension_renta?: string | null
           profesion?: string | null
+          respuesta_agente?: string | null
           telefono?: string | null
           vacante_origen?: string | null
         }
