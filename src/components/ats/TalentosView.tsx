@@ -169,7 +169,7 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
           {p.respuesta_agente && (
             <div className="mb-6">
               <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-2 flex items-center gap-1">🤖 Respuesta del Agente IA</p>
-              <p className="text-sm text-foreground bg-muted p-4 rounded-xl whitespace-pre-wrap">{p.respuesta_agente}</p>
+              <p className="text-sm text-foreground bg-blue-50 p-4 rounded-xl whitespace-pre-wrap">{p.respuesta_agente}</p>
             </div>
           )}
 
