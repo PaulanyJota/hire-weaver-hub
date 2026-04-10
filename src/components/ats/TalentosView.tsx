@@ -32,6 +32,8 @@ const formatDate = (d: string | null) => {
 };
 
 export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPostulanteId }) => {
+  const [editPhone, setEditPhone] = useState('');
+  const [savingPhone, setSavingPhone] = useState(false);
   const [allPostulantes, setAllPostulantes] = useState<Postulante[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCargo, setSelectedCargo] = useState<string | null>(null);
