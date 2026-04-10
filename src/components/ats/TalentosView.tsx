@@ -175,9 +175,12 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
 
           {p.cv_url && (
             <div className="mb-6">
-              <AtsButton small variant="secondary" onClick={() => window.open(p.cv_url!, '_blank')}>
+              <button
+                onClick={() => window.open(p.cv_url!, '_blank')}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer border-none"
+              >
                 📄 Ver CV
-              </AtsButton>
+              </button>
             </div>
           )}
 
