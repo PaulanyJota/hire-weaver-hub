@@ -37,6 +37,7 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
   const [selectedCargo, setSelectedCargo] = useState<string | null>(null);
   const [selectedPostulante, setSelectedPostulante] = useState<Postulante | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showConversation, setShowConversation] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
