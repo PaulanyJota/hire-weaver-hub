@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RESPONSABLES } from '@/data/mockData';
+import { getClienteForVacante } from '@/lib/clienteMapping';
 
 export interface VacanteReal {
   id: string;
@@ -51,8 +52,6 @@ function detectTipo(cargo: string): string {
 
 // Detect client from cargo keywords
 function detectCliente(cargo: string): string {
-  // Use the centralized mapping
-  const { getClienteForVacante } = require('@/lib/clienteMapping');
   return getClienteForVacante(cargo);
 }
 
