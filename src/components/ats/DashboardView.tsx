@@ -57,7 +57,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
         setPipelineCounts(counts);
 
         // Recent new postulantes only (estado_pipeline = 'Postulantes Nuevos')
-        setRecentPostulantes(allData.filter(p => p.estado_pipeline === 'Postulantes Nuevos').slice(0, 5));
+        setRecentPostulantes(allData.filter(p => p.estado_pipeline === 'Postulantes Nuevos').slice(0, 10));
       }
 
       setLoading(false);
