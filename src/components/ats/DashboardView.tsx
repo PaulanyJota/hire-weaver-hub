@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { formatName } from '@/lib/utils';
 import { AtsButton } from './AtsButton';
 import { Icons } from './Icons';
+import { AppModal } from './AppModal';
 import { supabase } from '@/integrations/supabase/client';
 import { PIPELINE_STAGES } from '@/data/mockData';
+import { useVacantesReales, type VacanteReal } from '@/hooks/useVacantesReales';
+import { useClientes } from '@/hooks/useClientes';
+import { addClienteOverride } from '@/lib/clienteMapping';
 
 interface DashboardViewProps {
   onNewVacante: () => void;
@@ -16,6 +20,8 @@ interface PipelineCount {
   pct: number;
 }
 
+const inputClass = "w-full px-3 py-2 bg-muted border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all";
+
 export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSelectPostulante }) => {
   const [totalPostulantes, setTotalPostulantes] = useState(0);
   const [nuevosEstaSemana, setNuevosEstaSemana] = useState(0);
@@ -23,11 +29,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
   const [recentPostulantes, setRecentPostulantes] = useState<{ id: string; nombre: string; profesion: string | null; created_at: string | null; estado_pipeline: string | null; vacante_origen: string | null }[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Unassigned vacantes
+  const { vacantes, refetch: refetchVacantes } = useVacantesReales();
+  const { clientes } = useClientes();
+  const sinCliente = useMemo(() => vacantes.filter(v => v.clienteNombre === 'Sin cliente'), [vacantes]);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedUnassigned, setSelectedUnassigned] = useState<VacanteReal | null>(null);
+  const [selectedClienteId, setSelectedClienteId] = useState('');
+  const [dismissed, setDismissed] = useState(false);
+
+  const handleAssign = () => {
+    if (!selectedUnassigned || !selectedClienteId) return;
+    const cliente = clientes.find(c => c.id === selectedClienteId);
+    if (!cliente) return;
+    addClienteOverride(selectedUnassigned.cargo, cliente.nombre);
+    refetchVacantes();
+    setAssignModalOpen(false);
+    setSelectedUnassigned(null);
+    setSelectedClienteId('');
+  };
+
   useEffect(() => {
     const fetchDashboardData = async () => {
       setLoading(true);
 
-      // Fetch all postulantes with minimal fields
       const { data: allData } = await supabase
         .from('postulantes')
         .select('id, estado_pipeline, created_at, nombre, profesion, vacante_origen')
@@ -36,13 +61,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
       if (allData) {
         setTotalPostulantes(allData.length);
 
-        // Count new this week
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
         const nuevos = allData.filter(p => p.created_at && new Date(p.created_at) >= oneWeekAgo).length;
         setNuevosEstaSemana(nuevos);
 
-        // Pipeline counts
         const stageCounts: Record<string, number> = {};
         for (const p of allData) {
           const stage = p.estado_pipeline || 'Postulantes Nuevos';
@@ -56,7 +79,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
         }));
         setPipelineCounts(counts);
 
-        // Recent new postulantes only (estado_pipeline = 'Postulantes Nuevos')
         setRecentPostulantes(allData.filter(p => p.estado_pipeline === 'Postulantes Nuevos').slice(0, 10));
       }
 
@@ -99,6 +121,48 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
         <div className="flex items-center justify-center py-16 text-muted-foreground text-sm">Cargando dashboard...</div>
       ) : (
         <>
+          {/* Alert: cargos sin cliente */}
+          {sinCliente.length > 0 && !dismissed && (
+            <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6">
+              <div className="flex items-start justify-between">
+                <div className="flex items-start gap-3">
+                  <span className="text-amber-500 text-xl mt-0.5">⚠️</span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground mb-1">
+                      {sinCliente.length} cargo{sinCliente.length > 1 ? 's' : ''} sin cliente asignado
+                    </p>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Nuevos cargos detectados que no coinciden con ninguna regla. Asígnalos a un cliente.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {sinCliente.map(v => (
+                        <button
+                          key={v.id}
+                          onClick={() => {
+                            setSelectedUnassigned(v);
+                            setSelectedClienteId('');
+                            setAssignModalOpen(true);
+                          }}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-xs font-medium text-foreground hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer"
+                        >
+                          <span>{v.cargo}</span>
+                          <span className="text-muted-foreground">({v.postulantes})</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setDismissed(true)}
+                  className="text-muted-foreground hover:text-foreground transition-colors p-1 bg-transparent border-none cursor-pointer"
+                  title="Ocultar"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Stats */}
           <div className="grid grid-cols-4 gap-4 mb-8">
             {stats.map((s, i) => (
@@ -156,6 +220,50 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onNewVacante, onSe
           </div>
         </>
       )}
+
+      {/* Modal asignar cliente */}
+      <AppModal isOpen={assignModalOpen} onClose={() => setAssignModalOpen(false)} title="Asignar cargo a cliente" width={500}>
+        {selectedUnassigned && (
+          <div className="flex flex-col gap-4">
+            <div className="bg-muted rounded-xl p-4">
+              <p className="text-xs text-muted-foreground mb-1">Cargo detectado</p>
+              <p className="font-semibold text-foreground">{selectedUnassigned.cargo}</p>
+              <p className="text-xs text-muted-foreground mt-1">{selectedUnassigned.postulantes} postulante{selectedUnassigned.postulantes !== 1 ? 's' : ''}</p>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Selecciona el cliente</label>
+              <select
+                className={inputClass}
+                value={selectedClienteId}
+                onChange={e => setSelectedClienteId(e.target.value)}
+              >
+                <option value="">— Selecciona un cliente —</option>
+                {clientes.map(c => (
+                  <option key={c.id} value={c.id}>{c.nombre}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => setAssignModalOpen(false)}
+                className="px-4 py-2 text-sm font-semibold text-muted-foreground bg-muted rounded-lg border-none cursor-pointer hover:bg-border transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                disabled={!selectedClienteId}
+                onClick={handleAssign}
+                className="px-5 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg border-none cursor-pointer hover:opacity-90 transition-opacity shadow-md disabled:opacity-50"
+              >
+                ✅ Asignar Cliente
+              </button>
+            </div>
+          </div>
+        )}
+      </AppModal>
     </div>
   );
 };
