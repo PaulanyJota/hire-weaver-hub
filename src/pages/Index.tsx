@@ -15,8 +15,10 @@ import { useAppToast } from '@/hooks/useAppToast';
 import { useAllPostulantes } from '@/hooks/usePostulantes';
 import { INITIAL_PIPELINE, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
 import { useClientes } from '@/hooks/useClientes';
+import { useSeedClientes } from '@/hooks/useSeedClientes';
 
 const Index = () => {
+  useSeedClientes();
   const [activeTab, setActiveTab] = useState('dashboard');
   const [selectedVacante, setSelectedVacante] = useState<Vacante | null>(null);
   const [pipelineState, setPipelineState] = useState<PipelineEntry[]>(INITIAL_PIPELINE);
