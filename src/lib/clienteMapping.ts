@@ -16,6 +16,7 @@ const RULES: { pattern: RegExp; cliente: string }[] = [
   { pattern: /^Operario Bodega/i, cliente: 'Alval' },
   { pattern: /^Operario de Producción/i, cliente: 'Alval' },
   { pattern: /^Operario Producción/i, cliente: 'Alval' },
+  { pattern: /^Gruero Horquilla y Picking/i, cliente: 'Todo Espacio' },
   { pattern: /^Gruero Horquilla/i, cliente: 'Alval' },
   { pattern: /^Supervisor de Línea/i, cliente: 'Alval' },
   { pattern: /^Operario de Inventario/i, cliente: 'Alval' },
