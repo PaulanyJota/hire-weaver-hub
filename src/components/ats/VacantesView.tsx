@@ -6,6 +6,7 @@ import { AppModal } from './AppModal';
 import { RESPONSABLES } from '@/data/mockData';
 import { useVacantesReales, type VacanteReal } from '@/hooks/useVacantesReales';
 import { useClientes } from '@/hooks/useClientes';
+import { addClienteOverride } from '@/lib/clienteMapping';
 
 interface VacantesViewProps {
   onViewPipeline: (cargo: string) => void;
@@ -28,7 +29,7 @@ const tipoColor: Record<string, string> = {
 const inputClass = "w-full px-3 py-2 bg-muted border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all";
 
 export const VacantesView: React.FC<VacantesViewProps> = ({ onViewPipeline, onNewVacante, showToast }) => {
-  const { vacantes, loading } = useVacantesReales();
+  const { vacantes, loading, refetch } = useVacantesReales();
   const { clientes } = useClientes();
   const [selectedResponsable, setSelectedResponsable] = useState<string | null>(null);
   const respData = selectedResponsable ? RESPONSABLES.find(r => r.id === selectedResponsable) : null;
@@ -45,7 +46,10 @@ export const VacantesView: React.FC<VacantesViewProps> = ({ onViewPipeline, onNe
     if (!selectedUnassigned || !selectedClienteId) return;
     const cliente = clientes.find(c => c.id === selectedClienteId);
     if (!cliente) return;
-    showToast(`Para asignar "${selectedUnassigned.cargo}" a ${cliente.nombre}, agrega una regla en clienteMapping.ts con el patrón del cargo.`);
+    // Add runtime override so it takes effect immediately
+    addClienteOverride(selectedUnassigned.cargo, cliente.nombre);
+    refetch();
+    showToast(`✅ "${selectedUnassigned.cargo}" asignado a ${cliente.nombre}`);
     setAssignModalOpen(false);
     setSelectedUnassigned(null);
     setSelectedClienteId('');
