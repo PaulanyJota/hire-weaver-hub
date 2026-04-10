@@ -328,7 +328,7 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
                           onClick={() => window.open(`https://wa.me/${phoneNumber}`, '_blank')}
                           className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
                         >
-                          📱 Iniciar Conversación
+                          📱 Continuar conversación
                         </button>
                       );
                     }
