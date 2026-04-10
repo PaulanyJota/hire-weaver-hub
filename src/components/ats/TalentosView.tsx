@@ -323,13 +323,24 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
                     const hasPhone = raw.length >= 8 && !p.telefono?.includes('$');
                     if (hasPhone) {
                       const phoneNumber = raw.startsWith('56') ? raw : `56${raw}`;
+                      const firstName = p.nombre.split(' ')[0];
+                      const cargoText = p.vacante_origen ? normalizeCargo(p.vacante_origen) : 'la vacante';
+                      const prefilledMsg = encodeURIComponent(`Hola ${firstName}, soy de Nodo Talentos. Postulaste al cargo ${cargoText} y queremos conversar contigo. ¿Tienes disponibilidad?`);
                       return (
-                        <button
-                          onClick={() => window.open(`https://wa.me/${phoneNumber}`, '_blank')}
-                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
-                        >
-                          📱 Continuar conversación
-                        </button>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => window.open(`https://wa.me/${phoneNumber}`, '_blank')}
+                            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                          >
+                            📱 Continuar conversación
+                          </button>
+                          <button
+                            onClick={() => window.open(`https://wa.me/${phoneNumber}?text=${prefilledMsg}`, '_blank')}
+                            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer bg-green-600 hover:bg-green-700 text-white shadow-sm"
+                          >
+                            🚀 Iniciar conversación del cargo
+                          </button>
+                        </div>
                       );
                     }
                     return (
