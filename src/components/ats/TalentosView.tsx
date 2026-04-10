@@ -142,6 +142,10 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
               { label: 'Pretensión de Renta', value: p.pretension_renta },
               { label: 'Estado Pipeline', value: p.estado_pipeline },
               { label: 'Fecha Postulación', value: formatDate(p.fecha_postulacion) },
+              { label: 'Experiencia', value: p.experiencia },
+              { label: 'Fuente', value: p.fuente },
+              { label: 'Vacante Origen', value: p.vacante_origen },
+              { label: 'Match Score', value: p.match_score != null ? `${p.match_score}%` : null },
             ].map(({ label, value }) => (
               <div key={label}>
                 <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-1">{label}</p>
@@ -149,6 +153,28 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
               </div>
             ))}
           </div>
+
+          {p.mensaje_postulante && (
+            <div className="mb-6">
+              <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-2 flex items-center gap-1">💬 Mensaje Inicial</p>
+              <p className="text-sm text-foreground bg-muted p-4 rounded-xl whitespace-pre-wrap">{p.mensaje_postulante}</p>
+            </div>
+          )}
+
+          {p.respuesta_agente && (
+            <div className="mb-6">
+              <p className="text-[10px] text-muted-foreground uppercase font-semibold mb-2 flex items-center gap-1">🤖 Respuesta Agente</p>
+              <p className="text-sm text-foreground bg-muted p-4 rounded-xl whitespace-pre-wrap">{p.respuesta_agente}</p>
+            </div>
+          )}
+
+          {p.cv_url && (
+            <div className="mb-6">
+              <a href={p.cv_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-primary hover:underline font-medium">
+                📄 Ver CV adjunto
+              </a>
+            </div>
+          )}
 
           {p.habilidades && p.habilidades.length > 0 && (
             <div className="mb-6">
