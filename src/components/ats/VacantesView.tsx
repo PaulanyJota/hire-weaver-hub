@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { AtsButton } from './AtsButton';
 import { AtsBadge } from './AtsBadge';
 import { Icons } from './Icons';
 import { AppModal } from './AppModal';
 import { RESPONSABLES } from '@/data/mockData';
 import { useVacantesReales, type VacanteReal } from '@/hooks/useVacantesReales';
+import { useClientes } from '@/hooks/useClientes';
+import { addClienteOverride } from '@/lib/clienteMapping';
 
 interface VacantesViewProps {
   onViewPipeline: (cargo: string) => void;
@@ -24,11 +26,34 @@ const tipoColor: Record<string, string> = {
   'Outsourcing': 'yellow',
 };
 
+const inputClass = "w-full px-3 py-2 bg-muted border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all";
+
 export const VacantesView: React.FC<VacantesViewProps> = ({ onViewPipeline, onNewVacante, showToast }) => {
-  const { vacantes, loading } = useVacantesReales();
+  const { vacantes, loading, refetch } = useVacantesReales();
+  const { clientes } = useClientes();
   const [selectedResponsable, setSelectedResponsable] = useState<string | null>(null);
   const respData = selectedResponsable ? RESPONSABLES.find(r => r.id === selectedResponsable) : null;
   const respVacantes = selectedResponsable ? vacantes.filter(v => v.responsableId === selectedResponsable) : [];
+
+  // Unassigned vacantes
+  const sinCliente = useMemo(() => vacantes.filter(v => v.clienteNombre === 'Sin cliente'), [vacantes]);
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedUnassigned, setSelectedUnassigned] = useState<VacanteReal | null>(null);
+  const [selectedClienteId, setSelectedClienteId] = useState('');
+  const [dismissed, setDismissed] = useState(false);
+
+  const handleAssign = () => {
+    if (!selectedUnassigned || !selectedClienteId) return;
+    const cliente = clientes.find(c => c.id === selectedClienteId);
+    if (!cliente) return;
+    // Add runtime override so it takes effect immediately
+    addClienteOverride(selectedUnassigned.cargo, cliente.nombre);
+    refetch();
+    showToast(`✅ "${selectedUnassigned.cargo}" asignado a ${cliente.nombre}`);
+    setAssignModalOpen(false);
+    setSelectedUnassigned(null);
+    setSelectedClienteId('');
+  };
 
   return (
     <div style={{ animation: 'fadeSlide 0.3s' }}>
@@ -44,6 +69,48 @@ export const VacantesView: React.FC<VacantesViewProps> = ({ onViewPipeline, onNe
           <AtsButton icon={Icons.plus} onClick={onNewVacante}>Crear Vacante</AtsButton>
         </div>
       </div>
+
+      {/* Banner de vacantes sin cliente */}
+      {!loading && sinCliente.length > 0 && !dismissed && (
+        <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6">
+          <div className="flex items-start justify-between">
+            <div className="flex items-start gap-3">
+              <span className="text-amber-500 text-xl mt-0.5">⚠️</span>
+              <div>
+                <p className="text-sm font-semibold text-foreground mb-1">
+                  {sinCliente.length} cargo{sinCliente.length > 1 ? 's' : ''} sin cliente asignado
+                </p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Estos cargos no coinciden con ninguna regla de asignación automática. Selecciona uno para asignarlo a un cliente.
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {sinCliente.map(v => (
+                    <button
+                      key={v.id}
+                      onClick={() => {
+                        setSelectedUnassigned(v);
+                        setSelectedClienteId('');
+                        setAssignModalOpen(true);
+                      }}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-card border border-border rounded-lg text-xs font-medium text-foreground hover:border-primary/50 hover:bg-primary/5 transition-all cursor-pointer"
+                    >
+                      <span>{v.cargo}</span>
+                      <span className="text-muted-foreground">({v.postulantes})</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => setDismissed(true)}
+              className="text-muted-foreground hover:text-foreground transition-colors p-1 bg-transparent border-none cursor-pointer"
+              title="Ocultar"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center h-64">
@@ -69,7 +136,22 @@ export const VacantesView: React.FC<VacantesViewProps> = ({ onViewPipeline, onNe
                     <p className="font-semibold text-foreground">{v.cargo}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{v.ubicacion}</p>
                   </td>
-                  <td className="px-5 py-4 text-muted-foreground">{v.clienteNombre}</td>
+                  <td className="px-5 py-4">
+                    {v.clienteNombre === 'Sin cliente' ? (
+                      <button
+                        onClick={() => {
+                          setSelectedUnassigned(v);
+                          setSelectedClienteId('');
+                          setAssignModalOpen(true);
+                        }}
+                        className="text-amber-500 text-xs font-medium hover:underline bg-transparent border-none cursor-pointer p-0"
+                      >
+                        ⚠️ Sin cliente — Asignar
+                      </button>
+                    ) : (
+                      <span className="text-muted-foreground">{v.clienteNombre}</span>
+                    )}
+                  </td>
                   <td className="px-5 py-4">
                     {(() => {
                       const resp = RESPONSABLES.find(r => r.id === v.responsableId);
@@ -135,6 +217,62 @@ export const VacantesView: React.FC<VacantesViewProps> = ({ onViewPipeline, onNe
                 ))}
               </div>
             )}
+          </div>
+        )}
+      </AppModal>
+
+      {/* Modal asignar cliente */}
+      <AppModal isOpen={assignModalOpen} onClose={() => setAssignModalOpen(false)} title="Asignar cargo a cliente" width={500}>
+        {selectedUnassigned && (
+          <div className="flex flex-col gap-4">
+            <div className="bg-muted rounded-xl p-4">
+              <p className="text-xs text-muted-foreground mb-1">Cargo detectado</p>
+              <p className="font-semibold text-foreground">{selectedUnassigned.cargo}</p>
+              <p className="text-xs text-muted-foreground mt-1">{selectedUnassigned.postulantes} postulante{selectedUnassigned.postulantes !== 1 ? 's' : ''}</p>
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-muted-foreground block mb-1.5">Selecciona el cliente</label>
+              <select
+                className={inputClass}
+                value={selectedClienteId}
+                onChange={e => setSelectedClienteId(e.target.value)}
+              >
+                <option value="">— Selecciona un cliente —</option>
+                {clientes.map(c => (
+                  <option key={c.id} value={c.id}>{c.nombre}</option>
+                ))}
+              </select>
+            </div>
+
+            {selectedClienteId && (
+              <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 text-sm">
+                <p className="font-medium text-foreground mb-2">📋 Para que esta asignación sea permanente:</p>
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  Agrega una regla en <code className="bg-muted px-1.5 py-0.5 rounded text-xs">src/lib/clienteMapping.ts</code> con el patrón:
+                </p>
+                <pre className="bg-muted rounded-lg p-3 mt-2 text-xs text-foreground overflow-x-auto">
+{`{ pattern: /^${selectedUnassigned.cargo.split(' ').slice(0, 3).join(' ')}/i, cliente: '${clientes.find(c => c.id === selectedClienteId)?.nombre}' }`}
+                </pre>
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2 mt-2">
+              <button
+                type="button"
+                onClick={() => setAssignModalOpen(false)}
+                className="px-4 py-2 text-sm font-semibold text-muted-foreground bg-muted rounded-lg border-none cursor-pointer hover:bg-border transition-colors"
+              >
+                Cancelar
+              </button>
+              <button
+                disabled={!selectedClienteId}
+                onClick={handleAssign}
+                className="px-5 py-2 text-sm font-semibold text-primary-foreground bg-primary rounded-lg border-none cursor-pointer hover:opacity-90 transition-opacity shadow-md disabled:opacity-50"
+              >
+                Asignar Cliente
+              </button>
+            </div>
           </div>
         )}
       </AppModal>
