@@ -321,20 +321,59 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
                   {(() => {
                     const raw = p.telefono?.replace(/\D/g, '') || '';
                     const hasPhone = raw.length >= 8 && !p.telefono?.includes('$');
-                    const phoneNumber = raw.startsWith('56') ? raw : `56${raw}`;
+                    if (hasPhone) {
+                      const phoneNumber = raw.startsWith('56') ? raw : `56${raw}`;
+                      return (
+                        <button
+                          onClick={() => window.open(`https://wa.me/${phoneNumber}`, '_blank')}
+                          className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer bg-blue-600 hover:bg-blue-700 text-white shadow-sm"
+                        >
+                          📱 Iniciar Conversación
+                        </button>
+                      );
+                    }
                     return (
-                      <button
-                        disabled={!hasPhone}
-                        title={hasPhone ? `Escribir a ${phoneNumber}` : 'Sin número de WhatsApp'}
-                        onClick={() => hasPhone && window.open(`https://wa.me/${phoneNumber}`, '_blank')}
-                        className={`w-full inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer ${
-                          hasPhone
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white shadow-sm'
-                            : 'bg-muted text-muted-foreground cursor-not-allowed opacity-60'
-                        }`}
-                      >
-                        📱 {hasPhone ? 'Iniciar Conversación' : 'Sin número de WhatsApp'}
-                      </button>
+                      <div>
+                        <p className="text-xs text-muted-foreground font-semibold mb-2">📱 Sin número registrado</p>
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="tel"
+                            placeholder="+56 9 XXXX XXXX"
+                            value={editPhone}
+                            onChange={e => setEditPhone(e.target.value)}
+                            className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                          />
+                          <button
+                            disabled={savingPhone || editPhone.replace(/\D/g, '').length < 8}
+                            onClick={async () => {
+                              setSavingPhone(true);
+                              const cleanNum = editPhone.replace(/\D/g, '');
+                              const finalNum = cleanNum.startsWith('56') ? cleanNum : `56${cleanNum}`;
+                              const { error } = await supabase
+                                .from('postulantes')
+                                .update({ telefono: finalNum })
+                                .eq('id', p.id);
+                              if (!error) {
+                                const updated = { ...p, telefono: finalNum };
+                                setSelectedPostulante(updated);
+                                setAllPostulantes(prev => prev.map(x => x.id === p.id ? { ...x, telefono: finalNum } : x));
+                                setEditPhone('');
+                                showToast('Número de WhatsApp guardado');
+                              } else {
+                                showToast('Error al guardar el número');
+                              }
+                              setSavingPhone(false);
+                            }}
+                            className={`px-4 py-2 text-sm font-semibold rounded-lg border-none transition-all cursor-pointer ${
+                              savingPhone || editPhone.replace(/\D/g, '').length < 8
+                                ? 'bg-muted text-muted-foreground cursor-not-allowed'
+                                : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                            }`}
+                          >
+                            {savingPhone ? 'Guardando...' : 'Guardar'}
+                          </button>
+                        </div>
+                      </div>
                     );
                   })()}
                 </div>
