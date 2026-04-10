@@ -170,9 +170,9 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
 
           {p.cv_url && (
             <div className="mb-6">
-              <a href={p.cv_url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm text-primary hover:underline font-medium">
-                📄 Ver CV adjunto
-              </a>
+              <AtsButton small variant="secondary" onClick={() => window.open(p.cv_url!, '_blank')}>
+                📄 Ver CV
+              </AtsButton>
             </div>
           )}
 
