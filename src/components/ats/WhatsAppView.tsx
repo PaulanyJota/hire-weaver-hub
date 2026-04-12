@@ -39,17 +39,18 @@ export const WhatsAppView: React.FC = () => {
   const [messages, setMessages] = useState<Array<{ rol: string; mensaje: string; created_at: string | null }>>([]);
   const [loadingMsgs, setLoadingMsgs] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [newMessage, setNewMessage] = useState('');
 
   // Fetch postulantes that have conversations
   useEffect(() => {
     const fetchConversations = async () => {
       setLoading(true);
 
-      // Get postulantes in "En Proceso" stage
+      // Get all postulantes that have conversations
       const { data: postulantes } = await supabase
         .from('postulantes')
         .select('*')
-        .eq('estado_pipeline', 'En Proceso')
+        .or('mensaje_postulante.neq.,respuesta_agente.neq.')
         .order('created_at', { ascending: false });
 
       if (!postulantes) { setLoading(false); return; }
@@ -285,11 +286,47 @@ export const WhatsAppView: React.FC = () => {
               )}
             </div>
 
-            {/* Footer */}
-            <div className="px-6 py-3 border-t border-border bg-card">
-              <p className="text-[11px] text-muted-foreground text-center">
-                Los mensajes se envían desde WhatsApp directamente · Esta vista es de solo lectura
-              </p>
+            {/* Footer — Input + Enviar */}
+            <div className="px-4 py-3 border-t border-border bg-card">
+              {(() => {
+                const raw = selectedPostulante?.telefono?.replace(/\D/g, '') || '';
+                const hasPhone = raw.length >= 8 && !selectedPostulante?.telefono?.includes('$');
+                if (!hasPhone) {
+                  return <p className="text-[11px] text-muted-foreground text-center">📱 Sin número de teléfono registrado</p>;
+                }
+                const phoneNumber = raw.startsWith('56') ? raw : `56${raw}`;
+                return (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      placeholder="Escribe un mensaje..."
+                      value={newMessage}
+                      onChange={e => setNewMessage(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter' && newMessage.trim()) {
+                          window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(newMessage)}`, '_blank');
+                        }
+                      }}
+                      className="flex-1 px-4 py-2.5 bg-muted border border-border rounded-xl text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    />
+                    <button
+                      disabled={!newMessage.trim()}
+                      onClick={() => {
+                        if (newMessage.trim()) {
+                          window.open(`https://wa.me/${phoneNumber}?text=${encodeURIComponent(newMessage)}`, '_blank');
+                        }
+                      }}
+                      className={`px-5 py-2.5 text-sm font-semibold rounded-xl border-none transition-all cursor-pointer ${
+                        newMessage.trim()
+                          ? 'bg-green-600 hover:bg-green-700 text-white'
+                          : 'bg-muted text-muted-foreground cursor-not-allowed'
+                      }`}
+                    >
+                      Enviar
+                    </button>
+                  </div>
+                );
+              })()}
             </div>
           </>
         )}
