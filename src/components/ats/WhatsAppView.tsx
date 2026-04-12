@@ -38,6 +38,7 @@ export const WhatsAppView: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Array<{ rol: string; mensaje: string; created_at: string | null }>>([]);
   const [loadingMsgs, setLoadingMsgs] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const [newMessage, setNewMessage] = useState('');
 
   // Fetch postulantes that have conversations
