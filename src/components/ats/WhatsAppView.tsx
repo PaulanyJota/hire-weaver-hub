@@ -264,16 +264,16 @@ export const WhatsAppView: React.FC = () => {
                         <div
                           className={`max-w-[75%] px-4 py-3 rounded-2xl ${
                             isAgent
-                              ? 'bg-primary text-primary-foreground rounded-br-md'
+                              ? 'bg-green-600 text-white rounded-br-md'
                               : 'bg-muted text-foreground rounded-bl-md'
                           }`}
                         >
-                          <p className={`text-[10px] font-semibold mb-1 ${isAgent ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                            {isAgent ? '🤖 Agente' : 'Postulante'}
+                          <p className={`text-[10px] font-semibold mb-1 ${isAgent ? 'text-green-100' : 'text-muted-foreground'}`}>
+                            {isAgent ? '🤖 Nodo Talentos (IA)' : 'Postulante'}
                           </p>
                           <p className="text-sm whitespace-pre-wrap leading-relaxed">{m.mensaje}</p>
                           {m.created_at && (
-                            <p className={`text-[10px] mt-1.5 ${isAgent ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
+                            <p className={`text-[10px] mt-1.5 ${isAgent ? 'text-green-100' : 'text-muted-foreground'}`}>
                               {new Date(m.created_at).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                             </p>
                           )}
