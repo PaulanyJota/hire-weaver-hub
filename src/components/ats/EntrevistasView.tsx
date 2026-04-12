@@ -39,9 +39,8 @@ export const EntrevistasView: React.FC = () => {
   const resolveCliente = (vacanteOrigen: string | null): string => {
     if (!vacanteOrigen) return '—';
     const match = vacantes.find(v => v.cargo.toLowerCase() === vacanteOrigen.toLowerCase());
-    if (match) {
-      const cliente = clientes.find(c => c.id === match.cliente_id);
-      return cliente?.nombre || '—';
+    if (match && match.clienteNombre) {
+      return match.clienteNombre;
     }
     const mapped = getClienteForVacante(vacanteOrigen);
     return mapped !== 'Sin cliente' ? mapped : '—';
