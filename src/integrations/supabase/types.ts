@@ -44,6 +44,41 @@ export type Database = {
         }
         Relationships: []
       }
+      conversaciones: {
+        Row: {
+          created_at: string | null
+          id: string
+          mensaje: string
+          postulante_id: string | null
+          rol: string
+          telefono: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          mensaje: string
+          postulante_id?: string | null
+          rol: string
+          telefono: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          mensaje?: string
+          postulante_id?: string | null
+          rol?: string
+          telefono?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversaciones_postulante_id_fkey"
+            columns: ["postulante_id"]
+            isOneToOne: false
+            referencedRelation: "postulantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       postulantes: {
         Row: {
           created_at: string | null
