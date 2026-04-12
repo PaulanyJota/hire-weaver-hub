@@ -16,6 +16,7 @@ const NAV = [
   { id: 'pipeline', label: 'Pipeline', icon: Icons.filter },
   { id: 'talentos', label: 'Talentos', icon: Icons.users },
   { id: 'clientes', label: 'Clientes', icon: Icons.building },
+  { id: 'entrevistas', label: 'Entrevistas', icon: Icons.calendar },
 ];
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onToggleCollapse, onSwitchTab, hasSelectedVacante }) => {
