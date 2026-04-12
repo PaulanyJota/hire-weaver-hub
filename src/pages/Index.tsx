@@ -12,6 +12,7 @@ import { EntrevistasView } from '@/components/ats/EntrevistasView';
 import { AppModal } from '@/components/ats/AppModal';
 import { ToastContainer } from '@/components/ats/ToastContainer';
 import { Icons } from '@/components/ats/Icons';
+import { WhatsAppView } from '@/components/ats/WhatsAppView';
 import { useAppToast } from '@/hooks/useAppToast';
 import { useAllPostulantes } from '@/hooks/usePostulantes';
 import { INITIAL_PIPELINE, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
