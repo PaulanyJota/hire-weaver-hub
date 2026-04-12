@@ -15,6 +15,17 @@ interface Entrevista {
   fecha_postulacion: string | null;
   estado_pipeline: string | null;
   mensaje_postulante: string | null;
+  created_at: string | null;
+}
+
+/** Returns the next business day (Mon-Fri) after a given date */
+function nextBusinessDay(date: Date): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + 1);
+  const day = next.getDay();
+  if (day === 6) next.setDate(next.getDate() + 2); // Sat → Mon
+  if (day === 0) next.setDate(next.getDate() + 1); // Sun → Mon
+  return next;
 }
 
 export const EntrevistasView: React.FC = () => {
@@ -28,7 +39,7 @@ export const EntrevistasView: React.FC = () => {
       setLoading(true);
       const { data } = await supabase
         .from('postulantes')
-        .select('id, nombre, email, telefono, profesion, vacante_origen, fecha_postulacion, estado_pipeline, mensaje_postulante')
+        .select('id, nombre, email, telefono, profesion, vacante_origen, fecha_postulacion, estado_pipeline, mensaje_postulante, created_at')
         .eq('estado_pipeline', 'Entrevista Agendada')
         .order('fecha_postulacion', { ascending: false });
       setEntrevistas(data || []);
@@ -83,6 +94,7 @@ export const EntrevistasView: React.FC = () => {
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Teléfono</th>
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Email</th>
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Fecha Postulación</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">📅 Fecha Entrevista</th>
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Último Mensaje</th>
                 </tr>
               </thead>
@@ -103,6 +115,9 @@ export const EntrevistasView: React.FC = () => {
                     <td className="px-4 py-3 text-muted-foreground">{e.email || '—'}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {e.fecha_postulacion ? new Date(e.fecha_postulacion).toLocaleDateString('es-CL') : '—'}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-primary">
+                      {e.created_at ? nextBusinessDay(new Date(e.created_at)).toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' }) : '—'}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground max-w-[250px] truncate" title={e.mensaje_postulante || ''}>
                       {e.mensaje_postulante || '—'}
