@@ -28,7 +28,7 @@ export const EntrevistasView: React.FC = () => {
       setLoading(true);
       const { data } = await supabase
         .from('postulantes')
-        .select('id, nombre, email, telefono, profesion, vacante_origen, fecha_postulacion, estado_pipeline')
+        .select('id, nombre, email, telefono, profesion, vacante_origen, fecha_postulacion, estado_pipeline, mensaje_postulante')
         .eq('estado_pipeline', 'Entrevista Agendada')
         .order('fecha_postulacion', { ascending: false });
       setEntrevistas(data || []);
