@@ -8,6 +8,7 @@ import { PipelineView } from '@/components/ats/PipelineView';
 import { SupabasePipelineView } from '@/components/ats/SupabasePipelineView';
 import { TalentosView } from '@/components/ats/TalentosView';
 import { ClientesView } from '@/components/ats/ClientesView';
+import { EntrevistasView } from '@/components/ats/EntrevistasView';
 import { AppModal } from '@/components/ats/AppModal';
 import { ToastContainer } from '@/components/ats/ToastContainer';
 import { Icons } from '@/components/ats/Icons';
@@ -105,6 +106,7 @@ const Index = () => {
       case 'talentos': return <TalentosView showToast={showToast} initialPostulanteId={focusPostulanteId} />;
       case 'pipeline': return <SupabasePipelineView postulantes={allPostulantes} updateEstadoPipeline={updateEstadoPipeline} showToast={showToast} />;
       case 'clientes': return <ClientesView showToast={showToast} />;
+      case 'entrevistas': return <EntrevistasView />;
       case 'settings': return (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
