@@ -14,6 +14,7 @@ interface Entrevista {
   vacante_origen: string | null;
   fecha_postulacion: string | null;
   estado_pipeline: string | null;
+  mensaje_postulante: string | null;
 }
 
 export const EntrevistasView: React.FC = () => {
