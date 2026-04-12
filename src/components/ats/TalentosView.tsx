@@ -151,6 +151,7 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
               { label: 'Estado Pipeline', value: p.estado_pipeline },
               { label: 'Fecha Postulación', value: formatDate(p.fecha_postulacion) },
               { label: 'Experiencia', value: p.experiencia },
+              { label: 'Comuna', value: (p as any).comuna },
               { label: 'Fuente', value: p.fuente },
               { label: 'Vacante Origen', value: p.vacante_origen },
               { label: 'Match Score', value: p.match_score != null ? `${p.match_score}%` : null },
