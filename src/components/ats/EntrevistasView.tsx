@@ -58,6 +58,15 @@ export const EntrevistasView: React.FC = () => {
     return mapped !== 'Sin cliente' ? mapped : '—';
   };
 
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const tomorrowStr = tomorrow.toDateString();
+  const confirmedTomorrow = entrevistas.filter(e => {
+    if (!e.created_at) return false;
+    const entrevistaDate = nextBusinessDay(new Date(e.created_at));
+    return entrevistaDate.toDateString() === tomorrowStr;
+  }).length;
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -68,6 +77,15 @@ export const EntrevistasView: React.FC = () => {
           </p>
         </div>
       </div>
+
+      {!loading && confirmedTomorrow > 0 && (
+        <div className="mb-4 px-4 py-3 rounded-xl bg-primary/10 border border-primary/20 flex items-center gap-2">
+          <span className="text-lg">📅</span>
+          <span className="text-sm font-semibold text-primary">
+            Confirmados para entrevista mañana: {confirmedTomorrow} persona{confirmedTomorrow !== 1 ? 's' : ''}
+          </span>
+        </div>
+      )}
 
       {loading ? (
         <div className="flex items-center justify-center h-48">
