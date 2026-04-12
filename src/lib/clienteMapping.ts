@@ -13,6 +13,7 @@ const RULES: { pattern: RegExp; cliente: string }[] = [
   { pattern: /^Ejecutivo Counter/i, cliente: 'Lucano Rent a Car' },
   { pattern: /^Movilizador Lavador/i, cliente: 'Lucano Rent a Car' },
   { pattern: /^Jefe de Central de Reservas/i, cliente: 'Lucano Rent a Car' },
+  { pattern: /Pudahuel/i, cliente: 'Alval' },
   { pattern: /^Operario Bodega/i, cliente: 'Alval' },
   { pattern: /^Operario de Producci[oó]n/i, cliente: 'Alval' },
   { pattern: /^Operario Producci[oó]n/i, cliente: 'Alval' },
