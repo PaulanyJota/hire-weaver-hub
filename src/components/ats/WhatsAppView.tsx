@@ -45,11 +45,11 @@ export const WhatsAppView: React.FC = () => {
     const fetchConversations = async () => {
       setLoading(true);
 
-      // Get all postulantes with phone (they have conversations)
+      // Get postulantes in "Entrevista Agendada" stage
       const { data: postulantes } = await supabase
         .from('postulantes')
         .select('*')
-        .or('mensaje_postulante.neq.,respuesta_agente.neq.')
+        .eq('estado_pipeline', 'Entrevista Agendada')
         .order('created_at', { ascending: false });
 
       if (!postulantes) { setLoading(false); return; }
