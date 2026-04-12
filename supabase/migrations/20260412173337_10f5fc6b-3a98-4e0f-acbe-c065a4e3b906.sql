@@ -1,0 +1,1 @@
+ALTER TABLE public.postulantes ADD COLUMN comuna text;

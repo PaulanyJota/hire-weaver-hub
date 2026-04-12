@@ -81,6 +81,7 @@ export type Database = {
       }
       postulantes: {
         Row: {
+          comuna: string | null
           created_at: string | null
           cv_url: string | null
           email: string | null
@@ -101,6 +102,7 @@ export type Database = {
           vacante_origen: string | null
         }
         Insert: {
+          comuna?: string | null
           created_at?: string | null
           cv_url?: string | null
           email?: string | null
@@ -121,6 +123,7 @@ export type Database = {
           vacante_origen?: string | null
         }
         Update: {
+          comuna?: string | null
           created_at?: string | null
           cv_url?: string | null
           email?: string | null
