@@ -273,7 +273,7 @@ export const WhatsAppView: React.FC = () => {
                           </p>
                           <p className="text-sm whitespace-pre-wrap leading-relaxed">{m.mensaje}</p>
                           {m.created_at && (
-                            <p className={`text-[10px] mt-1.5 ${isAgent ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
+                            <p className={`text-[10px] mt-1.5 ${isAgent ? 'text-green-100' : 'text-muted-foreground'}`}>
                               {new Date(m.created_at).toLocaleString('es-CL', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                             </p>
                           )}
