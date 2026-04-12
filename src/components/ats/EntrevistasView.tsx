@@ -67,6 +67,29 @@ export const EntrevistasView: React.FC = () => {
     return entrevistaDate.toDateString() === tomorrowStr;
   }).length;
 
+  const exportCSV = () => {
+    const headers = ['Nombre','Cargo','Cliente','Profesión','Teléfono','Email','Fecha Postulación','Fecha Entrevista','Último Mensaje'];
+    const rows = entrevistas.map(e => [
+      e.nombre,
+      e.vacante_origen || '',
+      resolveCliente(e.vacante_origen),
+      e.profesion || '',
+      e.telefono || '',
+      e.email || '',
+      e.fecha_postulacion ? new Date(e.fecha_postulacion).toLocaleDateString('es-CL') : '',
+      e.created_at ? nextBusinessDay(new Date(e.created_at)).toLocaleDateString('es-CL') : '',
+      e.mensaje_postulante || '',
+    ]);
+    const csv = [headers, ...rows].map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `entrevistas_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -76,6 +99,14 @@ export const EntrevistasView: React.FC = () => {
             Postulantes con entrevista agendada ({entrevistas.length})
           </p>
         </div>
+        {entrevistas.length > 0 && (
+          <button
+            onClick={exportCSV}
+            className="px-4 py-2 rounded-lg text-sm font-medium bg-primary text-primary-foreground hover:bg-primary/90 transition-colors"
+          >
+            Exportar CSV
+          </button>
+        )}
       </div>
 
       {!loading && confirmedTomorrow > 0 && (
