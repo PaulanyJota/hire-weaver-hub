@@ -268,6 +268,9 @@ export const WhatsAppView: React.FC = () => {
                               : 'bg-muted text-foreground rounded-bl-md'
                           }`}
                         >
+                          <p className={`text-[10px] font-semibold mb-1 ${isAgent ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                            {isAgent ? '🤖 Agente' : 'Postulante'}
+                          </p>
                           <p className="text-sm whitespace-pre-wrap leading-relaxed">{m.mensaje}</p>
                           {m.created_at && (
                             <p className={`text-[10px] mt-1.5 ${isAgent ? 'text-primary-foreground/60' : 'text-muted-foreground'}`}>
