@@ -15,6 +15,17 @@ interface Entrevista {
   fecha_postulacion: string | null;
   estado_pipeline: string | null;
   mensaje_postulante: string | null;
+  created_at: string | null;
+}
+
+/** Returns the next business day (Mon-Fri) after a given date */
+function nextBusinessDay(date: Date): Date {
+  const next = new Date(date);
+  next.setDate(next.getDate() + 1);
+  const day = next.getDay();
+  if (day === 6) next.setDate(next.getDate() + 2); // Sat → Mon
+  if (day === 0) next.setDate(next.getDate() + 1); // Sun → Mon
+  return next;
 }
 
 export const EntrevistasView: React.FC = () => {
