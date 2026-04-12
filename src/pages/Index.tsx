@@ -107,6 +107,15 @@ const Index = () => {
       case 'pipeline': return <SupabasePipelineView postulantes={allPostulantes} updateEstadoPipeline={updateEstadoPipeline} showToast={showToast} />;
       case 'clientes': return <ClientesView showToast={showToast} />;
       case 'entrevistas': return <EntrevistasView />;
+      case 'whatsapp': return (
+        <div className="flex items-center justify-center h-96">
+          <div className="text-center">
+            <p className="text-4xl mb-4">💬</p>
+            <h2 className="text-xl font-bold text-foreground">WhatsApp</h2>
+            <p className="text-sm text-muted-foreground mt-1">Integración con WhatsApp próximamente.</p>
+          </div>
+        </div>
+      );
       case 'settings': return (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
