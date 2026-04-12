@@ -94,6 +94,7 @@ export const EntrevistasView: React.FC = () => {
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Teléfono</th>
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Email</th>
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Fecha Postulación</th>
+                  <th className="text-left px-4 py-3 font-semibold text-muted-foreground">📅 Fecha Entrevista</th>
                   <th className="text-left px-4 py-3 font-semibold text-muted-foreground">Último Mensaje</th>
                 </tr>
               </thead>
@@ -114,6 +115,9 @@ export const EntrevistasView: React.FC = () => {
                     <td className="px-4 py-3 text-muted-foreground">{e.email || '—'}</td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {e.fecha_postulacion ? new Date(e.fecha_postulacion).toLocaleDateString('es-CL') : '—'}
+                    </td>
+                    <td className="px-4 py-3 font-medium text-primary">
+                      {e.created_at ? nextBusinessDay(new Date(e.created_at)).toLocaleDateString('es-CL', { weekday: 'short', day: 'numeric', month: 'short' }) : '—'}
                     </td>
                     <td className="px-4 py-3 text-muted-foreground max-w-[250px] truncate" title={e.mensaje_postulante || ''}>
                       {e.mensaje_postulante || '—'}
