@@ -267,7 +267,122 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
             })()}
           </div>
 
-          {/* === Modal Conversación WhatsApp === */}
+          {/* === Sección CV === */}
+          <div className="mb-6 p-4 bg-muted/40 rounded-xl border border-border">
+            <p className="text-xs text-muted-foreground uppercase font-semibold mb-3">📄 Currículum Vitae</p>
+            
+            {p.cv_url ? (
+              <div className="flex items-center gap-3 flex-wrap">
+                <a
+                  href={p.cv_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold rounded-lg transition-colors no-underline"
+                >
+                  📥 Descargar CV
+                </a>
+                <span className="text-xs text-muted-foreground truncate max-w-[200px]" title={p.cv_url}>
+                  {p.cv_url.split('/').pop() || 'CV'}
+                </span>
+                <button
+                  onClick={async () => {
+                    const { error } = await supabase.from('postulantes').update({ cv_url: null }).eq('id', p.id);
+                    if (!error) {
+                      const updated = { ...p, cv_url: null };
+                      setSelectedPostulante(updated);
+                      setAllPostulantes(prev => prev.map(x => x.id === p.id ? { ...x, cv_url: null } : x));
+                      showToast('CV eliminado');
+                    }
+                  }}
+                  className="text-xs text-destructive hover:underline bg-transparent border-none cursor-pointer"
+                >
+                  Quitar
+                </button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-2 flex-wrap">
+                  <input
+                    ref={cvFileRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    className="hidden"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setUploadingCv(true);
+                      const ext = file.name.split('.').pop();
+                      const filePath = `${p.id}.${ext}`;
+                      const { error: uploadErr } = await supabase.storage.from('cvs').upload(filePath, file, { upsert: true });
+                      if (uploadErr) {
+                        showToast('Error al subir CV');
+                        setUploadingCv(false);
+                        return;
+                      }
+                      const { data: urlData } = supabase.storage.from('cvs').getPublicUrl(filePath);
+                      const publicUrl = urlData.publicUrl;
+                      const { error: dbErr } = await supabase.from('postulantes').update({ cv_url: publicUrl }).eq('id', p.id);
+                      if (!dbErr) {
+                        const updated = { ...p, cv_url: publicUrl };
+                        setSelectedPostulante(updated);
+                        setAllPostulantes(prev => prev.map(x => x.id === p.id ? { ...x, cv_url: publicUrl } : x));
+                        showToast('CV subido correctamente');
+                      }
+                      setUploadingCv(false);
+                    }}
+                  />
+                  <button
+                    disabled={uploadingCv}
+                    onClick={() => cvFileRef.current?.click()}
+                    className={`inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg border-none transition-all cursor-pointer ${
+                      uploadingCv ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                    }`}
+                  >
+                    {uploadingCv ? '⏳ Subiendo...' : '📤 Subir archivo'}
+                  </button>
+                  <button
+                    onClick={() => setShowCvUrlInput(!showCvUrlInput)}
+                    className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg border border-border bg-background hover:bg-muted text-foreground transition-all cursor-pointer"
+                  >
+                    🔗 Pegar URL
+                  </button>
+                </div>
+                {showCvUrlInput && (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="url"
+                      placeholder="https://drive.google.com/..."
+                      value={cvUrlInput}
+                      onChange={e => setCvUrlInput(e.target.value)}
+                      className="flex-1 px-3 py-2 bg-background border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
+                    />
+                    <button
+                      disabled={!cvUrlInput.trim()}
+                      onClick={async () => {
+                        const { error } = await supabase.from('postulantes').update({ cv_url: cvUrlInput.trim() }).eq('id', p.id);
+                        if (!error) {
+                          const updated = { ...p, cv_url: cvUrlInput.trim() };
+                          setSelectedPostulante(updated);
+                          setAllPostulantes(prev => prev.map(x => x.id === p.id ? { ...x, cv_url: cvUrlInput.trim() } : x));
+                          setCvUrlInput('');
+                          setShowCvUrlInput(false);
+                          showToast('URL de CV guardada');
+                        }
+                      }}
+                      className={`px-4 py-2 text-sm font-semibold rounded-lg border-none transition-all cursor-pointer ${
+                        !cvUrlInput.trim() ? 'bg-muted text-muted-foreground cursor-not-allowed' : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                      }`}
+                    >
+                      Guardar
+                    </button>
+                  </div>
+                )}
+                <p className="text-[10px] text-muted-foreground">PDF, DOC o DOCX. También puedes pegar un link de Google Drive, Dropbox, etc.</p>
+              </div>
+            )}
+          </div>
+
+
           {showConversation && (
             <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowConversation(false)}>
               <div
