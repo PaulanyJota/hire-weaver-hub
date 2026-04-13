@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { formatName } from '@/lib/utils';
 import { AtsButton } from './AtsButton';
 import { Icons } from './Icons';
@@ -40,6 +40,10 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
   const [selectedPostulante, setSelectedPostulante] = useState<Postulante | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [showConversation, setShowConversation] = useState(false);
+  const [uploadingCv, setUploadingCv] = useState(false);
+  const [cvUrlInput, setCvUrlInput] = useState('');
+  const [showCvUrlInput, setShowCvUrlInput] = useState(false);
+  const cvFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const fetchData = async () => {
