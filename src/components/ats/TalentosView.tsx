@@ -5,6 +5,7 @@ import { Icons } from './Icons';
 import { supabase } from '@/integrations/supabase/client';
 import { PIPELINE_STAGES } from '@/data/mockData';
 import type { Postulante } from '@/hooks/usePostulantes';
+import { openCv } from '@/lib/cvUrl';
 
 interface TalentosViewProps {
   showToast: (msg: string) => void;
@@ -191,7 +192,7 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
                     </button>
                     {p.cv_url && (
                       <button
-                        onClick={() => window.open(p.cv_url!, '_blank')}
+                        onClick={() => openCv(p.cv_url!)}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer border-none"
                       >
                         📄 Ver CV
@@ -250,7 +251,7 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
                   <div className="flex flex-wrap gap-3 mt-3">
                     {p.cv_url && (
                       <button
-                        onClick={() => window.open(p.cv_url!, '_blank')}
+                        onClick={() => openCv(p.cv_url!)}
                         className="inline-flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold rounded-lg transition-colors cursor-pointer border-none"
                       >
                         📄 Ver CV
@@ -273,14 +274,12 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
             
             {p.cv_url ? (
               <div className="flex items-center gap-3 flex-wrap">
-                <a
-                  href={p.cv_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold rounded-lg transition-colors no-underline"
+                <button
+                  onClick={() => openCv(p.cv_url!)}
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold rounded-lg border-none cursor-pointer transition-colors"
                 >
                   📥 Descargar CV
-                </a>
+                </button>
                 <span className="text-xs text-muted-foreground truncate max-w-[200px]" title={p.cv_url}>
                   {p.cv_url.split('/').pop() || 'CV'}
                 </span>
@@ -319,13 +318,15 @@ export const TalentosView: React.FC<TalentosViewProps> = ({ showToast, initialPo
                         setUploadingCv(false);
                         return;
                       }
+                      // Store the public URL string for backwards compatibility with existing rows.
+                      // The cvUrl helper will detect storage URLs and sign them on access.
                       const { data: urlData } = supabase.storage.from('cvs').getPublicUrl(filePath);
-                      const publicUrl = urlData.publicUrl;
-                      const { error: dbErr } = await supabase.from('postulantes').update({ cv_url: publicUrl }).eq('id', p.id);
+                      const storedUrl = urlData.publicUrl;
+                      const { error: dbErr } = await supabase.from('postulantes').update({ cv_url: storedUrl }).eq('id', p.id);
                       if (!dbErr) {
-                        const updated = { ...p, cv_url: publicUrl };
+                        const updated = { ...p, cv_url: storedUrl };
                         setSelectedPostulante(updated);
-                        setAllPostulantes(prev => prev.map(x => x.id === p.id ? { ...x, cv_url: publicUrl } : x));
+                        setAllPostulantes(prev => prev.map(x => x.id === p.id ? { ...x, cv_url: storedUrl } : x));
                         showToast('CV subido correctamente');
                       }
                       setUploadingCv(false);
