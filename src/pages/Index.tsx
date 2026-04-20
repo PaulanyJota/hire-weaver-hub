@@ -18,6 +18,7 @@ import { useAllPostulantes } from '@/hooks/usePostulantes';
 import { INITIAL_PIPELINE, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
 import { useClientes } from '@/hooks/useClientes';
 import { useSeedClientes } from '@/hooks/useSeedClientes';
+import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
   useSeedClientes();
@@ -36,6 +37,7 @@ const Index = () => {
   const [searchResults, setSearchResults] = useState<{ id: string; nombre: string; profesion: string | null }[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     if (!headerSearch.trim()) { setSearchResults([]); setShowSearchDropdown(false); return; }
@@ -164,10 +166,25 @@ const Index = () => {
               </div>
             )}
           </div>
-          <button className="relative w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary transition-colors">
-            {Icons.bell}
-            <span className="absolute top-1 right-1.5 w-2 h-2 rounded-full bg-destructive" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button className="relative w-9 h-9 flex items-center justify-center rounded-lg text-muted-foreground hover:bg-muted hover:text-primary transition-colors">
+              {Icons.bell}
+              <span className="absolute top-1 right-1.5 w-2 h-2 rounded-full bg-destructive" />
+            </button>
+            {user && (
+              <div className="flex items-center gap-2 pl-3 border-l border-border">
+                <span className="text-xs text-muted-foreground hidden md:inline max-w-[180px] truncate" title={user.email ?? ''}>
+                  {user.email}
+                </span>
+                <button
+                  onClick={signOut}
+                  className="px-3 py-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground bg-muted hover:bg-border rounded-lg border-none cursor-pointer transition-colors"
+                >
+                  Salir
+                </button>
+              </div>
+            )}
+          </div>
         </header>
 
         {/* Content */}
