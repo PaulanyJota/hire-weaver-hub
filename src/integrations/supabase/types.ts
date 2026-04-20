@@ -194,7 +194,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      normalize_postulante_nombre: { Args: { n: string }; Returns: string }
     }
     Enums: {
       [_ in never]: never
