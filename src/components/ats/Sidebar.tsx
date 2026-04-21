@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Icons } from './Icons';
 import nodoLogo from '@/assets/nodo-logo.jpeg';
 
@@ -10,17 +10,41 @@ interface SidebarProps {
   hasSelectedVacante: boolean;
 }
 
-const NAV = [
-  { id: 'dashboard', label: 'Dashboard', icon: Icons.dashboard },
-  { id: 'vacantes', label: 'Vacantes', icon: Icons.briefcase },
-  { id: 'pipeline', label: 'Pipeline', icon: Icons.filter },
-  { id: 'whatsapp', label: 'WhatsApp', icon: <span className="text-base leading-none">💬</span> },
-  { id: 'talentos', label: 'Talentos', icon: Icons.users },
-  { id: 'clientes', label: 'Clientes', icon: Icons.building },
-  { id: 'entrevistas', label: 'Entrevistas', icon: Icons.calendar },
+type NavItem = { id: string; label: string; icon: React.ReactNode };
+type NavGroup = { id: string; label: string; icon: React.ReactNode; items: NavItem[] };
+
+const GROUPS: NavGroup[] = [
+  {
+    id: 'operaciones',
+    label: 'Operaciones',
+    icon: Icons.briefcase,
+    items: [
+      { id: 'dashboard', label: 'Dashboard', icon: Icons.dashboard },
+      { id: 'vacantes', label: 'Vacantes', icon: Icons.briefcase },
+      { id: 'pipeline', label: 'Pipeline', icon: Icons.filter },
+      { id: 'whatsapp', label: 'WhatsApp', icon: <span className="text-base leading-none">💬</span> },
+      { id: 'talentos', label: 'Talentos', icon: Icons.users },
+      { id: 'clientes', label: 'Clientes', icon: Icons.building },
+      { id: 'entrevistas', label: 'Entrevistas', icon: Icons.calendar },
+    ],
+  },
+  { id: 'comercial', label: 'Comercial', icon: Icons.trending, items: [] },
+  { id: 'finanzas', label: 'Finanzas', icon: Icons.dollar, items: [] },
+  { id: 'legal', label: 'Legal', icon: Icons.shield, items: [] },
 ];
 
+const OPERACIONES_IDS = GROUPS[0].items.map(i => i.id);
+
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onToggleCollapse, onSwitchTab, hasSelectedVacante }) => {
+  // Acordeón: solo uno abierto a la vez. Se abre el grupo que contiene activeTab; default Operaciones.
+  const initialOpen =
+    GROUPS.find(g => g.items.some(i => i.id === activeTab))?.id ?? 'operaciones';
+  const [openGroup, setOpenGroup] = useState<string>(initialOpen);
+
+  const toggleGroup = (id: string) => {
+    setOpenGroup(prev => (prev === id ? '' : id));
+  };
+
   return (
     <aside
       className="flex flex-col h-screen shrink-0 transition-all duration-200"
@@ -54,35 +78,108 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onToggle
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 flex flex-col gap-1 px-3 mt-2">
-        {!collapsed && <p className="text-[10px] font-semibold uppercase tracking-widest px-3 mb-2" style={{ color: 'hsl(var(--sidebar-text))' }}>Core Operativo</p>}
-        {NAV.map(n => {
-          const isActive = activeTab === n.id && !hasSelectedVacante;
+      <nav className="flex-1 flex flex-col gap-1 px-3 mt-2 overflow-y-auto">
+        {!collapsed && (
+          <p className="text-[10px] font-semibold uppercase tracking-widest px-3 mb-2" style={{ color: 'hsl(var(--sidebar-text))' }}>
+            Core Operativo
+          </p>
+        )}
+
+        {GROUPS.map(group => {
+          const isOpen = openGroup === group.id;
+          const groupContainsActive = group.items.some(i => i.id === activeTab) && !hasSelectedVacante;
+
           return (
-            <button
-              key={n.id}
-              onClick={() => onSwitchTab(n.id)}
-              title={collapsed ? n.label : undefined}
-              className="w-full flex items-center rounded-[10px] text-[13px] font-medium transition-all border-none"
-              style={{
-                gap: 12,
-                padding: collapsed ? '10px 0' : '10px 14px',
-                justifyContent: collapsed ? 'center' : 'flex-start',
-                background: isActive ? 'hsl(var(--sidebar-active))' : 'transparent',
-                color: isActive ? '#fff' : 'hsl(var(--sidebar-text))',
-                fontWeight: isActive ? 600 : 500,
-                boxShadow: isActive ? '0 2px 8px rgba(37,99,235,0.3)' : 'none',
-              }}
-              onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'hsl(var(--sidebar-bg-hover))'; e.currentTarget.style.color = 'hsl(var(--sidebar-text-hover))'; } }}
-              onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'hsl(var(--sidebar-text))'; } }}
-            >
-              {n.icon}
-              {!collapsed && n.label}
-            </button>
+            <div key={group.id} className="flex flex-col">
+              {/* Group header */}
+              <button
+                onClick={() => {
+                  if (collapsed) {
+                    onToggleCollapse();
+                    setOpenGroup(group.id);
+                    return;
+                  }
+                  toggleGroup(group.id);
+                }}
+                title={collapsed ? group.label : undefined}
+                className="w-full flex items-center rounded-[10px] text-[13px] font-medium transition-all border-none"
+                style={{
+                  gap: 12,
+                  padding: collapsed ? '10px 0' : '10px 14px',
+                  justifyContent: collapsed ? 'center' : 'flex-start',
+                  background: groupContainsActive && !isOpen ? 'hsl(var(--sidebar-bg-hover))' : 'transparent',
+                  color: groupContainsActive ? 'hsl(var(--sidebar-text-hover))' : 'hsl(var(--sidebar-text))',
+                  fontWeight: 600,
+                }}
+                onMouseEnter={e => { e.currentTarget.style.background = 'hsl(var(--sidebar-bg-hover))'; e.currentTarget.style.color = 'hsl(var(--sidebar-text-hover))'; }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.background = groupContainsActive && !isOpen ? 'hsl(var(--sidebar-bg-hover))' : 'transparent';
+                  e.currentTarget.style.color = groupContainsActive ? 'hsl(var(--sidebar-text-hover))' : 'hsl(var(--sidebar-text))';
+                }}
+              >
+                {group.icon}
+                {!collapsed && (
+                  <>
+                    <span className="flex-1 text-left">{group.label}</span>
+                    <span
+                      style={{
+                        transition: 'transform 200ms',
+                        transform: isOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                        display: 'inline-flex',
+                      }}
+                    >
+                      {Icons.chevron}
+                    </span>
+                  </>
+                )}
+              </button>
+
+              {/* Group items */}
+              {!collapsed && isOpen && group.items.length > 0 && (
+                <div className="flex flex-col gap-1 mt-1 mb-1 ml-2 pl-3 border-l" style={{ borderColor: 'hsl(var(--sidebar-bg-hover))' }}>
+                  {group.items.map(n => {
+                    const isActive = activeTab === n.id && !hasSelectedVacante;
+                    return (
+                      <button
+                        key={n.id}
+                        onClick={() => onSwitchTab(n.id)}
+                        className="w-full flex items-center rounded-[10px] text-[13px] font-medium transition-all border-none"
+                        style={{
+                          gap: 12,
+                          padding: '8px 12px',
+                          justifyContent: 'flex-start',
+                          background: isActive ? 'hsl(var(--sidebar-active))' : 'transparent',
+                          color: isActive ? '#fff' : 'hsl(var(--sidebar-text))',
+                          fontWeight: isActive ? 600 : 500,
+                          boxShadow: isActive ? '0 2px 8px rgba(37,99,235,0.3)' : 'none',
+                        }}
+                        onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'hsl(var(--sidebar-bg-hover))'; e.currentTarget.style.color = 'hsl(var(--sidebar-text-hover))'; } }}
+                        onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'hsl(var(--sidebar-text))'; } }}
+                      >
+                        {n.icon}
+                        {n.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {!collapsed && isOpen && group.items.length === 0 && (
+                <div className="ml-2 pl-3 py-2 border-l" style={{ borderColor: 'hsl(var(--sidebar-bg-hover))' }}>
+                  <p className="text-[11px] italic px-2" style={{ color: 'hsl(var(--sidebar-text))' }}>
+                    Próximamente
+                  </p>
+                </div>
+              )}
+            </div>
           );
         })}
 
-        {!collapsed && <p className="text-[10px] font-semibold uppercase tracking-widest px-3 mb-2 mt-6" style={{ color: 'hsl(var(--sidebar-text))' }}>Config</p>}
+        {!collapsed && (
+          <p className="text-[10px] font-semibold uppercase tracking-widest px-3 mb-2 mt-6" style={{ color: 'hsl(var(--sidebar-text))' }}>
+            Config
+          </p>
+        )}
         <button
           onClick={() => onSwitchTab('settings')}
           title={collapsed ? 'Ajustes' : undefined}
