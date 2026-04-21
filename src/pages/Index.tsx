@@ -13,6 +13,7 @@ import { AppModal } from '@/components/ats/AppModal';
 import { ToastContainer } from '@/components/ats/ToastContainer';
 import { Icons } from '@/components/ats/Icons';
 import { WhatsAppView } from '@/components/ats/WhatsAppView';
+import { LegalEmpresaView } from '@/components/ats/LegalEmpresaView';
 import { useAppToast } from '@/hooks/useAppToast';
 import { useAllPostulantes } from '@/hooks/usePostulantes';
 import { INITIAL_PIPELINE, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
@@ -111,6 +112,8 @@ const Index = () => {
       case 'clientes': return <ClientesView showToast={showToast} />;
       case 'entrevistas': return <EntrevistasView />;
       case 'whatsapp': return <WhatsAppView />;
+      case 'legal-outsourcing': return <LegalEmpresaView nombre="Nodo Outsourcing SpA" rut="78.337.989-9" />;
+      case 'legal-est': return <LegalEmpresaView nombre="Nodo EST SpA" rut="78.328.185-6" />;
       case 'settings': return (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
