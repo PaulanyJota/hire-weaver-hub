@@ -79,6 +79,39 @@ export type Database = {
           },
         ]
       }
+      legal_documentos: {
+        Row: {
+          created_at: string
+          empresa_key: string
+          file_size: number | null
+          id: string
+          mime_type: string | null
+          nombre: string
+          storage_path: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          empresa_key: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          nombre: string
+          storage_path: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          empresa_key?: string
+          file_size?: number | null
+          id?: string
+          mime_type?: string | null
+          nombre?: string
+          storage_path?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       postulantes: {
         Row: {
           comuna: string | null
