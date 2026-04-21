@@ -128,7 +128,16 @@ const Index = () => {
           </div>
         </div>
       );
-      default: return null;
+      default: {
+        // Estado de Resultados: fin-er-1 ... fin-er-12
+        const erMatch = activeTab.match(/^fin-er-(\d{1,2})$/);
+        if (erMatch) {
+          const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+          const mes = meses[parseInt(erMatch[1], 10) - 1];
+          return <FinanzasPlaceholderView titulo={`Estado de Resultados — ${mes}`} subtitulo="Resumen mensual de ingresos, costos y resultado operacional." />;
+        }
+        return null;
+      }
     }
   };
 
