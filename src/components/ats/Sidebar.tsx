@@ -30,7 +30,15 @@ const GROUPS: NavGroup[] = [
   },
   { id: 'comercial', label: 'Comercial', icon: Icons.trending, items: [] },
   { id: 'finanzas', label: 'Finanzas', icon: Icons.dollar, items: [] },
-  { id: 'legal', label: 'Legal', icon: Icons.shield, items: [] },
+  {
+    id: 'legal',
+    label: 'Legal',
+    icon: Icons.shield,
+    items: [
+      { id: 'legal-outsourcing', label: 'Nodo Outsourcing SpA', icon: Icons.building },
+      { id: 'legal-est', label: 'Nodo EST SpA', icon: Icons.building },
+    ],
+  },
 ];
 
 const OPERACIONES_IDS = GROUPS[0].items.map(i => i.id);
