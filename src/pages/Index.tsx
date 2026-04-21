@@ -112,8 +112,8 @@ const Index = () => {
       case 'clientes': return <ClientesView showToast={showToast} />;
       case 'entrevistas': return <EntrevistasView />;
       case 'whatsapp': return <WhatsAppView />;
-      case 'legal-outsourcing': return <LegalEmpresaView nombre="Nodo Outsourcing SpA" rut="78.337.989-9" />;
-      case 'legal-est': return <LegalEmpresaView nombre="Nodo EST SpA" rut="78.328.185-6" />;
+      case 'legal-outsourcing': return <LegalEmpresaView nombre="Nodo Outsourcing SpA" rut="78.337.989-9" empresaKey="outsourcing" />;
+      case 'legal-est': return <LegalEmpresaView nombre="Nodo EST SpA" rut="78.328.185-6" empresaKey="est" />;
       case 'settings': return (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">

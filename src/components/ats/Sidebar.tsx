@@ -151,10 +151,10 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onToggle
                       <button
                         key={n.id}
                         onClick={() => onSwitchTab(n.id)}
-                        className="w-full flex items-center rounded-[10px] text-[13px] font-medium transition-all border-none"
+                        className="w-full flex items-center rounded-[10px] text-[13px] font-medium transition-all border-none whitespace-nowrap"
                         style={{
-                          gap: 12,
-                          padding: '8px 12px',
+                          gap: 10,
+                          padding: '8px 10px',
                           justifyContent: 'flex-start',
                           background: isActive ? 'hsl(var(--sidebar-active))' : 'transparent',
                           color: isActive ? '#fff' : 'hsl(var(--sidebar-text))',
@@ -164,8 +164,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onToggle
                         onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'hsl(var(--sidebar-bg-hover))'; e.currentTarget.style.color = 'hsl(var(--sidebar-text-hover))'; } }}
                         onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'hsl(var(--sidebar-text))'; } }}
                       >
-                        {n.icon}
-                        {n.label}
+                        <span className="shrink-0 inline-flex items-center justify-center">{n.icon}</span>
+                        <span className="truncate">{n.label}</span>
                       </button>
                     );
                   })}
