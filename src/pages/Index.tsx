@@ -14,6 +14,7 @@ import { ToastContainer } from '@/components/ats/ToastContainer';
 import { Icons } from '@/components/ats/Icons';
 import { WhatsAppView } from '@/components/ats/WhatsAppView';
 import { LegalEmpresaView } from '@/components/ats/LegalEmpresaView';
+import { FinanzasPlaceholderView } from '@/components/ats/FinanzasPlaceholderView';
 import { useAppToast } from '@/hooks/useAppToast';
 import { useAllPostulantes } from '@/hooks/usePostulantes';
 import { INITIAL_PIPELINE, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
@@ -114,6 +115,10 @@ const Index = () => {
       case 'whatsapp': return <WhatsAppView />;
       case 'legal-outsourcing': return <LegalEmpresaView nombre="Nodo Outsourcing SpA" rut="78.337.989-9" empresaKey="outsourcing" />;
       case 'legal-est': return <LegalEmpresaView nombre="Nodo EST SpA" rut="78.328.185-6" empresaKey="est" />;
+      case 'fin-flujo-caja': return <FinanzasPlaceholderView titulo="Flujo de Caja" subtitulo="Vista consolidada de ingresos y egresos." />;
+      case 'fin-financiamiento-creditos': return <FinanzasPlaceholderView titulo="Financiamiento — Créditos" subtitulo="Gestión de líneas y créditos bancarios." />;
+      case 'fin-financiamiento-factoring': return <FinanzasPlaceholderView titulo="Financiamiento — Factoring" subtitulo="Operaciones de factoring y cesiones de factura." />;
+      case 'fin-financiamiento-deuda-privada': return <FinanzasPlaceholderView titulo="Financiamiento — Deuda Privada" subtitulo="Préstamos y deuda con privados." />;
       case 'settings': return (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
