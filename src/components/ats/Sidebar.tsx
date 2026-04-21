@@ -10,8 +10,15 @@ interface SidebarProps {
   hasSelectedVacante: boolean;
 }
 
-type NavItem = { id: string; label: string; icon: React.ReactNode };
+type NavItem = { id: string; label: string; icon: React.ReactNode; children?: NavItem[] };
 type NavGroup = { id: string; label: string; icon: React.ReactNode; items: NavItem[] };
+
+const MESES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+];
+
+const dot = <span className="inline-block w-1.5 h-1.5 rounded-full bg-current opacity-60" />;
 
 const GROUPS: NavGroup[] = [
   {
@@ -29,7 +36,34 @@ const GROUPS: NavGroup[] = [
     ],
   },
   { id: 'comercial', label: 'Comercial', icon: Icons.trending, items: [] },
-  { id: 'finanzas', label: 'Finanzas', icon: Icons.dollar, items: [] },
+  {
+    id: 'finanzas',
+    label: 'Finanzas',
+    icon: Icons.dollar,
+    items: [
+      {
+        id: 'fin-estado-resultados',
+        label: 'Estado de resultados',
+        icon: Icons.dashboard,
+        children: MESES.map((mes, idx) => ({
+          id: `fin-er-${idx + 1}`,
+          label: mes,
+          icon: dot,
+        })),
+      },
+      { id: 'fin-flujo-caja', label: 'Flujo de caja', icon: Icons.trending },
+      {
+        id: 'fin-financiamiento',
+        label: 'Financiamiento',
+        icon: Icons.dollar,
+        children: [
+          { id: 'fin-financiamiento-creditos', label: 'Créditos', icon: dot },
+          { id: 'fin-financiamiento-factoring', label: 'Factoring', icon: dot },
+          { id: 'fin-financiamiento-deuda-privada', label: 'Deuda Privada', icon: dot },
+        ],
+      },
+    ],
+  },
   {
     id: 'legal',
     label: 'Legal',
@@ -41,16 +75,29 @@ const GROUPS: NavGroup[] = [
   },
 ];
 
-const OPERACIONES_IDS = GROUPS[0].items.map(i => i.id);
+// Helper: ¿este item (o alguno de sus hijos) está activo?
+const itemContainsActive = (item: NavItem, activeTab: string): boolean => {
+  if (item.id === activeTab) return true;
+  return !!item.children?.some(c => c.id === activeTab);
+};
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onToggleCollapse, onSwitchTab, hasSelectedVacante }) => {
   // Acordeón: solo uno abierto a la vez. Se abre el grupo que contiene activeTab; default Operaciones.
   const initialOpen =
-    GROUPS.find(g => g.items.some(i => i.id === activeTab))?.id ?? 'operaciones';
+    GROUPS.find(g => g.items.some(i => itemContainsActive(i, activeTab)))?.id ?? 'operaciones';
   const [openGroup, setOpenGroup] = useState<string>(initialOpen);
+
+  // Sub-acordeón dentro de un grupo (ej: Estado de resultados → meses). Solo uno abierto.
+  const initialOpenItem =
+    GROUPS.flatMap(g => g.items).find(i => i.children?.some(c => c.id === activeTab))?.id ?? '';
+  const [openItem, setOpenItem] = useState<string>(initialOpenItem);
 
   const toggleGroup = (id: string) => {
     setOpenGroup(prev => (prev === id ? '' : id));
+  };
+
+  const toggleItem = (id: string) => {
+    setOpenItem(prev => (prev === id ? '' : id));
   };
 
   return (
@@ -95,7 +142,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onToggle
 
         {GROUPS.map(group => {
           const isOpen = openGroup === group.id;
-          const groupContainsActive = group.items.some(i => i.id === activeTab) && !hasSelectedVacante;
+          const groupContainsActive = group.items.some(i => itemContainsActive(i, activeTab)) && !hasSelectedVacante;
 
           return (
             <div key={group.id} className="flex flex-col">
@@ -146,27 +193,80 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onToggle
               {!collapsed && isOpen && group.items.length > 0 && (
                 <div className="flex flex-col gap-1 mt-1 mb-1 ml-2 pl-3 border-l" style={{ borderColor: 'hsl(var(--sidebar-bg-hover))' }}>
                   {group.items.map(n => {
+                    const hasChildren = !!n.children?.length;
+                    const itemOpen = openItem === n.id;
+                    const containsActive = itemContainsActive(n, activeTab) && !hasSelectedVacante;
                     const isActive = activeTab === n.id && !hasSelectedVacante;
+
                     return (
-                      <button
-                        key={n.id}
-                        onClick={() => onSwitchTab(n.id)}
-                        className="w-full flex items-center rounded-[10px] text-[13px] font-medium transition-all border-none whitespace-nowrap"
-                        style={{
-                          gap: 10,
-                          padding: '8px 10px',
-                          justifyContent: 'flex-start',
-                          background: isActive ? 'hsl(var(--sidebar-active))' : 'transparent',
-                          color: isActive ? '#fff' : 'hsl(var(--sidebar-text))',
-                          fontWeight: isActive ? 600 : 500,
-                          boxShadow: isActive ? '0 2px 8px rgba(37,99,235,0.3)' : 'none',
-                        }}
-                        onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'hsl(var(--sidebar-bg-hover))'; e.currentTarget.style.color = 'hsl(var(--sidebar-text-hover))'; } }}
-                        onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'hsl(var(--sidebar-text))'; } }}
-                      >
-                        <span className="shrink-0 inline-flex items-center justify-center">{n.icon}</span>
-                        <span className="truncate">{n.label}</span>
-                      </button>
+                      <div key={n.id} className="flex flex-col">
+                        <button
+                          onClick={() => {
+                            if (hasChildren) {
+                              toggleItem(n.id);
+                            } else {
+                              onSwitchTab(n.id);
+                            }
+                          }}
+                          className="w-full flex items-center rounded-[10px] text-[13px] font-medium transition-all border-none whitespace-nowrap"
+                          style={{
+                            gap: 10,
+                            padding: '8px 10px',
+                            justifyContent: 'flex-start',
+                            background: isActive ? 'hsl(var(--sidebar-active))' : (containsActive && !itemOpen ? 'hsl(var(--sidebar-bg-hover))' : 'transparent'),
+                            color: isActive ? '#fff' : (containsActive ? 'hsl(var(--sidebar-text-hover))' : 'hsl(var(--sidebar-text))'),
+                            fontWeight: isActive || containsActive ? 600 : 500,
+                            boxShadow: isActive ? '0 2px 8px rgba(37,99,235,0.3)' : 'none',
+                          }}
+                          onMouseEnter={e => { if (!isActive) { e.currentTarget.style.background = 'hsl(var(--sidebar-bg-hover))'; e.currentTarget.style.color = 'hsl(var(--sidebar-text-hover))'; } }}
+                          onMouseLeave={e => { if (!isActive) { e.currentTarget.style.background = (containsActive && !itemOpen) ? 'hsl(var(--sidebar-bg-hover))' : 'transparent'; e.currentTarget.style.color = containsActive ? 'hsl(var(--sidebar-text-hover))' : 'hsl(var(--sidebar-text))'; } }}
+                        >
+                          <span className="shrink-0 inline-flex items-center justify-center">{n.icon}</span>
+                          <span className="truncate flex-1 text-left">{n.label}</span>
+                          {hasChildren && (
+                            <span
+                              style={{
+                                transition: 'transform 200ms',
+                                transform: itemOpen ? 'rotate(0deg)' : 'rotate(-90deg)',
+                                display: 'inline-flex',
+                                opacity: 0.7,
+                              }}
+                            >
+                              {Icons.chevron}
+                            </span>
+                          )}
+                        </button>
+
+                        {/* Sub-items (nivel 2) */}
+                        {hasChildren && itemOpen && (
+                          <div className="flex flex-col gap-0.5 mt-1 mb-1 ml-3 pl-3 border-l" style={{ borderColor: 'hsl(var(--sidebar-bg-hover))' }}>
+                            {n.children!.map(sub => {
+                              const subActive = activeTab === sub.id && !hasSelectedVacante;
+                              return (
+                                <button
+                                  key={sub.id}
+                                  onClick={() => onSwitchTab(sub.id)}
+                                  className="w-full flex items-center rounded-[8px] text-[12px] font-medium transition-all border-none whitespace-nowrap"
+                                  style={{
+                                    gap: 8,
+                                    padding: '6px 10px',
+                                    justifyContent: 'flex-start',
+                                    background: subActive ? 'hsl(var(--sidebar-active))' : 'transparent',
+                                    color: subActive ? '#fff' : 'hsl(var(--sidebar-text))',
+                                    fontWeight: subActive ? 600 : 500,
+                                    boxShadow: subActive ? '0 2px 8px rgba(37,99,235,0.3)' : 'none',
+                                  }}
+                                  onMouseEnter={e => { if (!subActive) { e.currentTarget.style.background = 'hsl(var(--sidebar-bg-hover))'; e.currentTarget.style.color = 'hsl(var(--sidebar-text-hover))'; } }}
+                                  onMouseLeave={e => { if (!subActive) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'hsl(var(--sidebar-text))'; } }}
+                                >
+                                  <span className="shrink-0 inline-flex items-center justify-center opacity-70">{sub.icon}</span>
+                                  <span className="truncate">{sub.label}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
                     );
                   })}
                 </div>
