@@ -10,8 +10,15 @@ interface SidebarProps {
   hasSelectedVacante: boolean;
 }
 
-type NavItem = { id: string; label: string; icon: React.ReactNode };
+type NavItem = { id: string; label: string; icon: React.ReactNode; children?: NavItem[] };
 type NavGroup = { id: string; label: string; icon: React.ReactNode; items: NavItem[] };
+
+const MESES = [
+  'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+  'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+];
+
+const dot = <span className="inline-block w-1.5 h-1.5 rounded-full bg-current opacity-60" />;
 
 const GROUPS: NavGroup[] = [
   {
@@ -29,7 +36,34 @@ const GROUPS: NavGroup[] = [
     ],
   },
   { id: 'comercial', label: 'Comercial', icon: Icons.trending, items: [] },
-  { id: 'finanzas', label: 'Finanzas', icon: Icons.dollar, items: [] },
+  {
+    id: 'finanzas',
+    label: 'Finanzas',
+    icon: Icons.dollar,
+    items: [
+      {
+        id: 'fin-estado-resultados',
+        label: 'Estado de resultados',
+        icon: Icons.dashboard,
+        children: MESES.map((mes, idx) => ({
+          id: `fin-er-${idx + 1}`,
+          label: mes,
+          icon: dot,
+        })),
+      },
+      { id: 'fin-flujo-caja', label: 'Flujo de caja', icon: Icons.trending },
+      {
+        id: 'fin-financiamiento',
+        label: 'Financiamiento',
+        icon: Icons.dollar,
+        children: [
+          { id: 'fin-financiamiento-creditos', label: 'Créditos', icon: dot },
+          { id: 'fin-financiamiento-factoring', label: 'Factoring', icon: dot },
+          { id: 'fin-financiamiento-deuda-privada', label: 'Deuda Privada', icon: dot },
+        ],
+      },
+    ],
+  },
   {
     id: 'legal',
     label: 'Legal',
@@ -41,7 +75,11 @@ const GROUPS: NavGroup[] = [
   },
 ];
 
-const OPERACIONES_IDS = GROUPS[0].items.map(i => i.id);
+// Helper: ¿este item (o alguno de sus hijos) está activo?
+const itemContainsActive = (item: NavItem, activeTab: string): boolean => {
+  if (item.id === activeTab) return true;
+  return !!item.children?.some(c => c.id === activeTab);
+};
 
 export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onToggleCollapse, onSwitchTab, hasSelectedVacante }) => {
   // Acordeón: solo uno abierto a la vez. Se abre el grupo que contiene activeTab; default Operaciones.
