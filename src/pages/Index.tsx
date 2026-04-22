@@ -3,7 +3,7 @@ import { Sidebar } from '@/components/ats/Sidebar';
 import { supabase } from '@/integrations/supabase/client';
 import { formatName } from '@/lib/utils';
 import { DashboardView } from '@/components/ats/DashboardView';
-import { VacantesView } from '@/components/ats/VacantesView';
+import { SupabaseVacantesView } from '@/components/ats/SupabaseVacantesView';
 import { PipelineView } from '@/components/ats/PipelineView';
 import { SupabasePipelineView } from '@/components/ats/SupabasePipelineView';
 import { TalentosView } from '@/components/ats/TalentosView';
@@ -107,13 +107,7 @@ const Index = () => {
       case 'dashboard': return <DashboardView onNewVacante={() => setIsCreateModalOpen(true)} onSelectPostulante={handleSelectPostulante} />;
       case 'comercial-clientes': return <ComercialClientesView showToast={showToast} />;
       case 'comercial-pipeline': return <ComercialPipelineView />;
-      case 'vacantes': return (
-        <VacantesView
-          onViewPipeline={(cargo) => showToast(`Pipeline de "${cargo}" próximamente`)}
-          onNewVacante={() => setIsCreateModalOpen(true)}
-          showToast={showToast}
-        />
-      );
+      case 'vacantes': return <SupabaseVacantesView showToast={showToast} />;
       case 'talentos': return <TalentosView showToast={showToast} initialPostulanteId={focusPostulanteId} />;
       case 'pipeline': return <SupabasePipelineView postulantes={allPostulantes} updateEstadoPipeline={updateEstadoPipeline} showToast={showToast} />;
       case 'clientes': return <ClientesView showToast={showToast} />;
