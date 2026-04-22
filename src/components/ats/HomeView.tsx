@@ -29,8 +29,8 @@ export const HomeView: React.FC<Props> = ({ onNavigate }) => {
       // Vacantes abiertas = vacantes manuales activas + cargos únicos detectados
       const { data: manuales } = await supabase
         .from('vacantes')
-        .select('id, estado')
-        .eq('estado', 'Activa');
+        .select('id, whatsapp_activo')
+        .eq('whatsapp_activo', true);
       const { data: origenes } = await supabase
         .from('postulantes')
         .select('vacante_origen');

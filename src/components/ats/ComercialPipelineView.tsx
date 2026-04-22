@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAppToast } from '@/hooks/useAppToast';
 
 type EtapaComercial = 'Prospecto' | 'Contactado' | 'Reunión Agendada' | 'Propuesta Enviada' | 'Negociación' | 'Cliente Activo' | 'Descartado';
 
@@ -42,6 +44,7 @@ export const ComercialPipelineView: React.FC = () => {
   const [leads, setLeads] = useState<LeadComercial[]>(loadLeads);
   const [showForm, setShowForm] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
+  const { show: showToast } = useAppToast();
   const [form, setForm] = useState<Omit<LeadComercial, 'id' | 'createdAt' | 'etapa'>>({
     empresa: '', contacto: '', email: '', telefono: '', origen: '', notas: '',
   });
@@ -62,8 +65,62 @@ export const ComercialPipelineView: React.FC = () => {
     setShowForm(false);
   };
 
+  const syncClienteActivo = async (lead: LeadComercial) => {
+    const nombre = lead.empresa.trim();
+    if (!nombre) return;
+    try {
+      // Buscar cliente existente por nombre (case-insensitive)
+      const { data: existentes } = await supabase
+        .from('clientes')
+        .select('id, nombre, contacto, email, estado')
+        .ilike('nombre', nombre);
+
+      const match = (existentes ?? []).find(
+        c => c.nombre.trim().toLowerCase() === nombre.toLowerCase()
+      );
+
+      if (match) {
+        // Actualizar datos faltantes y asegurar estado Activo
+        await supabase
+          .from('clientes')
+          .update({
+            contacto: match.contacto || lead.contacto || null,
+            email: match.email || lead.email || null,
+            estado: 'Activo',
+          })
+          .eq('id', match.id);
+        showToast(`✅ Cliente "${nombre}" actualizado en el directorio`);
+      } else {
+        // Crear nuevo cliente
+        const { error } = await supabase.from('clientes').insert({
+          nombre,
+          contacto: lead.contacto || null,
+          email: lead.email || null,
+          industria: lead.origen || null,
+          estado: 'Activo',
+        });
+        if (error) throw error;
+        showToast(`✅ Cliente "${nombre}" creado en el directorio`);
+      }
+
+      // Asociar vacantes existentes que coincidan por nombre de cliente (texto)
+      // Nota: la tabla vacantes vincula por columna `cliente` (text)
+      await supabase
+        .from('vacantes')
+        .update({ cliente: nombre })
+        .ilike('cliente', nombre);
+    } catch (e) {
+      console.error('Error sincronizando cliente:', e);
+      showToast('⚠️ No se pudo sincronizar con el directorio de clientes');
+    }
+  };
+
   const moveLead = (id: string, etapa: EtapaComercial) => {
+    const lead = leads.find(l => l.id === id);
     persist(leads.map(l => l.id === id ? { ...l, etapa } : l));
+    if (lead && etapa === 'Cliente Activo' && lead.etapa !== 'Cliente Activo') {
+      syncClienteActivo({ ...lead, etapa });
+    }
   };
 
   const deleteLead = (id: string) => {
