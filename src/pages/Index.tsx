@@ -15,6 +15,9 @@ import { Icons } from '@/components/ats/Icons';
 import { WhatsAppView } from '@/components/ats/WhatsAppView';
 import { LegalEmpresaView } from '@/components/ats/LegalEmpresaView';
 import { FinanzasPlaceholderView } from '@/components/ats/FinanzasPlaceholderView';
+import { HomeView } from '@/components/ats/HomeView';
+import { ComercialClientesView } from '@/components/ats/ComercialClientesView';
+import { ComercialPipelineView } from '@/components/ats/ComercialPipelineView';
 import { useAppToast } from '@/hooks/useAppToast';
 import { useAllPostulantes } from '@/hooks/usePostulantes';
 import { INITIAL_PIPELINE, RESPONSABLES, type Vacante, type PipelineEntry } from '@/data/mockData';
@@ -24,7 +27,7 @@ import { useAuth } from '@/hooks/useAuth';
 
 const Index = () => {
   useSeedClientes();
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('home');
   const [selectedVacante, setSelectedVacante] = useState<Vacante | null>(null);
   const [pipelineState, setPipelineState] = useState<PipelineEntry[]>(INITIAL_PIPELINE);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
@@ -100,7 +103,10 @@ const Index = () => {
       );
     }
     switch (activeTab) {
+      case 'home': return <HomeView onNavigate={switchTab} />;
       case 'dashboard': return <DashboardView onNewVacante={() => setIsCreateModalOpen(true)} onSelectPostulante={handleSelectPostulante} />;
+      case 'comercial-clientes': return <ComercialClientesView showToast={showToast} />;
+      case 'comercial-pipeline': return <ComercialPipelineView />;
       case 'vacantes': return (
         <VacantesView
           onViewPipeline={(cargo) => showToast(`Pipeline de "${cargo}" próximamente`)}
