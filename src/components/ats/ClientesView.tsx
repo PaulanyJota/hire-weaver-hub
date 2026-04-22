@@ -73,18 +73,18 @@ export const ClientesView: React.FC<ClientesViewProps> = ({ showToast }) => {
   const [loadingPostulantes, setLoadingPostulantes] = useState(false);
   const [selectedPostulante, setSelectedPostulante] = useState<PostulanteRow | null>(null);
 
-  // Fetch manual vacantes for selected client
-  const fetchManualVacantes = useCallback(async (clienteId: string) => {
+  // Fetch manual vacantes for selected client (matched by client name)
+  const fetchManualVacantes = useCallback(async (clienteNombre: string) => {
     const { data } = await supabase
       .from('vacantes')
       .select('*')
-      .eq('cliente_id', clienteId)
+      .eq('cliente', clienteNombre)
       .order('created_at', { ascending: false });
-    setManualVacantes((data as VacanteManual[]) || []);
+    setManualVacantes(((data ?? []) as unknown) as VacanteManual[]);
   }, []);
 
   useEffect(() => {
-    if (selectedCliente) fetchManualVacantes(selectedCliente.id);
+    if (selectedCliente) fetchManualVacantes(selectedCliente.nombre);
     else setManualVacantes([]);
   }, [selectedCliente, fetchManualVacantes]);
 
