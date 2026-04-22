@@ -201,47 +201,39 @@ export type Database = {
       }
       vacantes: {
         Row: {
-          cargo: string
-          cliente_id: string
-          created_at: string
-          estado: string | null
+          cliente: string | null
+          created_at: string | null
           id: string
-          renta: string | null
-          responsable_id: string | null
-          tipo: string | null
-          ubicacion: string | null
+          mensaje_entrevista: string | null
+          mensaje_inicial: string | null
+          nombre_vacante: string
+          palabras_clave: string | null
+          updated_at: string | null
+          whatsapp_activo: boolean
         }
         Insert: {
-          cargo: string
-          cliente_id: string
-          created_at?: string
-          estado?: string | null
+          cliente?: string | null
+          created_at?: string | null
           id?: string
-          renta?: string | null
-          responsable_id?: string | null
-          tipo?: string | null
-          ubicacion?: string | null
+          mensaje_entrevista?: string | null
+          mensaje_inicial?: string | null
+          nombre_vacante: string
+          palabras_clave?: string | null
+          updated_at?: string | null
+          whatsapp_activo?: boolean
         }
         Update: {
-          cargo?: string
-          cliente_id?: string
-          created_at?: string
-          estado?: string | null
+          cliente?: string | null
+          created_at?: string | null
           id?: string
-          renta?: string | null
-          responsable_id?: string | null
-          tipo?: string | null
-          ubicacion?: string | null
+          mensaje_entrevista?: string | null
+          mensaje_inicial?: string | null
+          nombre_vacante?: string
+          palabras_clave?: string | null
+          updated_at?: string | null
+          whatsapp_activo?: boolean
         }
-        Relationships: [
-          {
-            foreignKeyName: "vacantes_cliente_id_fkey"
-            columns: ["cliente_id"]
-            isOneToOne: false
-            referencedRelation: "clientes"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
     }
     Views: {

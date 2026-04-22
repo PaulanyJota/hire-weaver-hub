@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useAppToast } from '@/hooks/useAppToast';
 
 type EtapaComercial = 'Prospecto' | 'Contactado' | 'Reunión Agendada' | 'Propuesta Enviada' | 'Negociación' | 'Cliente Activo' | 'Descartado';
 
