@@ -142,6 +142,27 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onToggle
 
       {/* Navigation */}
       <nav className="flex-1 flex flex-col gap-1 px-3 mt-2 overflow-y-auto">
+        {/* Inicio (fuera de grupos) */}
+        <button
+          onClick={() => onSwitchTab('home')}
+          title={collapsed ? 'Inicio' : undefined}
+          className="w-full flex items-center rounded-[10px] text-[13px] font-medium transition-all border-none mb-2"
+          style={{
+            gap: 12,
+            padding: collapsed ? '10px 0' : '10px 14px',
+            justifyContent: collapsed ? 'center' : 'flex-start',
+            background: activeTab === 'home' ? 'hsl(var(--sidebar-active))' : 'transparent',
+            color: activeTab === 'home' ? '#fff' : 'hsl(var(--sidebar-text))',
+            fontWeight: 600,
+            boxShadow: activeTab === 'home' ? '0 2px 8px rgba(37,99,235,0.3)' : 'none',
+          }}
+          onMouseEnter={e => { if (activeTab !== 'home') { e.currentTarget.style.background = 'hsl(var(--sidebar-bg-hover))'; e.currentTarget.style.color = 'hsl(var(--sidebar-text-hover))'; } }}
+          onMouseLeave={e => { if (activeTab !== 'home') { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'hsl(var(--sidebar-text))'; } }}
+        >
+          {Icons.dashboard}
+          {!collapsed && <span>Inicio</span>}
+        </button>
+
         {!collapsed && (
           <p className="text-[10px] font-semibold uppercase tracking-widest px-3 mb-2" style={{ color: 'hsl(var(--sidebar-text))' }}>
             Core Operativo
