@@ -35,7 +35,15 @@ const GROUPS: NavGroup[] = [
       { id: 'entrevistas', label: 'Entrevistas', icon: Icons.calendar },
     ],
   },
-  { id: 'comercial', label: 'Comercial', icon: Icons.trending, items: [] },
+  {
+    id: 'comercial',
+    label: 'Comercial',
+    icon: Icons.trending,
+    items: [
+      { id: 'comercial-clientes', label: 'Clientes', icon: Icons.building },
+      { id: 'comercial-pipeline', label: 'Pipeline Comercial', icon: Icons.filter },
+    ],
+  },
   {
     id: 'finanzas',
     label: 'Finanzas',
