@@ -44,7 +44,7 @@ export const ComercialPipelineView: React.FC = () => {
   const [leads, setLeads] = useState<LeadComercial[]>(loadLeads);
   const [showForm, setShowForm] = useState(false);
   const [draggingId, setDraggingId] = useState<string | null>(null);
-  const { showToast } = useAppToast();
+  const { show: showToast } = useAppToast();
   const [form, setForm] = useState<Omit<LeadComercial, 'id' | 'createdAt' | 'etapa'>>({
     empresa: '', contacto: '', email: '', telefono: '', origen: '', notas: '',
   });
