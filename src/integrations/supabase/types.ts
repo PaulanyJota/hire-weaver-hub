@@ -79,6 +79,72 @@ export type Database = {
           },
         ]
       }
+      leads_comerciales: {
+        Row: {
+          cargo: string | null
+          ciudad: string | null
+          comuna: string | null
+          contacto: string | null
+          created_at: string
+          email: string | null
+          empresa: string
+          estado_verificacion: string | null
+          etapa: string
+          id: string
+          notas: string | null
+          origen: string | null
+          pais: string | null
+          prioridad: string
+          region: string | null
+          sitio_web: string | null
+          telefono: string | null
+          tipo_empresa: string | null
+          updated_at: string
+        }
+        Insert: {
+          cargo?: string | null
+          ciudad?: string | null
+          comuna?: string | null
+          contacto?: string | null
+          created_at?: string
+          email?: string | null
+          empresa: string
+          estado_verificacion?: string | null
+          etapa?: string
+          id?: string
+          notas?: string | null
+          origen?: string | null
+          pais?: string | null
+          prioridad?: string
+          region?: string | null
+          sitio_web?: string | null
+          telefono?: string | null
+          tipo_empresa?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cargo?: string | null
+          ciudad?: string | null
+          comuna?: string | null
+          contacto?: string | null
+          created_at?: string
+          email?: string | null
+          empresa?: string
+          estado_verificacion?: string | null
+          etapa?: string
+          id?: string
+          notas?: string | null
+          origen?: string | null
+          pais?: string | null
+          prioridad?: string
+          region?: string | null
+          sitio_web?: string | null
+          telefono?: string | null
+          tipo_empresa?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       legal_documentos: {
         Row: {
           created_at: string
