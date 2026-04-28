@@ -51,7 +51,8 @@ export const SupabaseVacantesView: React.FC<Props> = ({ showToast }) => {
       .select('*')
       .order('created_at', { ascending: false });
     if (error) {
-      showToast(`Error cargando vacantes: ${error.message}`);
+      console.error('Error cargando vacantes:', error);
+      showToast('No se pudieron cargar las vacantes. Intenta de nuevo.');
     } else {
       setVacantes((data ?? []) as VacanteSupabase[]);
     }
@@ -73,7 +74,8 @@ export const SupabaseVacantesView: React.FC<Props> = ({ showToast }) => {
     if (error) {
       // revert
       setVacantes(prev => prev.map(x => (x.id === v.id ? { ...x, whatsapp_activo: !nuevo } : x)));
-      showToast(`Error: ${error.message}`);
+      console.error('Error actualizando WhatsApp:', error);
+      showToast('No se pudo actualizar el estado de WhatsApp.');
     } else {
       showToast(`WhatsApp ${nuevo ? 'activado' : 'desactivado'} para ${v.nombre_vacante}`);
     }
@@ -102,7 +104,8 @@ export const SupabaseVacantesView: React.FC<Props> = ({ showToast }) => {
       .eq('id', editing.id);
     setSaving(false);
     if (error) {
-      showToast(`Error: ${error.message}`);
+      console.error('Error guardando mensajes:', error);
+      showToast('No se pudieron guardar los cambios.');
       return;
     }
     showToast('Mensajes actualizados');
@@ -125,7 +128,8 @@ export const SupabaseVacantesView: React.FC<Props> = ({ showToast }) => {
       palabras_clave: newForm.palabras_clave || null,
     });
     if (error) {
-      showToast(`Error: ${error.message}`);
+      console.error('Error creando vacante:', error);
+      showToast('No se pudo crear la vacante.');
       return;
     }
     showToast('Vacante creada');
