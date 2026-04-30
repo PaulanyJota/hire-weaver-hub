@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
-import { Users, CheckCircle2, Clock, Timer } from 'lucide-react';
+import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
 } from 'recharts';
@@ -11,21 +11,18 @@ import { PortalAvatar } from '../components/Avatar';
 interface Worker { id: string; first_name: string; last_name: string; photo_url: string | null; active: boolean }
 interface Att { worker_id: string; date: string; check_in: string | null; worked_hours: number | null; late_minutes: number | null }
 interface IncidentRow {
-  id: string; date: string; incident_type: string; description: string | null;
+  id: string; date: string; incident_type: string; description: string | null; severity: number | null;
   worker: { first_name: string; last_name: string } | null;
 }
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
 const mondayStr = () => {
   const d = new Date();
-  const diff = (d.getDay() + 6) % 7; // 0=lunes
+  const diff = (d.getDay() + 6) % 7;
   d.setDate(d.getDate() - diff);
   return d.toISOString().slice(0, 10);
 };
-const monthStartStr = () => {
-  const d = new Date(); d.setDate(1);
-  return d.toISOString().slice(0, 10);
-};
+const monthStartStr = () => { const d = new Date(); d.setDate(1); return d.toISOString().slice(0, 10); };
 const ddMM = (d: string) => {
   const dt = new Date(d + 'T00:00:00');
   return `${String(dt.getDate()).padStart(2, '0')}/${String(dt.getMonth() + 1).padStart(2, '0')}`;
@@ -60,7 +57,7 @@ export default function PortalDashboard() {
           supabase.from('portal_attendance').select('worker_id, date, check_in, worked_hours, late_minutes').gte('date', since14Str),
           supabase.from('portal_attendance').select('worker_id, date, check_in, worked_hours, late_minutes').gte('date', monthStart),
           supabase.from('portal_incidents')
-            .select('id, date, incident_type, description, worker:portal_workers(first_name,last_name)')
+            .select('id, date, incident_type, description, severity, worker:portal_workers(first_name,last_name)')
             .order('date', { ascending: false }).limit(5),
         ]);
         if (cancelled) return;
@@ -85,21 +82,11 @@ export default function PortalDashboard() {
     return () => { cancelled = true; };
   }, []);
 
-  // KPIs
-  const kpiAttendanceToday = useMemo(
-    () => new Set(attendanceToday.map(r => r.worker_id)).size,
-    [attendanceToday]
-  );
-  const kpiHoursWeek = useMemo(
-    () => weekAtt.reduce((s, r) => s + Number(r.worked_hours ?? 0), 0),
-    [weekAtt]
-  );
-  const kpiLateWeek = useMemo(
-    () => weekAtt.reduce((s, r) => s + Number(r.late_minutes ?? 0), 0),
-    [weekAtt]
-  );
+  const kpiAttendanceToday = useMemo(() => new Set(attendanceToday.map(r => r.worker_id)).size, [attendanceToday]);
+  const kpiHoursWeek = useMemo(() => weekAtt.reduce((s, r) => s + Number(r.worked_hours ?? 0), 0), [weekAtt]);
+  const kpiLateWeek = useMemo(() => weekAtt.reduce((s, r) => s + Number(r.late_minutes ?? 0), 0), [weekAtt]);
+  const attendanceRate = activeWorkers > 0 ? Math.round((kpiAttendanceToday / activeWorkers) * 100) : 0;
 
-  // Chart 1: horas/día últimos 14 días
   const chart14 = useMemo(() => {
     const buckets = new Map<string, number>();
     for (let i = 13; i >= 0; i--) {
@@ -112,50 +99,64 @@ export default function PortalDashboard() {
     return Array.from(buckets, ([date, horas]) => ({ fecha: ddMM(date), horas: Number(horas.toFixed(1)) }));
   }, [last14]);
 
-  // Chart 2: top 10 trabajadores por horas este mes
   const top10 = useMemo(() => {
     const acc = new Map<string, number>();
-    monthAtt.forEach(r => {
-      acc.set(r.worker_id, (acc.get(r.worker_id) ?? 0) + Number(r.worked_hours ?? 0));
-    });
+    monthAtt.forEach(r => { acc.set(r.worker_id, (acc.get(r.worker_id) ?? 0) + Number(r.worked_hours ?? 0)); });
     return Array.from(acc.entries())
       .map(([wid, horas]) => {
         const w = workersById[wid];
         return { name: w ? `${w.first_name} ${w.last_name[0] ?? ''}.` : '—', horas: Number(horas.toFixed(1)) };
       })
-      .sort((a, b) => b.horas - a.horas)
-      .slice(0, 10);
+      .sort((a, b) => b.horas - a.horas).slice(0, 10);
   }, [monthAtt, workersById]);
 
   const today = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const firstName = profile?.full_name.split(' ')[0] ?? '';
 
   const cards = [
-    { label: 'Trabajadores activos', value: activeWorkers, icon: Users, color: '#1F4E78' },
-    { label: 'Asistencias hoy', value: kpiAttendanceToday, icon: CheckCircle2, color: '#16a34a' },
-    { label: 'Horas trabajadas (semana)', value: kpiHoursWeek.toFixed(1), icon: Clock, color: '#2563eb' },
-    { label: 'Atrasos esta semana (min)', value: kpiLateWeek, icon: Timer, color: '#f97316' },
+    { label: 'Trabajadores activos', value: activeWorkers, icon: Users, glow: 'hsl(213 78% 29% / 0.15)', accent: 'hsl(213 78% 29%)' },
+    { label: 'Asistencias hoy', value: kpiAttendanceToday, sub: `${attendanceRate}% del equipo`, icon: CheckCircle2, glow: 'hsl(152 60% 45% / 0.18)', accent: 'hsl(152 60% 38%)' },
+    { label: 'Horas semana', value: kpiHoursWeek.toFixed(0), sub: 'horas registradas', icon: Clock, glow: 'hsl(199 89% 48% / 0.18)', accent: 'hsl(199 89% 42%)' },
+    { label: 'Atrasos semana', value: kpiLateWeek, sub: 'minutos acumulados', icon: Timer, glow: 'hsl(25 95% 53% / 0.18)', accent: 'hsl(25 90% 45%)' },
   ];
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Hola, {firstName} 👋</h1>
-        <p className="text-sm text-muted-foreground capitalize mt-1">
-          {today} {isNodoAdmin && '· Vista global Nodo'} {company && !isNodoAdmin && `· ${company.name}`}
-        </p>
+    <div className="p-8 max-w-7xl mx-auto space-y-7">
+      {/* Hero */}
+      <header className="p-fade-up relative overflow-hidden rounded-2xl p-8 text-white"
+        style={{ background: 'linear-gradient(135deg, hsl(215 32% 14%) 0%, hsl(213 78% 28%) 55%, hsl(199 89% 42%) 100%)' }}>
+        <div className="absolute -top-20 -right-10 w-72 h-72 rounded-full opacity-30 blur-3xl"
+          style={{ background: 'radial-gradient(closest-side, hsl(199 89% 60%), transparent)' }} />
+        <div className="relative flex items-start justify-between flex-wrap gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-widest text-white/65 font-semibold">Panel general</p>
+            <h1 className="text-3xl font-bold tracking-tight mt-1">Hola, {firstName} 👋</h1>
+            <p className="text-sm text-white/75 capitalize mt-1.5">
+              {today}{isNodoAdmin && ' · Vista global Nodo'}{company && !isNodoAdmin && ` · ${company.name}`}
+            </p>
+          </div>
+          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 backdrop-blur border border-white/15">
+            <Activity className="w-4 h-4" />
+            <span className="text-xs font-medium">Datos en vivo</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          </div>
+        </div>
       </header>
 
-      {/* (A) KPIs */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* KPIs */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-stagger">
         {cards.map(c => (
-          <div key={c.label} className="bg-card border border-border rounded-xl p-5">
+          <div key={c.label} className="p-kpi" style={{ ['--p-kpi-glow' as any]: c.glow }}>
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs text-muted-foreground font-medium">{c.label}</p>
-                {loading ? <Skeleton className="h-8 w-16 mt-2" /> : <p className="text-3xl font-bold mt-2">{c.value}</p>}
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{c.label}</p>
+                {loading ? <Skeleton className="h-9 w-20 mt-2" /> : (
+                  <p className="text-3xl font-bold mt-2 tracking-tight" style={{ color: c.accent }}>{c.value}</p>
+                )}
+                {c.sub && !loading && <p className="text-xs text-muted-foreground mt-1">{c.sub}</p>}
               </div>
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ background: `${c.color}1a`, color: c.color }}>
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: `${c.accent}15`, color: c.accent }}>
                 <c.icon className="w-5 h-5" />
               </div>
             </div>
@@ -163,36 +164,57 @@ export default function PortalDashboard() {
         ))}
       </section>
 
-      {/* (B) Dos gráficos */}
-      <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-card border border-border rounded-xl p-5">
-          <h2 className="text-sm font-semibold mb-4">Horas trabajadas por día · últimos 14 días</h2>
+      {/* Charts */}
+      <section className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+        <div className="p-card p-5 lg:col-span-3">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-sm font-bold tracking-tight">Horas trabajadas · últimos 14 días</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Total diario del equipo</p>
+            </div>
+            <span className="p-pill p-pill-info"><TrendingUp className="w-3 h-3" /> Tendencia</span>
+          </div>
           {loading ? <Skeleton className="h-64 w-full" /> : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={chart14}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="fecha" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }} />
-                <Bar dataKey="horas" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                <defs>
+                  <linearGradient id="g14" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(199 89% 48%)" />
+                    <stop offset="100%" stopColor="hsl(213 78% 29%)" />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="fecha" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" axisLine={false} tickLine={false} />
+                <Tooltip
+                  cursor={{ fill: 'hsl(213 78% 29% / 0.05)' }}
+                  contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12, boxShadow: '0 8px 24px -8px rgba(0,0,0,0.15)' }}
+                />
+                <Bar dataKey="horas" fill="url(#g14)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-5">
-          <h2 className="text-sm font-semibold mb-4">Top 10 trabajadores por horas · este mes</h2>
+        <div className="p-card p-5 lg:col-span-2">
+          <h2 className="text-sm font-bold tracking-tight mb-4">Top horas · este mes</h2>
           {loading ? <Skeleton className="h-64 w-full" /> : top10.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-12">Sin datos este mes.</p>
           ) : (
             <ResponsiveContainer width="100%" height={Math.max(260, top10.length * 28)}>
-              <BarChart data={top10} layout="vertical" margin={{ left: 16 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis type="number" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" width={120} />
-                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }} />
-                <Bar dataKey="horas" fill="#16a34a" radius={[0, 4, 4, 0]}>
-                  {top10.map((_, i) => <Cell key={i} fill="#16a34a" />)}
+              <BarChart data={top10} layout="vertical" margin={{ left: 8 }}>
+                <defs>
+                  <linearGradient id="gtop" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="hsl(152 60% 45%)" />
+                    <stop offset="100%" stopColor="hsl(152 70% 35%)" />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" axisLine={false} tickLine={false} />
+                <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" width={110} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12, boxShadow: '0 8px 24px -8px rgba(0,0,0,0.15)' }} />
+                <Bar dataKey="horas" fill="url(#gtop)" radius={[0, 6, 6, 0]}>
+                  {top10.map((_, i) => <Cell key={i} />)}
                 </Bar>
               </BarChart>
             </ResponsiveContainer>
@@ -200,24 +222,27 @@ export default function PortalDashboard() {
         </div>
       </section>
 
-      {/* (C) Asistencia hoy + Últimas incidencias */}
+      {/* Attendance + incidents */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <div className="bg-card border border-border rounded-xl p-5">
-          <h2 className="text-sm font-semibold mb-4">Asistencia hoy</h2>
+        <div className="p-card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold tracking-tight">Asistencia hoy</h2>
+            <span className="p-pill p-pill-success">{kpiAttendanceToday} presentes</span>
+          </div>
           {loading ? (
             <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
           ) : attendanceToday.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-6 text-center">Aún no hay marcaciones para hoy.</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">Aún no hay marcaciones para hoy.</p>
           ) : (
-            <ul className="divide-y divide-border max-h-80 overflow-y-auto">
+            <ul className="divide-y divide-border max-h-80 overflow-y-auto -mx-2">
               {attendanceToday.map(r => {
                 const w = workersById[r.worker_id];
                 const time = new Date(r.check_in).toLocaleTimeString('es-CL', { hour: '2-digit', minute: '2-digit', hour12: false });
                 return (
-                  <li key={r.worker_id} className="py-2.5 flex items-center gap-3">
-                    <PortalAvatar name={w ? `${w.first_name} ${w.last_name}` : '?'} photoUrl={w?.photo_url} size={32} />
+                  <li key={r.worker_id} className="px-2 py-2.5 flex items-center gap-3 hover:bg-muted/40 rounded-lg transition-colors">
+                    <PortalAvatar name={w ? `${w.first_name} ${w.last_name}` : '?'} photoUrl={w?.photo_url} size={34} />
                     <span className="flex-1 text-sm font-medium truncate">{w ? `${w.first_name} ${w.last_name}` : '—'}</span>
-                    <span className="text-xs font-mono text-[#16a34a]">{time}</span>
+                    <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-[hsl(152_60%_38%/0.10)] text-[hsl(152_60%_28%)]">{time}</span>
                   </li>
                 );
               })}
@@ -225,27 +250,34 @@ export default function PortalDashboard() {
           )}
         </div>
 
-        <div className="bg-card border border-border rounded-xl p-5">
-          <h2 className="text-sm font-semibold mb-4">Últimas incidencias</h2>
+        <div className="p-card p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-bold tracking-tight">Últimas incidencias</h2>
+            <span className="p-pill p-pill-warning">{incidents.length} recientes</span>
+          </div>
           {loading ? (
             <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-12 w-full" />)}</div>
           ) : incidents.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-6 text-center">Sin incidencias registradas.</p>
+            <p className="text-sm text-muted-foreground py-8 text-center">Sin incidencias registradas.</p>
           ) : (
             <ul className="divide-y divide-border">
-              {incidents.map(i => (
-                <li key={i.id} className="py-3 flex items-start gap-3">
-                  <div className="w-2 h-2 rounded-full bg-[#f97316] mt-2 shrink-0" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium">
-                      {i.worker?.first_name} {i.worker?.last_name}
-                      <span className="ml-2 text-xs text-muted-foreground font-normal capitalize">· {i.incident_type.replace('_', ' ')}</span>
-                    </p>
-                    {i.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{i.description}</p>}
-                  </div>
-                  <span className="text-xs text-muted-foreground shrink-0">{new Date(i.date).toLocaleDateString('es-CL')}</span>
-                </li>
-              ))}
+              {incidents.map(i => {
+                const sev = i.severity ?? 1;
+                const sevClass = sev >= 4 ? 'p-pill-danger' : sev >= 3 ? 'p-pill-warning' : 'p-pill-muted';
+                return (
+                  <li key={i.id} className="py-3 flex items-start gap-3">
+                    <span className={`p-pill ${sevClass} mt-0.5`}>{sev}/5</span>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold truncate">
+                        {i.worker?.first_name} {i.worker?.last_name}
+                        <span className="ml-2 text-xs text-muted-foreground font-normal capitalize">· {i.incident_type.replace('_', ' ')}</span>
+                      </p>
+                      {i.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{i.description}</p>}
+                    </div>
+                    <span className="text-[11px] text-muted-foreground shrink-0">{new Date(i.date).toLocaleDateString('es-CL')}</span>
+                  </li>
+                );
+              })}
             </ul>
           )}
         </div>
