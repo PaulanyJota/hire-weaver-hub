@@ -146,7 +146,7 @@ export default function PortalTrabajadorDetalle() {
               <InfoRow icon={<Calendar className="w-4 h-4" />} label="Ingreso" value={fmtDate(worker.hire_date)} />
               <InfoRow icon={<Mail className="w-4 h-4" />} label="Correo" value={worker.email ?? '—'} />
               <InfoRow icon={<Phone className="w-4 h-4" />} label="Teléfono" value={worker.phone ?? '—'} />
-              <InfoRow icon={<MapPin className="w-4 h-4" />} label="Comuna" value={worker.comuna ?? '—'} />
+              <InfoRow icon={<MapPin className="w-4 h-4" />} label="División" value={worker.division ?? worker.sub_area ?? '—'} />
               <InfoRow icon={<Building2 className="w-4 h-4" />} label="Contrato" value={activeContract?.contract_type ?? '—'} />
             </div>
           </div>
