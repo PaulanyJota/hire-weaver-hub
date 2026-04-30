@@ -15,6 +15,7 @@ import { PortalLayout } from "@/portal/components/PortalLayout";
 import PortalLogin from "@/portal/pages/PortalLogin";
 import PortalDashboard from "@/portal/pages/PortalDashboard";
 import PortalTrabajadores from "@/portal/pages/PortalTrabajadores";
+import PortalTrabajadorDetalle from "@/portal/pages/PortalTrabajadorDetalle";
 import PortalAprobaciones from "@/portal/pages/PortalAprobaciones";
 import PortalIncidencias from "@/portal/pages/PortalIncidencias";
 import PortalConfiguracion from "@/portal/pages/PortalConfiguracion";
