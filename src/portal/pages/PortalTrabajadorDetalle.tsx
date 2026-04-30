@@ -51,7 +51,7 @@ interface Incident {
   id: string;
   incident_type: string;
   description: string | null;
-  severity: string;
+  severity: number;
   date: string;
   created_at: string;
 }
