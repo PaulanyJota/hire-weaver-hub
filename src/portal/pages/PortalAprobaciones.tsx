@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { usePortalAuth } from '../hooks/usePortalAuth';
+import { Check, X, ClipboardCheck, CalendarRange } from 'lucide-react';
 
 interface Approval {
   id: string;
@@ -61,47 +62,69 @@ export default function PortalAprobaciones() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Aprobaciones pendientes</h1>
-        <p className="text-sm text-muted-foreground mt-1">{items.length} solicitudes por revisar</p>
+      <header className="p-fade-up">
+        <p className="p-section-title">Bandeja</p>
+        <h1 className="text-3xl font-bold tracking-tight mt-1">Aprobaciones pendientes</h1>
+        <p className="text-sm text-muted-foreground mt-1.5">
+          {items.length === 0
+            ? 'Estás al día. No hay solicitudes por revisar.'
+            : <>Tienes <span className="font-semibold text-foreground">{items.length}</span> {items.length === 1 ? 'solicitud' : 'solicitudes'} esperando tu decisión.</>}
+        </p>
       </header>
 
       {loading ? (
-        <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-32 w-full" />)}</div>
+        <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-32 w-full rounded-2xl" />)}</div>
       ) : items.length === 0 ? (
-        <div className="bg-card border border-border rounded-xl p-12 text-center text-muted-foreground">
-          No hay solicitudes pendientes.
+        <div className="p-card p-12 text-center">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-[hsl(152_60%_38%/0.10)] text-[hsl(152_60%_28%)] flex items-center justify-center mb-3">
+            <ClipboardCheck className="w-6 h-6" />
+          </div>
+          <p className="font-semibold">Todo en orden</p>
+          <p className="text-sm text-muted-foreground mt-1">No hay solicitudes pendientes por ahora.</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 p-stagger">
           {items.map(a => (
-            <div key={a.id} className="bg-card border border-border rounded-xl p-5">
+            <div key={a.id} className="p-card p-card-hover p-5">
               <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
-                <div>
-                  <p className="font-semibold">{a.worker?.first_name} {a.worker?.last_name}</p>
-                  <p className="text-xs text-muted-foreground capitalize mt-0.5">{a.request_type.replace('_', ' ')}</p>
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[hsl(213_78%_29%/0.08)] text-[hsl(213_78%_29%)] flex items-center justify-center shrink-0">
+                    <CalendarRange className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold">{a.worker?.first_name} {a.worker?.last_name}</p>
+                    <p className="text-xs text-muted-foreground capitalize mt-0.5">{a.request_type.replace('_', ' ')}</p>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <span className="p-pill p-pill-info">
                   {new Date(a.start_date).toLocaleDateString('es-CL')} → {new Date(a.end_date).toLocaleDateString('es-CL')}
-                </p>
+                </span>
               </div>
-              {a.reason && <p className="text-sm text-muted-foreground mb-3">{a.reason}</p>}
+              {a.reason && (
+                <p className="text-sm text-foreground/80 mb-3 p-3 rounded-lg bg-muted/40 border border-border">
+                  {a.reason}
+                </p>
+              )}
               <textarea
                 value={decisionNotes[a.id] ?? ''}
                 onChange={e => setDecisionNotes(p => ({ ...p, [a.id]: e.target.value }))}
                 placeholder="Notas de la decisión (opcional)"
                 rows={2}
-                className="w-full px-3 py-2 bg-muted border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#1F4E78]/20 mb-3"
+                className="p-textarea mb-3"
               />
               <div className="flex gap-2 justify-end">
                 <button
                   onClick={() => decide(a.id, 'rechazada')} disabled={busy === a.id}
-                  className="px-4 py-2 text-sm font-medium border border-border rounded-lg hover:bg-muted disabled:opacity-50"
-                >Rechazar</button>
+                  className="p-btn-ghost inline-flex items-center gap-1.5 px-4 py-2 text-sm disabled:opacity-50"
+                >
+                  <X className="w-4 h-4" /> Rechazar
+                </button>
                 <button
                   onClick={() => decide(a.id, 'aprobada')} disabled={busy === a.id}
-                  className="px-4 py-2 text-sm font-medium text-white bg-[#1F4E78] rounded-lg hover:opacity-90 disabled:opacity-50"
-                >Aprobar</button>
+                  className="p-btn-primary inline-flex items-center gap-1.5 px-4 py-2 text-sm"
+                >
+                  <Check className="w-4 h-4" /> Aprobar
+                </button>
               </div>
             </div>
           ))}

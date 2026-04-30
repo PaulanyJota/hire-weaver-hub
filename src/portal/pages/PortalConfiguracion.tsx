@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
+import { Building2, UserCog } from 'lucide-react';
 
 interface UserRow {
   id: string;
@@ -14,7 +14,6 @@ interface UserRow {
 
 export default function PortalConfiguracion() {
   const { company } = usePortalAuth();
-  const { toast } = useToast();
   const [tab, setTab] = useState<'empresa' | 'usuarios'>('empresa');
   const [users, setUsers] = useState<UserRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -39,30 +38,39 @@ export default function PortalConfiguracion() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Configuración</h1>
+      <header className="p-fade-up">
+        <p className="p-section-title">Ajustes</p>
+        <h1 className="text-3xl font-bold tracking-tight mt-1">Configuración</h1>
       </header>
 
       <div className="flex gap-1 border-b border-border">
-        {(['empresa', 'usuarios'] as const).map(t => (
+        {([
+          { key: 'empresa', label: 'Mi empresa', icon: Building2 },
+          { key: 'usuarios', label: 'Usuarios', icon: UserCog },
+        ] as const).map(t => (
           <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${tab === t ? 'border-[#1F4E78] text-[#1F4E78]' : 'border-transparent text-muted-foreground hover:text-foreground'}`}
+            key={t.key}
+            onClick={() => setTab(t.key)}
+            className={`inline-flex items-center gap-2 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${
+              tab === t.key
+                ? 'border-[hsl(213_78%_29%)] text-[hsl(213_78%_29%)]'
+                : 'border-transparent text-muted-foreground hover:text-foreground'
+            }`}
           >
-            {t === 'empresa' ? 'Mi empresa' : 'Usuarios'}
+            <t.icon className="w-4 h-4" />
+            {t.label}
           </button>
         ))}
       </div>
 
       {tab === 'empresa' && (
-        <div className="bg-card border border-border rounded-xl p-6 space-y-4">
+        <div className="p-card p-6">
           {loading ? <Skeleton className="h-40 w-full" /> : companyData ? (
-            <div className="grid grid-cols-2 gap-4 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label="Nombre" value={companyData.name} />
-              <Field label="RUT" value={companyData.rut ?? '—'} />
+              <Field label="RUT" value={companyData.rut ?? '—'} mono />
               <Field label="Área BUK" value={companyData.buk_area_name} />
-              <Field label="Color" value={companyData.primary_color} />
+              <Field label="Color de marca" value={companyData.primary_color} swatch={companyData.primary_color} />
               <Field label="Estado" value={companyData.active ? 'Activa' : 'Inactiva'} />
             </div>
           ) : (
@@ -72,31 +80,28 @@ export default function PortalConfiguracion() {
       )}
 
       {tab === 'usuarios' && (
-        <div className="bg-card border border-border rounded-xl overflow-hidden">
-          <div className="p-4 flex justify-end border-b border-border">
-            <button
-              disabled
-              onClick={() => toast({ title: 'Próximamente', description: 'La invitación de usuarios estará disponible pronto.' })}
-              className="px-3 py-1.5 text-xs font-medium text-white bg-[#1F4E78] rounded-lg opacity-50"
-            >Invitar usuario</button>
-          </div>
+        <div className="p-card overflow-hidden">
           {loading ? <div className="p-4"><Skeleton className="h-32 w-full" /></div> : (
-            <table className="w-full text-sm">
-              <thead className="bg-muted/50 text-xs text-muted-foreground">
-                <tr className="text-left">
-                  <th className="p-3 font-medium">Nombre</th>
-                  <th className="p-3 font-medium">Rol</th>
-                  <th className="p-3 font-medium">Estado</th>
-                  <th className="p-3 font-medium">Último acceso</th>
+            <table className="p-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Rol</th>
+                  <th>Estado</th>
+                  <th>Último acceso</th>
                 </tr>
               </thead>
               <tbody>
                 {users.map(u => (
-                  <tr key={u.id} className="border-t border-border">
-                    <td className="p-3 font-medium">{u.full_name}</td>
-                    <td className="p-3 capitalize">{u.role.replace('_', ' ')}</td>
-                    <td className="p-3">{u.active ? 'Activo' : 'Inactivo'}</td>
-                    <td className="p-3 text-xs text-muted-foreground">{u.last_login_at ? new Date(u.last_login_at).toLocaleString('es-CL') : 'Nunca'}</td>
+                  <tr key={u.id}>
+                    <td className="font-semibold">{u.full_name}</td>
+                    <td className="capitalize text-sm">{u.role.replace('_', ' ')}</td>
+                    <td>
+                      <span className={`p-pill ${u.active ? 'p-pill-success' : 'p-pill-muted'}`}>
+                        {u.active ? 'Activo' : 'Inactivo'}
+                      </span>
+                    </td>
+                    <td className="text-xs text-muted-foreground">{u.last_login_at ? new Date(u.last_login_at).toLocaleString('es-CL') : 'Nunca'}</td>
                   </tr>
                 ))}
               </tbody>
@@ -108,11 +113,14 @@ export default function PortalConfiguracion() {
   );
 }
 
-function Field({ label, value }: { label: string; value: string }) {
+function Field({ label, value, mono, swatch }: { label: string; value: string; mono?: boolean; swatch?: string }) {
   return (
-    <div>
-      <p className="text-xs text-muted-foreground font-medium">{label}</p>
-      <p className="text-sm font-medium mt-1">{value}</p>
+    <div className="rounded-xl border border-border p-4 bg-white">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
+      <div className="flex items-center gap-2 mt-1.5">
+        {swatch && <span className="w-4 h-4 rounded-md border border-border shrink-0" style={{ background: swatch }} />}
+        <p className={`font-semibold ${mono ? 'font-mono text-xs' : 'text-sm'}`}>{value}</p>
+      </div>
     </div>
   );
 }

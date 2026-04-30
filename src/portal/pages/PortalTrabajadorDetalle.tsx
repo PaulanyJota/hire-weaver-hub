@@ -13,8 +13,7 @@ import {
 
 interface Worker {
   id: string;
-  first_name: string;
-  last_name: string;
+  first_name: string; last_name: string;
   rut_display: string | null;
   position: string | null;
   area: string | null;
@@ -39,7 +38,7 @@ interface Contract {
 
 interface Attendance {
   id: string;
-  date: string; // YYYY-MM-DD
+  date: string;
   shift_start: string | null;
   shift_end: string | null;
   check_in: string | null;
@@ -75,8 +74,7 @@ export default function PortalTrabajadorDetalle() {
     let cancelled = false;
     const load = async () => {
       setLoading(true);
-      const since = new Date();
-      since.setDate(since.getDate() - 30);
+      const since = new Date(); since.setDate(since.getDate() - 30);
       const sinceStr = since.toISOString().slice(0, 10);
 
       const [w, c, a, ab] = await Promise.all([
@@ -112,8 +110,7 @@ export default function PortalTrabajadorDetalle() {
   }, [attendance]);
 
   const chartData = useMemo(() => {
-    return [...attendance]
-      .sort((x, y) => x.date.localeCompare(y.date))
+    return [...attendance].sort((x, y) => x.date.localeCompare(y.date))
       .map(r => ({ fecha: ddMM(r.date), horas: Number(r.worked_hours ?? 0) }));
   }, [attendance]);
 
@@ -130,7 +127,7 @@ export default function PortalTrabajadorDetalle() {
   if (!worker) {
     return (
       <div className="p-8 max-w-6xl mx-auto">
-        <Link to="/portal/trabajadores" className="inline-flex items-center gap-2 text-sm text-[#1F4E78] hover:underline">
+        <Link to="/portal/trabajadores" className="inline-flex items-center gap-2 text-sm text-[hsl(213_78%_29%)] hover:underline">
           <ArrowLeft className="w-4 h-4" /> Volver
         </Link>
         <p className="mt-6 text-muted-foreground">Trabajador no encontrado o sin acceso.</p>
@@ -142,31 +139,40 @@ export default function PortalTrabajadorDetalle() {
 
   return (
     <div className="p-8 max-w-6xl mx-auto space-y-6">
-      <Link to="/portal/trabajadores" className="inline-flex items-center gap-2 text-sm text-[#1F4E78] hover:underline">
+      <Link to="/portal/trabajadores" className="inline-flex items-center gap-1.5 text-sm font-medium text-[hsl(213_78%_29%)] hover:gap-2 transition-all">
         <ArrowLeft className="w-4 h-4" /> Volver a trabajadores
       </Link>
 
-      {/* (A) Header */}
-      <header className="bg-card border border-border rounded-xl p-6">
-        <div className="flex items-start gap-5">
-          <PortalAvatar name={fullName} photoUrl={worker.photo_url} size={72} />
+      {/* Header gradient */}
+      <header className="p-fade-up relative overflow-hidden rounded-2xl p-6 text-white"
+        style={{ background: 'linear-gradient(135deg, hsl(215 32% 14%) 0%, hsl(213 78% 28%) 60%, hsl(199 89% 42%) 100%)' }}>
+        <div className="absolute -top-20 -right-10 w-72 h-72 rounded-full opacity-25 blur-3xl"
+          style={{ background: 'radial-gradient(closest-side, hsl(199 89% 60%), transparent)' }} />
+        <div className="relative flex items-start gap-5 flex-wrap">
+          <PortalAvatar name={fullName} photoUrl={worker.photo_url} size={84} />
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold">{fullName}</h1>
-              <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${worker.active ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
+              <h1 className="text-2xl md:text-3xl font-bold tracking-tight">{fullName}</h1>
+              <span className={`p-pill ${worker.active ? 'p-pill-success' : 'p-pill-muted'}`} style={{ background: 'rgba(255,255,255,0.15)', color: 'white', borderColor: 'rgba(255,255,255,0.25)' }}>
                 {worker.active ? 'Activo' : 'Inactivo'}
               </span>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-sm text-white/85 mt-1">
               {worker.position ?? '—'}{worker.area ? ` · ${worker.area}` : ''}
             </p>
+            {worker.email && (
+              <div className="flex flex-wrap gap-3 mt-3 text-xs text-white/75">
+                <span className="inline-flex items-center gap-1.5"><Mail className="w-3.5 h-3.5" />{worker.email}</span>
+                {worker.phone && <span className="inline-flex items-center gap-1.5"><Phone className="w-3.5 h-3.5" />{worker.phone}</span>}
+              </div>
+            )}
           </div>
         </div>
       </header>
 
-      {/* (B) Información personal */}
-      <section className="bg-card border border-border rounded-xl p-6">
-        <h2 className="text-sm font-semibold mb-4">Información personal</h2>
+      {/* Información personal */}
+      <section className="p-card p-6">
+        <h2 className="p-section-title mb-4">Información personal</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
           <InfoRow icon={<BadgeCheck className="w-4 h-4" />} label="RUT" value={worker.rut_display ?? '—'} mono />
           <InfoRow icon={<Mail className="w-4 h-4" />} label="Correo" value={worker.email ?? '—'} />
@@ -182,15 +188,17 @@ export default function PortalTrabajadorDetalle() {
         </div>
       </section>
 
-      {/* (C) Asistencia últimos 30 días */}
-      <section className="bg-card border border-border rounded-xl p-6 space-y-6">
-        <h2 className="text-sm font-semibold">Asistencia · últimos 30 días</h2>
+      {/* Asistencia */}
+      <section className="p-card p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="p-section-title">Asistencia · últimos 30 días</h2>
+        </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <MiniKpi icon={<CalendarCheck className="w-4 h-4" />} label="Días trabajados" value={kpis.dias.toString()} color="#16a34a" />
-          <MiniKpi icon={<Clock className="w-4 h-4" />} label="Horas totales" value={kpis.horas.toFixed(1)} color="#2563eb" />
-          <MiniKpi icon={<Timer className="w-4 h-4" />} label="Atrasos (min)" value={kpis.atrasos.toString()} color="#f97316" />
-          <MiniKpi icon={<CalendarX className="w-4 h-4" />} label="Ausencias" value={absences30.toString()} color="#dc2626" />
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-stagger">
+          <MiniKpi icon={<CalendarCheck className="w-4 h-4" />} label="Días trabajados" value={kpis.dias.toString()} color="hsl(152 60% 38%)" />
+          <MiniKpi icon={<Clock className="w-4 h-4" />} label="Horas totales" value={kpis.horas.toFixed(1)} color="hsl(199 89% 42%)" />
+          <MiniKpi icon={<Timer className="w-4 h-4" />} label="Atrasos (min)" value={kpis.atrasos.toString()} color="hsl(25 95% 48%)" />
+          <MiniKpi icon={<CalendarX className="w-4 h-4" />} label="Ausencias" value={absences30.toString()} color="hsl(0 73% 50%)" />
         </div>
 
         <div className="h-64">
@@ -199,51 +207,54 @@ export default function PortalTrabajadorDetalle() {
           ) : (
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis dataKey="fecha" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" />
-                <Tooltip contentStyle={{ background: 'hsl(var(--card))', border: '1px solid hsl(var(--border))', borderRadius: 8, fontSize: 12 }} />
-                <Bar dataKey="horas" fill="#2563eb" radius={[4, 4, 0, 0]} />
+                <defs>
+                  <linearGradient id="gdet" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(199 89% 48%)" />
+                    <stop offset="100%" stopColor="hsl(213 78% 29%)" />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="fecha" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" axisLine={false} tickLine={false} />
+                <Tooltip
+                  cursor={{ fill: 'hsl(213 78% 29% / 0.05)' }}
+                  contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12, boxShadow: '0 8px 24px -8px rgba(0,0,0,0.15)' }}
+                />
+                <Bar dataKey="horas" fill="url(#gdet)" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           )}
         </div>
 
-        <div className="border border-border rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-muted/50">
-              <tr className="text-left text-xs text-muted-foreground">
-                <th className="p-3 font-medium">Fecha</th>
-                <th className="p-3 font-medium">Turno</th>
-                <th className="p-3 font-medium">Ingreso</th>
-                <th className="p-3 font-medium">Salida</th>
-                <th className="p-3 font-medium">Horas</th>
-                <th className="p-3 font-medium">Atraso (min)</th>
-                <th className="p-3 font-medium">Estado</th>
+        <div className="rounded-xl overflow-hidden border border-border">
+          <table className="p-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Turno</th>
+                <th>Ingreso</th>
+                <th>Salida</th>
+                <th>Horas</th>
+                <th>Atraso</th>
+                <th>Estado</th>
               </tr>
             </thead>
             <tbody>
               {attendance.length === 0 ? (
-                <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Sin registros.</td></tr>
+                <tr><td colSpan={7} className="p-12 text-center text-muted-foreground">Sin registros.</td></tr>
               ) : attendance.map(r => {
                 const weekend = isWeekend(r.date);
                 const estado = weekend ? 'Fin de semana' : r.check_in ? 'Asistió' : 'Ausente';
-                const estadoClass = weekend
-                  ? 'bg-muted text-muted-foreground'
-                  : r.check_in
-                    ? 'bg-emerald-100 text-emerald-700'
-                    : 'bg-red-100 text-red-700';
+                const cls = weekend ? 'p-pill-muted' : r.check_in ? 'p-pill-success' : 'p-pill-danger';
                 return (
-                  <tr key={r.id} className="border-t border-border">
-                    <td className="p-3">{fmtDate(r.date)}</td>
-                    <td className="p-3 text-xs">{fmtShiftTime(r.shift_start)} – {fmtShiftTime(r.shift_end)}</td>
-                    <td className="p-3">{fmtTime(r.check_in)}</td>
-                    <td className="p-3">{fmtTime(r.check_out)}</td>
-                    <td className="p-3">{r.worked_hours?.toFixed(2) ?? '—'}</td>
-                    <td className="p-3">{r.late_minutes ?? 0}</td>
-                    <td className="p-3">
-                      <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${estadoClass}`}>{estado}</span>
-                    </td>
+                  <tr key={r.id}>
+                    <td>{fmtDate(r.date)}</td>
+                    <td className="text-xs text-muted-foreground">{fmtShiftTime(r.shift_start)} – {fmtShiftTime(r.shift_end)}</td>
+                    <td className="font-mono text-xs">{fmtTime(r.check_in)}</td>
+                    <td className="font-mono text-xs">{fmtTime(r.check_out)}</td>
+                    <td className="font-semibold">{r.worked_hours?.toFixed(2) ?? '—'}</td>
+                    <td className="text-xs">{r.late_minutes ?? 0} min</td>
+                    <td><span className={`p-pill ${cls}`}>{estado}</span></td>
                   </tr>
                 );
               })}
@@ -257,22 +268,24 @@ export default function PortalTrabajadorDetalle() {
 
 function InfoRow({ icon, label, value, mono }: { icon: React.ReactNode; label: string; value: string; mono?: boolean }) {
   return (
-    <div className="flex items-center gap-2 min-w-0">
-      <span className="text-muted-foreground shrink-0">{icon}</span>
-      <span className="text-muted-foreground shrink-0">{label}:</span>
-      <span className={`truncate ${mono ? 'font-mono text-xs' : ''}`}>{value}</span>
+    <div className="flex items-center gap-3 min-w-0 py-1">
+      <span className="w-8 h-8 rounded-lg bg-[hsl(213_78%_29%/0.08)] text-[hsl(213_78%_29%)] flex items-center justify-center shrink-0">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
+        <p className={`truncate font-medium ${mono ? 'font-mono text-xs' : 'text-sm'}`}>{value}</p>
+      </div>
     </div>
   );
 }
 
 function MiniKpi({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string; color: string }) {
   return (
-    <div className="border border-border rounded-lg p-4">
-      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+    <div className="rounded-xl p-4 border border-border bg-white" style={{ boxShadow: 'var(--p-shadow-sm)' }}>
+      <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
         <span style={{ color }}>{icon}</span>
         {label}
       </div>
-      <p className="text-2xl font-bold mt-1.5" style={{ color }}>{value}</p>
+      <p className="text-2xl font-bold mt-1.5 tracking-tight" style={{ color }}>{value}</p>
     </div>
   );
 }

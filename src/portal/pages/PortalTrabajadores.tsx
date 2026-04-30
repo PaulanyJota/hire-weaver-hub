@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
-import { Search } from 'lucide-react';
+import { Search, ArrowRight, Users } from 'lucide-react';
 
 interface Worker {
   id: string;
@@ -57,6 +57,7 @@ export default function PortalTrabajadores() {
     });
   }, [workers, search, areaFilter, estadoFilter]);
 
+  const activeCount = workers.filter(w => w.active).length;
   const pageCount = Math.max(1, Math.ceil(filtered.length / PAGE));
   const visible = filtered.slice(page * PAGE, (page + 1) * PAGE);
 
@@ -64,72 +65,89 @@ export default function PortalTrabajadores() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
-      <header>
-        <h1 className="text-2xl font-bold">Trabajadores</h1>
-        <p className="text-sm text-muted-foreground mt-1">{filtered.length} resultados</p>
+      <header className="p-fade-up flex items-end justify-between flex-wrap gap-4">
+        <div>
+          <p className="p-section-title">Equipo</p>
+          <h1 className="text-3xl font-bold tracking-tight mt-1">Trabajadores</h1>
+          <p className="text-sm text-muted-foreground mt-1.5">
+            <span className="font-semibold text-foreground">{filtered.length}</span> de {workers.length} · {activeCount} activos
+          </p>
+        </div>
+        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-border shadow-sm">
+          <Users className="w-4 h-4 text-[hsl(213_78%_29%)]" />
+          <span className="text-xs font-semibold">{areas.length} áreas</span>
+        </div>
       </header>
 
-      <div className="flex flex-wrap gap-3">
-        <div className="relative flex-1 min-w-[240px]">
+      <div className="p-card p-4 flex flex-wrap gap-3 items-center">
+        <div className="relative flex-1 min-w-[260px]">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
           <input
             value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Buscar por nombre o cargo..."
-            className="w-full pl-9 pr-3 py-2 bg-card border border-border rounded-lg text-sm outline-none focus:ring-2 focus:ring-[#1F4E78]/20"
+            className="p-input pl-9"
           />
         </div>
-        <select value={areaFilter} onChange={e => setAreaFilter(e.target.value)} className="px-3 py-2 bg-card border border-border rounded-lg text-sm">
+        <select value={areaFilter} onChange={e => setAreaFilter(e.target.value)} className="p-select w-auto min-w-[180px]">
           <option value="">Todas las áreas</option>
           {areas.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
-        <select value={estadoFilter} onChange={e => setEstadoFilter(e.target.value as any)} className="px-3 py-2 bg-card border border-border rounded-lg text-sm">
+        <select value={estadoFilter} onChange={e => setEstadoFilter(e.target.value as any)} className="p-select w-auto min-w-[160px]">
           <option value="all">Todos los estados</option>
           <option value="active">Activos</option>
           <option value="inactive">Inactivos</option>
         </select>
       </div>
 
-      <div className="bg-card border border-border rounded-xl overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-muted/50">
-            <tr className="text-left text-xs text-muted-foreground">
-              <th className="p-3 font-medium">Trabajador</th>
-              <th className="p-3 font-medium">RUT</th>
-              <th className="p-3 font-medium">Cargo</th>
-              <th className="p-3 font-medium">Área</th>
-              <th className="p-3 font-medium">Ingreso</th>
-              <th className="p-3 font-medium">Estado</th>
-              <th className="p-3 font-medium text-right">Acciones</th>
+      <div className="p-card overflow-hidden">
+        <table className="p-table">
+          <thead>
+            <tr>
+              <th>Trabajador</th>
+              <th>RUT</th>
+              <th>Cargo</th>
+              <th>Área</th>
+              <th>Ingreso</th>
+              <th>Estado</th>
+              <th className="text-right">Acciones</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              [1,2,3,4].map(i => (
-                <tr key={i} className="border-t border-border">
-                  <td colSpan={7} className="p-3"><Skeleton className="h-8 w-full" /></td>
+              [1,2,3,4,5].map(i => (
+                <tr key={i}>
+                  <td colSpan={7}><Skeleton className="h-8 w-full" /></td>
                 </tr>
               ))
             ) : visible.length === 0 ? (
-              <tr><td colSpan={7} className="p-8 text-center text-muted-foreground">Sin resultados.</td></tr>
+              <tr><td colSpan={7} className="p-12 text-center text-muted-foreground">Sin resultados.</td></tr>
             ) : visible.map(w => (
-              <tr key={w.id} className="border-t border-border hover:bg-muted/30 transition-colors">
-                <td className="p-3">
+              <tr key={w.id}>
+                <td>
                   <div className="flex items-center gap-3">
-                    <PortalAvatar name={`${w.first_name} ${w.last_name}`} photoUrl={w.photo_url} />
-                    <span className="font-medium">{w.first_name} {w.last_name}</span>
+                    <PortalAvatar name={`${w.first_name} ${w.last_name}`} photoUrl={w.photo_url} size={36} />
+                    <div className="min-w-0">
+                      <p className="font-semibold truncate">{w.first_name} {w.last_name}</p>
+                      <p className="text-[11px] text-muted-foreground truncate">{w.position ?? '—'}</p>
+                    </div>
                   </div>
                 </td>
-                <td className="p-3 font-mono text-xs">{w.rut_display ?? '—'}</td>
-                <td className="p-3">{w.position ?? '—'}</td>
-                <td className="p-3">{w.area ?? '—'}</td>
-                <td className="p-3 text-xs">{w.hire_date ? new Date(w.hire_date).toLocaleDateString('es-CL') : '—'}</td>
-                <td className="p-3">
-                  <span className={`inline-flex px-2 py-0.5 rounded-full text-xs font-medium ${w.active ? 'bg-emerald-100 text-emerald-700' : 'bg-muted text-muted-foreground'}`}>
+                <td className="font-mono text-xs text-muted-foreground">{w.rut_display ?? '—'}</td>
+                <td className="text-sm">{w.position ?? '—'}</td>
+                <td className="text-sm">{w.area ?? '—'}</td>
+                <td className="text-xs text-muted-foreground">{w.hire_date ? new Date(w.hire_date).toLocaleDateString('es-CL') : '—'}</td>
+                <td>
+                  <span className={`p-pill ${w.active ? 'p-pill-success' : 'p-pill-muted'}`}>
                     {w.active ? 'Activo' : 'Inactivo'}
                   </span>
                 </td>
-                <td className="p-3 text-right">
-                  <Link to={`/portal/trabajadores/${w.id}`} className="text-xs text-[#1F4E78] hover:underline font-medium">Ver detalle</Link>
+                <td className="text-right">
+                  <Link
+                    to={`/portal/trabajadores/${w.id}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-[hsl(213_78%_29%)] hover:bg-[hsl(213_78%_29%/0.08)] transition-colors"
+                  >
+                    Ver detalle <ArrowRight className="w-3.5 h-3.5" />
+                  </Link>
                 </td>
               </tr>
             ))}
@@ -139,10 +157,10 @@ export default function PortalTrabajadores() {
 
       {pageCount > 1 && (
         <div className="flex justify-between items-center text-xs">
-          <span className="text-muted-foreground">Página {page + 1} de {pageCount}</span>
+          <span className="text-muted-foreground">Página <strong className="text-foreground">{page + 1}</strong> de {pageCount}</span>
           <div className="flex gap-2">
-            <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="px-3 py-1.5 border border-border rounded-lg disabled:opacity-50">Anterior</button>
-            <button onClick={() => setPage(p => Math.min(pageCount - 1, p + 1))} disabled={page >= pageCount - 1} className="px-3 py-1.5 border border-border rounded-lg disabled:opacity-50">Siguiente</button>
+            <button onClick={() => setPage(p => Math.max(0, p - 1))} disabled={page === 0} className="p-btn-ghost px-3 py-1.5 text-xs disabled:opacity-50">Anterior</button>
+            <button onClick={() => setPage(p => Math.min(pageCount - 1, p + 1))} disabled={page >= pageCount - 1} className="p-btn-ghost px-3 py-1.5 text-xs disabled:opacity-50">Siguiente</button>
           </div>
         </div>
       )}
