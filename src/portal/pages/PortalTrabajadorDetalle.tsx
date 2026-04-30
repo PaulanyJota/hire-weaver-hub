@@ -49,9 +49,10 @@ interface Absence {
 
 interface Incident {
   id: string;
-  title: string;
+  incident_type: string;
+  description: string | null;
   severity: string;
-  status: string;
+  date: string;
   created_at: string;
 }
 
