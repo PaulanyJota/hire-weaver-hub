@@ -203,8 +203,8 @@ export default function PortalTrabajadorDetalle() {
         <TabsContent value="incidencias" className="mt-4">
           <Card>
             <SimpleTable
-              headers={['Título', 'Severidad', 'Estado', 'Creada']}
-              rows={incidents.map(i => [i.title, i.severity, i.status, fmtDate(i.created_at)])}
+              headers={['Tipo', 'Severidad', 'Fecha', 'Descripción']}
+              rows={incidents.map(i => [i.incident_type, i.severity?.toString() ?? '—', fmtDate(i.date), i.description ?? '—'])}
               empty="Sin incidencias."
             />
           </Card>
