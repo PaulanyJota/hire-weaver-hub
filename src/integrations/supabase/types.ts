@@ -297,6 +297,7 @@ export type Database = {
           check_out: string | null
           created_at: string
           date: string
+          gv_synced_at: string | null
           id: string
           late_minutes: number | null
           notes: string | null
@@ -312,6 +313,7 @@ export type Database = {
           check_out?: string | null
           created_at?: string
           date: string
+          gv_synced_at?: string | null
           id?: string
           late_minutes?: number | null
           notes?: string | null
@@ -327,6 +329,7 @@ export type Database = {
           check_out?: string | null
           created_at?: string
           date?: string
+          gv_synced_at?: string | null
           id?: string
           late_minutes?: number | null
           notes?: string | null
@@ -894,7 +897,11 @@ export type Database = {
         | "aprobada"
         | "rechazada"
         | "cancelada"
-      portal_attendance_source: "buk" | "manual_client" | "manual_nodo"
+      portal_attendance_source:
+        | "buk"
+        | "manual_client"
+        | "manual_nodo"
+        | "geovictoria"
       portal_incident_type:
         | "atraso"
         | "inasistencia"
@@ -1048,7 +1055,12 @@ export const Constants = {
         "rechazada",
         "cancelada",
       ],
-      portal_attendance_source: ["buk", "manual_client", "manual_nodo"],
+      portal_attendance_source: [
+        "buk",
+        "manual_client",
+        "manual_nodo",
+        "geovictoria",
+      ],
       portal_incident_type: [
         "atraso",
         "inasistencia",
