@@ -18,8 +18,8 @@ interface Worker {
   photo_url: string | null;
   email: string | null;
   phone: string | null;
-  address: string | null;
-  comuna: string | null;
+  sub_area: string | null;
+  division: string | null;
 }
 
 interface Contract {
