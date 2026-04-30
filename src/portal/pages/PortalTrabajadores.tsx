@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
@@ -128,7 +129,7 @@ export default function PortalTrabajadores() {
                   </span>
                 </td>
                 <td className="p-3 text-right">
-                  <button disabled className="text-xs text-[#1F4E78] opacity-50 cursor-not-allowed">Ver detalle</button>
+                  <Link to={`/portal/trabajadores/${w.id}`} className="text-xs text-[#1F4E78] hover:underline font-medium">Ver detalle</Link>
                 </td>
               </tr>
             ))}
