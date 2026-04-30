@@ -45,6 +45,7 @@ const App = () => (
                   >
                     <Route index element={<PortalDashboard />} />
                     <Route path="trabajadores" element={<PortalTrabajadores />} />
+                    <Route path="trabajadores/:id" element={<PortalTrabajadorDetalle />} />
                     <Route
                       path="aprobaciones"
                       element={
