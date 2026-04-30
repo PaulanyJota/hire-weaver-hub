@@ -166,7 +166,7 @@ export default function PortalTrabajadorDetalle() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <KpiCard label="Días registrados (30d)" value={attendance.length.toString()} />
             <KpiCard label="Ausencias activas" value={absences.filter(a => new Date(a.end_date) >= new Date()).length.toString()} />
-            <KpiCard label="Incidencias abiertas" value={incidents.filter(i => i.status !== 'resolved' && i.status !== 'closed').length.toString()} />
+            <KpiCard label="Incidencias (recientes)" value={incidents.length.toString()} />
           </div>
         </TabsContent>
 
