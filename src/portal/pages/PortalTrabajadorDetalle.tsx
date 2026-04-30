@@ -77,13 +77,13 @@ export default function PortalTrabajadorDetalle() {
       const [w, c, a, ab, inc] = await Promise.all([
         supabase
           .from('portal_workers')
-          .select('id, first_name, last_name, rut_display, position, area, hire_date, active, photo_url, email, phone, address, comuna')
+          .select('id, first_name, last_name, rut_display, position, area, hire_date, active, photo_url, email, phone, sub_area, division')
           .eq('id', id)
           .maybeSingle(),
         supabase.from('portal_contracts').select('id, contract_type, start_date, end_date').eq('worker_id', id).order('start_date', { ascending: false }),
         supabase.from('portal_attendance').select('id, date, check_in, check_out, worked_hours, late_minutes').eq('worker_id', id).order('date', { ascending: false }).limit(30),
         supabase.from('portal_absences').select('id, absence_type, start_date, end_date, business_days, reason').eq('worker_id', id).order('start_date', { ascending: false }).limit(20),
-        supabase.from('portal_incidents').select('id, title, severity, status, created_at').eq('worker_id', id).order('created_at', { ascending: false }).limit(20),
+        supabase.from('portal_incidents').select('id, incident_type, description, severity, date, created_at').eq('worker_id', id).order('created_at', { ascending: false }).limit(20),
       ]);
       if (cancelled) return;
       setWorker((w.data as Worker) ?? null);
