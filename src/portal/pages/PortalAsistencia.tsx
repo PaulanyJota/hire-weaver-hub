@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, AlertTriangle, CheckCircle2, UserX, ArrowUpDown } from 'lucide-react';
 import { PortalAvatar } from '../components/Avatar';
+import { usePortalAuth } from '../hooks/usePortalAuth';
 
 type Row = {
   worker_id: string;
@@ -26,6 +27,7 @@ type Row = {
 type SortKey = 'nombre' | 'sucursal' | 'ultimo_check_in' | 'dias_marcados' | 'dias_atraso' | 'pct_puntualidad';
 
 export default function PortalAsistencia() {
+  const { company } = usePortalAuth();
   const [days, setDays] = useState<number>(30);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -55,10 +57,10 @@ export default function PortalAsistencia() {
 
   // Empresa label (best-effort from a single company in result set)
   const empresaLabel = useMemo(() => {
+    if (company?.name) return company.name;
     const set = new Set(rows.map(r => r.portal_company_id));
-    if (set.size === 1) return 'tu empresa';
-    return `${set.size} empresas`;
-  }, [rows]);
+    return `${set.size} ${set.size === 1 ? 'empresa' : 'empresas'}`;
+  }, [rows, company]);
 
   // Metric cards
   const metrics = useMemo(() => {
@@ -230,7 +232,7 @@ export default function PortalAsistencia() {
                 const sinMarca = (r.dias_marcados ?? 0) === 0;
                 const borderColor = sinMarca ? '#cbd5e1' : (r.pct_puntualidad === 0 ? '#dc2626' : '#f97316');
                 const desc = sinMarca
-                  ? `Sin marcas en ${r.dias_registrados ?? days} días`
+                  ? `Sin marcas en ${days} días`
                   : `${r.dias_atraso} ${r.dias_atraso === 1 ? 'atraso' : 'atrasos'} · máx ${r.max_atraso_min}min`;
                 return (
                   <li
