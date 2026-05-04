@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, AlertTriangle, CheckCircle2, UserX, ArrowUpDown } from 'lucide-react';
 import { PortalAvatar } from '../components/Avatar';
+import { usePortalAuth } from '../hooks/usePortalAuth';
 
 type Row = {
   worker_id: string;
