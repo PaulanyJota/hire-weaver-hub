@@ -27,6 +27,7 @@ type Row = {
 type SortKey = 'nombre' | 'sucursal' | 'ultimo_check_in' | 'dias_marcados' | 'dias_atraso' | 'pct_puntualidad';
 
 export default function PortalAsistencia() {
+  const { company } = usePortalAuth();
   const [days, setDays] = useState<number>(30);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
