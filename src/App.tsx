@@ -16,6 +16,7 @@ import PortalLogin from "@/portal/pages/PortalLogin";
 import PortalDashboard from "@/portal/pages/PortalDashboard";
 import PortalTrabajadores from "@/portal/pages/PortalTrabajadores";
 import PortalTrabajadorDetalle from "@/portal/pages/PortalTrabajadorDetalle";
+import PortalAsistencia from "@/portal/pages/PortalAsistencia";
 import PortalAprobaciones from "@/portal/pages/PortalAprobaciones";
 import PortalIncidencias from "@/portal/pages/PortalIncidencias";
 import PortalConfiguracion from "@/portal/pages/PortalConfiguracion";
@@ -46,6 +47,7 @@ const App = () => (
                     <Route index element={<PortalDashboard />} />
                     <Route path="trabajadores" element={<PortalTrabajadores />} />
                     <Route path="trabajadores/:id" element={<PortalTrabajadorDetalle />} />
+                    <Route path="asistencia" element={<PortalAsistencia />} />
                     <Route
                       path="aprobaciones"
                       element={
