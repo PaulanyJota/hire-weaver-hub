@@ -870,6 +870,27 @@ export type Database = {
       }
     }
     Functions: {
+      get_attendance_ranking: {
+        Args: { p_days?: number }
+        Returns: {
+          cost_center: string
+          dias_atraso: number
+          dias_marcados: number
+          dias_puntual: number
+          dias_registrados: number
+          iniciales: string
+          max_atraso_min: number
+          nombre: string
+          pct_puntualidad: number
+          photo_url: string
+          portal_company_id: string
+          promedio_atraso_min: number
+          sucursal: string
+          ultimo_check_in: string
+          worker_id: string
+          worker_position: string
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
