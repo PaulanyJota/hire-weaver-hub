@@ -57,10 +57,10 @@ export default function PortalAsistencia() {
 
   // Empresa label (best-effort from a single company in result set)
   const empresaLabel = useMemo(() => {
+    if (company?.name) return company.name;
     const set = new Set(rows.map(r => r.portal_company_id));
-    if (set.size === 1) return 'tu empresa';
-    return `${set.size} empresas`;
-  }, [rows]);
+    return `${set.size} ${set.size === 1 ? 'empresa' : 'empresas'}`;
+  }, [rows, company]);
 
   // Metric cards
   const metrics = useMemo(() => {
