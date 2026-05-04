@@ -232,7 +232,7 @@ export default function PortalAsistencia() {
                 const sinMarca = (r.dias_marcados ?? 0) === 0;
                 const borderColor = sinMarca ? '#cbd5e1' : (r.pct_puntualidad === 0 ? '#dc2626' : '#f97316');
                 const desc = sinMarca
-                  ? `Sin marcas en ${r.dias_registrados ?? days} días`
+                  ? `Sin marcas en ${days} días`
                   : `${r.dias_atraso} ${r.dias_atraso === 1 ? 'atraso' : 'atrasos'} · máx ${r.max_atraso_min}min`;
                 return (
                   <li
