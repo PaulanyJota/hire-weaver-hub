@@ -45,10 +45,9 @@ export default function PortalLogin() {
           style={{ background: 'radial-gradient(closest-side, hsl(213 78% 50%), transparent)' }} />
 
         <div className="relative flex items-center gap-3">
-          <div className="p-logo"><Sparkles className="w-5 h-5" /></div>
+          <div className="p-logo flex items-center justify-center" style={{ background: 'white', color: '#1B3A5C' }}><Sparkles className="w-5 h-5" /></div>
           <div>
-            <p className="font-bold tracking-tight">NODO Talentos</p>
-            <p className="text-xs text-white/65">Portal Cliente</p>
+            <p className="font-bold tracking-tight">Nodo Will</p>
           </div>
         </div>
 
@@ -82,10 +81,9 @@ export default function PortalLogin() {
       <div className="portal-shell flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-md p-fade-up">
           <div className="lg:hidden mb-6 flex items-center gap-3">
-            <div className="p-logo"><Sparkles className="w-5 h-5" /></div>
+            <div className="p-logo flex items-center justify-center" style={{ background: 'white', color: '#1B3A5C' }}><Sparkles className="w-5 h-5" /></div>
             <div>
-              <p className="font-bold tracking-tight">NODO Talentos</p>
-              <p className="text-xs text-muted-foreground">Portal Cliente</p>
+              <p className="font-bold tracking-tight">Nodo Will</p>
             </div>
           </div>
 

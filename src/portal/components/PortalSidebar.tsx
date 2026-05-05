@@ -27,11 +27,11 @@ export function PortalSidebar() {
     <aside className="portal-sidebar w-64 shrink-0 flex flex-col h-screen sticky top-0">
       <div className="px-5 py-5 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="p-logo" style={{ width: 38, height: 38, borderRadius: 11 }}>
+          <div className="p-logo flex items-center justify-center" style={{ width: 38, height: 38, borderRadius: 11, background: 'white', color: '#1B3A5C' }}>
             <Sparkles className="w-4.5 h-4.5" />
           </div>
           <div className="min-w-0">
-            <p className="text-[13px] font-bold leading-tight text-white truncate tracking-tight">Portal Cliente</p>
+            <p className="text-[13px] font-bold leading-tight text-white truncate tracking-tight">Nodo Will</p>
             <p className="text-[11px] text-white/55 truncate">{company?.name ?? 'NODO Talentos'}</p>
           </div>
         </div>
