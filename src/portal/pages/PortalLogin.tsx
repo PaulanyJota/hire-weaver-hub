@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
-import { Sparkles, Shield, Zap, BarChart3 } from 'lucide-react';
+import { Shield, Zap, BarChart3 } from 'lucide-react';
+import { NodoWillLogo } from '@/components/NodoWillLogo';
 import '../portal.css';
 
 export default function PortalLogin() {
