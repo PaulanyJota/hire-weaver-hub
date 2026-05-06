@@ -3,12 +3,15 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
-import { Search, ArrowRight, Users } from 'lucide-react';
+import PortalPageHeader from '../components/PortalPageHeader';
+import { formatRut } from '../lib/formatRut';
+import { Search, ArrowRight } from 'lucide-react';
 
 interface Worker {
   id: string;
   first_name: string;
   last_name: string;
+  rut: string | null;
   rut_display: string | null;
   position: string | null;
   area: string | null;
