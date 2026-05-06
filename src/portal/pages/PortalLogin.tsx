@@ -46,7 +46,7 @@ export default function PortalLogin() {
           style={{ background: 'radial-gradient(closest-side, hsl(213 78% 50%), transparent)' }} />
 
         <div className="relative flex items-center gap-3">
-          <div className="p-logo flex items-center justify-center" style={{ background: 'white', color: '#1B3A5C' }}><Sparkles className="w-5 h-5" /></div>
+          <div className="flex items-center justify-center" style={{ width: 44, height: 44, borderRadius: 12, background: 'white' }}><NodoWillLogo size={36} /></div>
           <div>
             <p className="font-bold tracking-tight">Nodo Will</p>
           </div>
