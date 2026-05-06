@@ -1,28 +1,29 @@
 /* Portal Cliente — design tokens & utilities (scoped under .portal-root) */
 
 .portal-root {
-  /* Brand */
-  --p-primary: 213 78% 29%;          /* #1F4E78 */
-  --p-primary-600: 213 75% 24%;
-  --p-primary-50: 213 78% 96%;
-  --p-accent: 199 89% 48%;           /* sky-500 */
-  --p-success: 152 60% 38%;
-  --p-warning: 25 95% 53%;
+  /* Brand — Nodo Will */
+  --p-primary: 210 55% 23%;          /* #1B3A5C navy */
+  --p-primary-600: 216 62% 16%;      /* #0F2440 */
+  --p-primary-50: 210 55% 96%;
+  --p-accent: 202 73% 56%;           /* #3DA5E0 sky */
+  --p-orange: 20 95% 53%;             /* #F97316 */
+  --p-success: 159 70% 36%;           /* #1D9E75 */
+  --p-warning: 20 95% 53%;
   --p-danger: 0 73% 52%;
 
   /* Surfaces */
   --p-bg: 215 35% 97%;
   --p-card: 0 0% 100%;
   --p-border: 215 22% 90%;
-  --p-text: 215 28% 14%;
+  --p-text: 210 55% 23%;
   --p-muted: 215 14% 46%;
 
   /* Effects */
   --p-shadow-sm: 0 1px 2px 0 hsl(215 25% 15% / 0.04);
   --p-shadow-md: 0 4px 12px -2px hsl(215 25% 15% / 0.06), 0 2px 4px -2px hsl(215 25% 15% / 0.04);
-  --p-shadow-lg: 0 20px 40px -12px hsl(213 78% 29% / 0.18);
-  --p-gradient-brand: linear-gradient(135deg, hsl(213 78% 29%) 0%, hsl(213 80% 38%) 50%, hsl(199 89% 48%) 100%);
-  --p-gradient-sidebar: linear-gradient(180deg, hsl(215 32% 12%) 0%, hsl(213 45% 14%) 100%);
+  --p-shadow-lg: 0 20px 40px -12px hsl(210 55% 23% / 0.18);
+  --p-gradient-brand: linear-gradient(135deg, hsl(210 55% 23%) 0%, hsl(210 55% 30%) 50%, hsl(202 73% 56%) 100%);
+  --p-gradient-sidebar: linear-gradient(180deg, hsl(216 62% 16%) 0%, hsl(216 62% 13%) 100%);
   --p-gradient-card: linear-gradient(135deg, hsl(0 0% 100%) 0%, hsl(215 30% 99%) 100%);
 }
 
@@ -134,9 +135,9 @@
 .portal-sidebar a { color: hsl(214 22% 75%); }
 .portal-sidebar a:hover { color: white; background: hsl(0 0% 100% / 0.06); }
 .portal-sidebar a.active {
-  background: linear-gradient(135deg, hsl(213 78% 35% / 0.95), hsl(199 89% 48% / 0.85));
+  background: hsl(202 73% 56%);
   color: white;
-  box-shadow: 0 6px 16px -6px hsl(213 78% 29% / 0.6);
+  box-shadow: 0 6px 16px -6px hsl(202 73% 56% / 0.5);
 }
 
 /* Animations */

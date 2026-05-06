@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Users, ClipboardCheck, AlertTriangle, Settings, LogOut, Sparkles, Clock } from 'lucide-react';
+import { Home, Users, ClipboardCheck, AlertTriangle, Settings, LogOut, Clock } from 'lucide-react';
+import { NodoWillLogo } from '@/components/NodoWillLogo';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { cn } from '@/lib/utils';
 
@@ -27,8 +28,8 @@ export function PortalSidebar() {
     <aside className="portal-sidebar w-64 shrink-0 flex flex-col h-screen sticky top-0">
       <div className="px-5 py-5 border-b border-white/10">
         <div className="flex items-center gap-3">
-          <div className="p-logo flex items-center justify-center" style={{ width: 38, height: 38, borderRadius: 11, background: 'white', color: '#1B3A5C' }}>
-            <Sparkles className="w-4.5 h-4.5" />
+          <div className="flex items-center justify-center" style={{ width: 38, height: 38 }}>
+            <NodoWillLogo size={38} />
           </div>
           <div className="min-w-0">
             <p className="text-[13px] font-bold leading-tight text-white truncate tracking-tight">Nodo Will</p>

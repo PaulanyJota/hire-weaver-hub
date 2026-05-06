@@ -7,44 +7,53 @@
 @layer base {
   :root {
     --background: 210 20% 98%;
-    --foreground: 215 25% 12%;
+    --foreground: 210 55% 23%;
 
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 12%;
+    --card-foreground: 210 55% 23%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 12%;
+    --popover-foreground: 210 55% 23%;
 
-    --primary: 217 91% 60%;
+    /* Nodo Will brand: primary navy, accent orange, success teal, sky */
+    --primary: 210 55% 23%;            /* #1B3A5C */
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96%;
-    --secondary-foreground: 215 25% 27%;
+    --secondary-foreground: 210 55% 23%;
 
     --muted: 214 20% 94%;
     --muted-foreground: 215 16% 47%;
 
-    --accent: 210 40% 96%;
-    --accent-foreground: 215 25% 12%;
+    --accent: 20 95% 53%;              /* #F97316 */
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 214 20% 90%;
     --input: 214 20% 90%;
-    --ring: 217 91% 60%;
+    --ring: 202 73% 56%;
     --radius: 0.625rem;
 
-    /* ATS Custom tokens */
-    --sidebar-bg: 215 28% 12%;
-    --sidebar-bg-hover: 215 20% 18%;
-    --sidebar-text: 214 20% 64%;
-    --sidebar-text-hover: 210 20% 90%;
-    --sidebar-active: 217 91% 60%;
+    /* Nodo Will brand tokens */
+    --nw-navy: 210 55% 23%;            /* #1B3A5C */
+    --nw-navy-dark: 216 62% 16%;       /* #0F2440 */
+    --nw-orange: 20 95% 53%;           /* #F97316 */
+    --nw-teal: 159 70% 36%;            /* #1D9E75 */
+    --nw-teal-dark: 165 76% 25%;       /* #0F6E56 */
+    --nw-sky: 202 73% 56%;             /* #3DA5E0 */
 
-    --success: 160 84% 39%;
+    /* Sidebar tokens (mapped to brand) */
+    --sidebar-bg: 216 62% 16%;         /* #0F2440 */
+    --sidebar-bg-hover: 216 50% 22%;
+    --sidebar-text: 214 20% 78%;
+    --sidebar-text-hover: 0 0% 100%;
+    --sidebar-active: 202 73% 56%;     /* #3DA5E0 */
+
+    --success: 159 70% 36%;
     --success-foreground: 0 0% 100%;
-    --warning: 32 95% 44%;
+    --warning: 20 95% 53%;
     --warning-foreground: 0 0% 100%;
 
     --surface: 210 20% 98%;

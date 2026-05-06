@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
-import { Sparkles, Shield, Zap, BarChart3 } from 'lucide-react';
+import { Shield, Zap, BarChart3 } from 'lucide-react';
+import { NodoWillLogo } from '@/components/NodoWillLogo';
 import '../portal.css';
 
 export default function PortalLogin() {
@@ -45,7 +46,7 @@ export default function PortalLogin() {
           style={{ background: 'radial-gradient(closest-side, hsl(213 78% 50%), transparent)' }} />
 
         <div className="relative flex items-center gap-3">
-          <div className="p-logo flex items-center justify-center" style={{ background: 'white', color: '#1B3A5C' }}><Sparkles className="w-5 h-5" /></div>
+          <div className="flex items-center justify-center" style={{ width: 44, height: 44, borderRadius: 12, background: 'white' }}><NodoWillLogo size={36} /></div>
           <div>
             <p className="font-bold tracking-tight">Nodo Will</p>
           </div>
@@ -81,7 +82,7 @@ export default function PortalLogin() {
       <div className="portal-shell flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-md p-fade-up">
           <div className="lg:hidden mb-6 flex items-center gap-3">
-            <div className="p-logo flex items-center justify-center" style={{ background: 'white', color: '#1B3A5C' }}><Sparkles className="w-5 h-5" /></div>
+            <div className="flex items-center justify-center" style={{ width: 44, height: 44, borderRadius: 12, background: 'white', border: '1px solid hsl(var(--p-border))' }}><NodoWillLogo size={36} onDark={false} /></div>
             <div>
               <p className="font-bold tracking-tight">Nodo Will</p>
             </div>
