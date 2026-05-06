@@ -135,9 +135,9 @@
 .portal-sidebar a { color: hsl(214 22% 75%); }
 .portal-sidebar a:hover { color: white; background: hsl(0 0% 100% / 0.06); }
 .portal-sidebar a.active {
-  background: linear-gradient(135deg, hsl(213 78% 35% / 0.95), hsl(199 89% 48% / 0.85));
+  background: hsl(202 73% 56%);
   color: white;
-  box-shadow: 0 6px 16px -6px hsl(213 78% 29% / 0.6);
+  box-shadow: 0 6px 16px -6px hsl(202 73% 56% / 0.5);
 }
 
 /* Animations */
