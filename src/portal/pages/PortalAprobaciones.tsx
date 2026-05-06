@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Check, X, ClipboardCheck, CalendarRange } from 'lucide-react';
+import PortalPageHeader from '../components/PortalPageHeader';
 
 interface Approval {
   id: string;
@@ -62,15 +63,14 @@ export default function PortalAprobaciones() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-6">
-      <header className="p-fade-up">
-        <p className="p-section-title">Bandeja</p>
-        <h1 className="text-3xl font-bold tracking-tight mt-1">Aprobaciones pendientes</h1>
-        <p className="text-sm text-muted-foreground mt-1.5">
-          {items.length === 0
-            ? 'Estás al día. No hay solicitudes por revisar.'
-            : <>Tienes <span className="font-semibold text-foreground">{items.length}</span> {items.length === 1 ? 'solicitud' : 'solicitudes'} esperando tu decisión.</>}
-        </p>
-      </header>
+      <PortalPageHeader
+        eyebrow="Bandeja"
+        title="Aprobaciones pendientes"
+        subtitle={items.length === 0
+          ? 'Estás al día. No hay solicitudes por revisar.'
+          : `Tienes ${items.length} ${items.length === 1 ? 'solicitud' : 'solicitudes'} esperando tu decisión.`}
+        notifications={items.length}
+      />
 
       {loading ? (
         <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-32 w-full rounded-2xl" />)}</div>

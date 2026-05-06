@@ -3,12 +3,15 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
-import { Search, ArrowRight, Users } from 'lucide-react';
+import PortalPageHeader from '../components/PortalPageHeader';
+import { formatRut } from '../lib/formatRut';
+import { Search, ArrowRight } from 'lucide-react';
 
 interface Worker {
   id: string;
   first_name: string;
   last_name: string;
+  rut: string | null;
   rut_display: string | null;
   position: string | null;
   area: string | null;
@@ -33,7 +36,7 @@ export default function PortalTrabajadores() {
       setLoading(true);
       const { data } = await supabase
         .from('portal_workers')
-        .select('id, first_name, last_name, rut_display, position, area, hire_date, active, photo_url')
+        .select('id, first_name, last_name, rut, rut_display, position, area, hire_date, active, photo_url')
         .order('first_name');
       if (!cancelled) {
         setWorkers((data ?? []) as Worker[]);
@@ -65,19 +68,11 @@ export default function PortalTrabajadores() {
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
-      <header className="p-fade-up flex items-end justify-between flex-wrap gap-4">
-        <div>
-          <p className="p-section-title">Equipo</p>
-          <h1 className="text-3xl font-bold tracking-tight mt-1">Trabajadores</h1>
-          <p className="text-sm text-muted-foreground mt-1.5">
-            <span className="font-semibold text-foreground">{filtered.length}</span> de {workers.length} · {activeCount} activos
-          </p>
-        </div>
-        <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white border border-border shadow-sm">
-          <Users className="w-4 h-4 text-[hsl(213_78%_29%)]" />
-          <span className="text-xs font-semibold">{areas.length} áreas</span>
-        </div>
-      </header>
+      <PortalPageHeader
+        eyebrow="Equipo"
+        title="Trabajadores"
+        subtitle={`${filtered.length} de ${workers.length} · ${activeCount} activos · ${areas.length} áreas`}
+      />
 
       <div className="p-card p-4 flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-[260px]">
@@ -132,7 +127,7 @@ export default function PortalTrabajadores() {
                     </div>
                   </div>
                 </td>
-                <td className="font-mono text-xs text-muted-foreground">{w.rut_display ?? '—'}</td>
+                <td className="font-mono tabular-nums text-xs text-foreground">{formatRut(w.rut ?? w.rut_display)}</td>
                 <td className="text-sm">{w.position ?? '—'}</td>
                 <td className="text-sm">{w.area ?? '—'}</td>
                 <td className="text-xs text-muted-foreground">{w.hire_date ? new Date(w.hire_date).toLocaleDateString('es-CL') : '—'}</td>

@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Building2, UserCog } from 'lucide-react';
+import PortalPageHeader from '../components/PortalPageHeader';
 
 interface UserRow {
   id: string;
@@ -38,10 +39,11 @@ export default function PortalConfiguracion() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-6">
-      <header className="p-fade-up">
-        <p className="p-section-title">Ajustes</p>
-        <h1 className="text-3xl font-bold tracking-tight mt-1">Configuración</h1>
-      </header>
+      <PortalPageHeader
+        eyebrow="Ajustes"
+        title="Configuración"
+        subtitle="Administra los datos de tu empresa y usuarios."
+      />
 
       <div className="flex gap-1 border-b border-border">
         {([
