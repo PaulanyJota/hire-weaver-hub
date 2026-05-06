@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Plus, X, AlertTriangle } from 'lucide-react';
+import PortalPageHeader from '../components/PortalPageHeader';
 
 interface Incident {
   id: string;
@@ -79,16 +80,16 @@ export default function PortalIncidencias() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto space-y-6">
-      <header className="p-fade-up flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <p className="p-section-title">Registro</p>
-          <h1 className="text-3xl font-bold tracking-tight mt-1">Incidencias</h1>
-          <p className="text-sm text-muted-foreground mt-1.5">{items.length} registros en total</p>
-        </div>
-        <button onClick={() => setOpen(true)} className="p-btn-primary inline-flex items-center gap-2 px-4 py-2.5 text-sm">
-          <Plus className="w-4 h-4" /> Nueva incidencia
-        </button>
-      </header>
+      <PortalPageHeader
+        eyebrow="Registro"
+        title="Incidencias"
+        subtitle={`${items.length} ${items.length === 1 ? 'registro' : 'registros'} en total`}
+        right={
+          <button onClick={() => setOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white border border-white/20 hover:bg-white/10 transition-colors" style={{ background: 'rgba(255,255,255,0.1)' }}>
+            <Plus className="w-4 h-4" /> Nueva
+          </button>
+        }
+      />
 
       {loading ? (
         <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}</div>
