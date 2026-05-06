@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Icons } from './Icons';
-import nodoLogo from '@/assets/nodo-logo.jpeg';
+import { NodoWillLogo } from '@/components/NodoWillLogo';
 
 interface SidebarProps {
   activeTab: string;
