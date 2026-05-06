@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Clock, AlertTriangle, CheckCircle2, UserX, ArrowUpDown } from 'lucide-react';
 import { PortalAvatar } from '../components/Avatar';
 import { usePortalAuth } from '../hooks/usePortalAuth';
+import PortalPageHeader from '../components/PortalPageHeader';
 
 type Row = {
   worker_id: string;
@@ -125,18 +126,13 @@ export default function PortalAsistencia() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight" style={{ color: 'hsl(var(--p-text))' }}>Asistencia</h1>
-          <p className="text-sm mt-1" style={{ color: 'hsl(var(--p-muted))' }}>
-            Últimos {days} días · {empresaLabel} · {sucursales.length} {sucursales.length === 1 ? 'sucursal' : 'sucursales'}
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
-          <label className="text-xs font-medium" style={{ color: 'hsl(var(--p-muted))' }}>Período</label>
+      <PortalPageHeader
+        eyebrow="Control"
+        title="Asistencia"
+        subtitle={`Últimos ${days} días · ${empresaLabel} · ${sucursales.length} ${sucursales.length === 1 ? 'sucursal' : 'sucursales'}`}
+        right={
           <select
-            className="p-select"
-            style={{ width: 140 }}
+            className="px-3 py-2 rounded-xl bg-white/10 backdrop-blur border border-white/15 text-white text-xs font-medium focus:outline-none [&>option]:text-foreground"
             value={days}
             onChange={e => setDays(Number(e.target.value))}
           >
@@ -144,8 +140,8 @@ export default function PortalAsistencia() {
             <option value={30}>Últimos 30 días</option>
             <option value={90}>Últimos 90 días</option>
           </select>
-        </div>
-      </div>
+        }
+      />
 
       {/* Metric cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
