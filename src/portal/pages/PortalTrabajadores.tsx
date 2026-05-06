@@ -127,7 +127,7 @@ export default function PortalTrabajadores() {
                     </div>
                   </div>
                 </td>
-                <td className="font-mono text-xs text-muted-foreground">{w.rut_display ?? '—'}</td>
+                <td className="font-mono tabular-nums text-xs text-foreground">{formatRut(w.rut ?? w.rut_display)}</td>
                 <td className="text-sm">{w.position ?? '—'}</td>
                 <td className="text-sm">{w.area ?? '—'}</td>
                 <td className="text-xs text-muted-foreground">{w.hire_date ? new Date(w.hire_date).toLocaleDateString('es-CL') : '—'}</td>

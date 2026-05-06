@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
+import { formatRut } from '../lib/formatRut';
 import {
   ArrowLeft, Mail, Phone, MapPin, Building2, Calendar, BadgeCheck,
   Briefcase, FileText, CalendarX, Clock, CalendarCheck, Timer,
@@ -14,6 +15,7 @@ import {
 interface Worker {
   id: string;
   first_name: string; last_name: string;
+  rut: string | null;
   rut_display: string | null;
   position: string | null;
   area: string | null;
@@ -79,7 +81,7 @@ export default function PortalTrabajadorDetalle() {
 
       const [w, c, a, ab] = await Promise.all([
         supabase.from('portal_workers')
-          .select('id, first_name, last_name, rut_display, position, area, sub_area, division, cost_center, hire_date, termination_date, active, photo_url, email, phone')
+          .select('id, first_name, last_name, rut, rut_display, position, area, sub_area, division, cost_center, hire_date, termination_date, active, photo_url, email, phone')
           .eq('id', id).maybeSingle(),
         supabase.from('portal_contracts')
           .select('id, contract_type, start_date, end_date, is_current')
@@ -174,7 +176,7 @@ export default function PortalTrabajadorDetalle() {
       <section className="p-card p-6">
         <h2 className="p-section-title mb-4">Información personal</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-3 text-sm">
-          <InfoRow icon={<BadgeCheck className="w-4 h-4" />} label="RUT" value={worker.rut_display ?? '—'} mono />
+          <InfoRow icon={<BadgeCheck className="w-4 h-4" />} label="RUT" value={formatRut(worker.rut ?? worker.rut_display)} mono />
           <InfoRow icon={<Mail className="w-4 h-4" />} label="Correo" value={worker.email ?? '—'} />
           <InfoRow icon={<Phone className="w-4 h-4" />} label="Teléfono" value={worker.phone ?? '—'} />
           <InfoRow icon={<Briefcase className="w-4 h-4" />} label="Cargo" value={worker.position ?? '—'} />
