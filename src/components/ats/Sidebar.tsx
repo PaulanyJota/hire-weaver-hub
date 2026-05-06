@@ -121,8 +121,8 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeTab, collapsed, onToggle
       <div className="flex items-center justify-between px-4 py-5" style={{ minHeight: 64 }}>
         {!collapsed && (
           <div className="flex items-center gap-2">
-            <img src={nodoLogo} alt="Nodo Conectando Talentos" className="h-8 w-8 rounded-lg object-cover" />
-            <span className="font-bold text-sm" style={{ color: 'hsl(var(--sidebar-text-hover))' }}>Nodo</span>
+            <NodoWillLogo size={32} />
+            <span className="font-bold text-sm tracking-tight" style={{ color: 'hsl(var(--sidebar-text-hover))' }}>Nodo Will</span>
           </div>
         )}
         <button
