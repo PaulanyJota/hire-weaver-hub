@@ -350,6 +350,50 @@ export type Database = {
           },
         ]
       }
+      portal_attendance_reminders: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          message_text: string
+          sent_at: string
+          sent_by: string | null
+          status: string
+          whatsapp_message_id: string | null
+          worker_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_text: string
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+          whatsapp_message_id?: string | null
+          worker_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_text?: string
+          sent_at?: string
+          sent_by?: string | null
+          status?: string
+          whatsapp_message_id?: string | null
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_attendance_reminders_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "portal_workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       portal_buk_sync_log: {
         Row: {
           entity: string
@@ -889,6 +933,21 @@ export type Database = {
           ultimo_check_in: string
           worker_id: string
           worker_position: string
+        }[]
+      }
+      get_attendance_status: {
+        Args: never
+        Returns: {
+          cargo: string
+          clasificacion: string
+          dias_sin_marca: number
+          nombre: string
+          phone: string
+          sucursal: string
+          ultima_alerta_recordatorio: string
+          ultima_marca: string
+          worker_id: string
+          ya_recordado_hoy: boolean
         }[]
       }
       has_role: {

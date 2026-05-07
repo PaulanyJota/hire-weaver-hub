@@ -5,6 +5,7 @@ import { Clock, AlertTriangle, CheckCircle2, UserX, ArrowUpDown } from 'lucide-r
 import { PortalAvatar } from '../components/Avatar';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import PortalPageHeader from '../components/PortalPageHeader';
+import AttendanceTeamStatus from '../components/AttendanceTeamStatus';
 
 type Row = {
   worker_id: string;
@@ -170,6 +171,9 @@ export default function PortalAsistencia() {
           tone="danger"
         />
       </div>
+
+      {/* Estado de marcaje del equipo */}
+      <AttendanceTeamStatus />
 
       {/* Two column lists */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
