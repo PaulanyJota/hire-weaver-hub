@@ -350,6 +350,57 @@ export type Database = {
           },
         ]
       }
+      portal_attendance_mirror: {
+        Row: {
+          check_in: string | null
+          check_out: string | null
+          created_at: string
+          date: string
+          gv_synced_at: string | null
+          id: string
+          late_minutes: number | null
+          notes: string | null
+          shift_end: string | null
+          shift_start: string | null
+          source: Database["public"]["Enums"]["portal_attendance_source"]
+          updated_at: string
+          worked_hours: number | null
+          worker_id: string
+        }
+        Insert: {
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          date: string
+          gv_synced_at?: string | null
+          id?: string
+          late_minutes?: number | null
+          notes?: string | null
+          shift_end?: string | null
+          shift_start?: string | null
+          source?: Database["public"]["Enums"]["portal_attendance_source"]
+          updated_at?: string
+          worked_hours?: number | null
+          worker_id: string
+        }
+        Update: {
+          check_in?: string | null
+          check_out?: string | null
+          created_at?: string
+          date?: string
+          gv_synced_at?: string | null
+          id?: string
+          late_minutes?: number | null
+          notes?: string | null
+          shift_end?: string | null
+          shift_start?: string | null
+          source?: Database["public"]["Enums"]["portal_attendance_source"]
+          updated_at?: string
+          worked_hours?: number | null
+          worker_id?: string
+        }
+        Relationships: []
+      }
       portal_attendance_reminders: {
         Row: {
           created_at: string
@@ -950,6 +1001,39 @@ export type Database = {
           ya_recordado_hoy: boolean
         }[]
       }
+      get_branch_detail: {
+        Args: { p_cost_center: string }
+        Returns: {
+          cargo: string
+          dias_sin_marca: number
+          estado: string
+          marcas_30d: number
+          nombre: string
+          pct_puntualidad: number
+          rut: string
+          turno_fin: string
+          turno_inicio: string
+          ultima_entrada: string
+          ultima_marca: string
+          ultima_salida: string
+          worker_id: string
+        }[]
+      }
+      get_branches_summary: {
+        Args: never
+        Returns: {
+          cost_center: string
+          marcas_hoy: number
+          pct_asistencia_hoy: number
+          sucursal_nombre: string
+          total_workers: number
+          turno_promedio_fin: string
+          turno_promedio_inicio: string
+          ultima_marca: string
+          workers_activos: number
+          workers_marcaron_hoy: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -961,6 +1045,7 @@ export type Database = {
       portal_current_user_company_id: { Args: never; Returns: string }
       portal_is_admin: { Args: never; Returns: boolean }
       portal_is_nodo_admin: { Args: never; Returns: boolean }
+      refresh_attendance_mirror: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "user"
