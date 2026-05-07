@@ -7,6 +7,7 @@ import {
 } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
+import PortalDashboardExtras from '../components/PortalDashboardExtras';
 
 interface Worker { id: string; first_name: string; last_name: string; photo_url: string | null; active: boolean }
 interface Att { worker_id: string; date: string; check_in: string | null; worked_hours: number | null; late_minutes: number | null }
@@ -163,6 +164,9 @@ export default function PortalDashboard() {
           </div>
         ))}
       </section>
+
+      {/* Sucursales + Charts enriquecidos */}
+      <PortalDashboardExtras />
 
       {/* Charts */}
       <section className="grid grid-cols-1 lg:grid-cols-5 gap-4">
