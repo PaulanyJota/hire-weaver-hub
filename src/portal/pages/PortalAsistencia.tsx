@@ -172,6 +172,9 @@ export default function PortalAsistencia() {
         />
       </div>
 
+      {/* Estado de marcaje del equipo */}
+      <AttendanceTeamStatus />
+
       {/* Two column lists */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Más puntuales */}
