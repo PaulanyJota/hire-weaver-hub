@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      accionistas: {
+        Row: {
+          activo: boolean
+          created_at: string
+          email: string | null
+          id: string
+          nombre_completo: string
+          notas: string | null
+          orden: number | null
+          rut: string | null
+          telefono: string | null
+          updated_at: string
+        }
+        Insert: {
+          activo?: boolean
+          created_at?: string
+          email?: string | null
+          id?: string
+          nombre_completo: string
+          notas?: string | null
+          orden?: number | null
+          rut?: string | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Update: {
+          activo?: boolean
+          created_at?: string
+          email?: string | null
+          id?: string
+          nombre_completo?: string
+          notas?: string | null
+          orden?: number | null
+          rut?: string | null
+          telefono?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       clientes: {
         Row: {
           contacto: string | null
@@ -177,6 +216,47 @@ export type Database = {
           uploaded_by?: string | null
         }
         Relationships: []
+      }
+      pagos_accionistas: {
+        Row: {
+          created_at: string
+          fecha_pago: string
+          glosa: string | null
+          id: string
+          monto_capital: number
+          monto_intereses: number
+          prestamo_id: string
+          registrado_por: string | null
+        }
+        Insert: {
+          created_at?: string
+          fecha_pago: string
+          glosa?: string | null
+          id?: string
+          monto_capital?: number
+          monto_intereses?: number
+          prestamo_id: string
+          registrado_por?: string | null
+        }
+        Update: {
+          created_at?: string
+          fecha_pago?: string
+          glosa?: string | null
+          id?: string
+          monto_capital?: number
+          monto_intereses?: number
+          prestamo_id?: string
+          registrado_por?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pagos_accionistas_prestamo_id_fkey"
+            columns: ["prestamo_id"]
+            isOneToOne: false
+            referencedRelation: "prestamos_accionistas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       portal_absences: {
         Row: {
@@ -893,6 +973,53 @@ export type Database = {
         }
         Relationships: []
       }
+      prestamos_accionistas: {
+        Row: {
+          accionista_id: string
+          activo: boolean
+          created_at: string
+          dia_pago_intereses: number
+          fecha_prestamo: string
+          id: string
+          monto_capital: number
+          notas: string | null
+          tasa_mensual: number
+          updated_at: string
+        }
+        Insert: {
+          accionista_id: string
+          activo?: boolean
+          created_at?: string
+          dia_pago_intereses?: number
+          fecha_prestamo: string
+          id?: string
+          monto_capital: number
+          notas?: string | null
+          tasa_mensual?: number
+          updated_at?: string
+        }
+        Update: {
+          accionista_id?: string
+          activo?: boolean
+          created_at?: string
+          dia_pago_intereses?: number
+          fecha_prestamo?: string
+          id?: string
+          monto_capital?: number
+          notas?: string | null
+          tasa_mensual?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prestamos_accionistas_accionista_id_fkey"
+            columns: ["accionista_id"]
+            isOneToOne: false
+            referencedRelation: "accionistas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -1032,6 +1159,27 @@ export type Database = {
           ultima_marca: string
           workers_activos: number
           workers_marcaron_hoy: number
+        }[]
+      }
+      get_prestamos_resumen: {
+        Args: never
+        Returns: {
+          accionista_id: string
+          accionista_nombre: string
+          accionista_orden: number
+          capital_pendiente: number
+          dia_pago: number
+          fecha_prestamo: string
+          interes_acumulado: number
+          meses_transcurridos: number
+          monto_capital: number
+          prestamo_id: string
+          proxima_fecha_pago: string
+          saldo_total_debe: number
+          tasa_mensual: number
+          total_pagado_capital: number
+          total_pagado_intereses: number
+          ultimo_pago_intereses: string
         }[]
       }
       has_role: {
