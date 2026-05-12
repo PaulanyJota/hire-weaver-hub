@@ -107,7 +107,12 @@ export default function PortalDashboard() {
     return Array.from(acc.entries())
       .map(([wid, horas]) => {
         const w = workersById[wid];
-        return { name: w ? `${w.first_name} ${w.last_name[0] ?? ''}.` : '—', horas: Number(horas.toFixed(1)) };
+        return {
+          id: wid,
+          name: w ? `${w.first_name} ${w.last_name}` : '—',
+          cost_center: w?.cost_center ?? null,
+          horas: Number(horas.toFixed(1)),
+        };
       })
       .sort((a, b) => b.horas - a.horas).slice(0, 10);
   }, [monthAtt, workersById]);
