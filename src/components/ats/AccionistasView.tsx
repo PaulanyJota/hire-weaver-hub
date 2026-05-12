@@ -96,9 +96,10 @@ export const AccionistasView: React.FC = () => {
   }, [rows]);
 
   const updateField = async (prestamo_id: string, field: 'fecha_prestamo' | 'monto_capital' | 'tasa_mensual', value: any) => {
+    const payload: Record<string, any> = { [field]: value };
     const { error } = await supabase
       .from('prestamos_accionistas')
-      .update({ [field]: value })
+      .update(payload as any)
       .eq('id', prestamo_id);
     if (error) { toast.error('No se pudo actualizar: ' + error.message); return; }
     toast.success('Actualizado');
