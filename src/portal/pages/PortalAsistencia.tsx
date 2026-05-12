@@ -6,6 +6,7 @@ import { PortalAvatar } from '../components/Avatar';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import PortalPageHeader from '../components/PortalPageHeader';
 import AttendanceTeamStatus from '../components/AttendanceTeamStatus';
+import WorkerNameLink from '../components/WorkerNameLink';
 
 type Row = {
   worker_id: string;
