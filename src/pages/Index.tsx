@@ -15,6 +15,7 @@ import { Icons } from '@/components/ats/Icons';
 import { WhatsAppView } from '@/components/ats/WhatsAppView';
 import { LegalEmpresaView } from '@/components/ats/LegalEmpresaView';
 import { FinanzasPlaceholderView } from '@/components/ats/FinanzasPlaceholderView';
+import { AccionistasView } from '@/components/ats/AccionistasView';
 import { HomeView } from '@/components/ats/HomeView';
 import { ComercialClientesView } from '@/components/ats/ComercialClientesView';
 import { ComercialPipelineView } from '@/components/ats/ComercialPipelineView';
