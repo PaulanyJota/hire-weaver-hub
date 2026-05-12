@@ -8,8 +8,9 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
 import PortalDashboardExtras from '../components/PortalDashboardExtras';
+import WorkerNameLink from '../components/WorkerNameLink';
 
-interface Worker { id: string; first_name: string; last_name: string; photo_url: string | null; active: boolean }
+interface Worker { id: string; first_name: string; last_name: string; photo_url: string | null; active: boolean; cost_center: string | null }
 interface Att { worker_id: string; date: string; check_in: string | null; worked_hours: number | null; late_minutes: number | null }
 interface IncidentRow {
   id: string; date: string; incident_type: string; description: string | null; severity: number | null;
