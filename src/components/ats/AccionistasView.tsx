@@ -423,4 +423,78 @@ const NuevoPrestamoModal: React.FC<{
   );
 };
 
+// ----- Historial colapsable por accionista
+const HistorialPorAccionista: React.FC<{ pagos: PagoRow[] }> = ({ pagos }) => {
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const grupos = useMemo(() => {
+    const map = new Map<string, PagoRow[]>();
+    for (const p of pagos) {
+      const k = p.accionista_nombre ?? '—';
+      if (!map.has(k)) map.set(k, []);
+      map.get(k)!.push(p);
+    }
+    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [pagos]);
+
+  if (pagos.length === 0) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+        Sin pagos registrados aún
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {grupos.map(([nombre, items]) => {
+        const totInt = items.reduce((s, p) => s + Number(p.monto_intereses || 0), 0);
+        const totCap = items.reduce((s, p) => s + Number(p.monto_capital || 0), 0);
+        const isOpen = open[nombre] ?? false;
+        return (
+          <Collapsible
+            key={nombre}
+            open={isOpen}
+            onOpenChange={(v) => setOpen(o => ({ ...o, [nombre]: v }))}
+            className="rounded-xl border border-slate-200 bg-white overflow-hidden"
+          >
+            <CollapsibleTrigger className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-400">{isOpen ? '▾' : '▸'}</span>
+                <span className="font-semibold text-sm" style={{ color: NAVY }}>{nombre}</span>
+                <span className="text-xs text-slate-500">{items.length} pago{items.length !== 1 ? 's' : ''}</span>
+              </div>
+              <div className="flex gap-4 text-xs tabular-nums">
+                <span style={{ color: TEAL }}>Int. {fmtCLP(totInt)}</span>
+                <span className="text-slate-700">Cap. {fmtCLP(totCap)}</span>
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead className="text-right">Intereses</TableHead>
+                    <TableHead className="text-right">Capital</TableHead>
+                    <TableHead>Glosa</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.map(p => (
+                    <TableRow key={p.id}>
+                      <TableCell className="text-xs">{fmtFecha(p.fecha_pago)}</TableCell>
+                      <TableCell className="text-right tabular-nums" style={{ color: TEAL }}>{fmtCLP(p.monto_intereses)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{fmtCLP(p.monto_capital)}</TableCell>
+                      <TableCell className="text-xs text-slate-600">{p.glosa ?? '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CollapsibleContent>
+          </Collapsible>
+        );
+      })}
+    </div>
+  );
+};
+
 export default AccionistasView;
