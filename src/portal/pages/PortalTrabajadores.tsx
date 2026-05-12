@@ -155,7 +155,7 @@ export default function PortalTrabajadores() {
                               <div className="flex items-center gap-3">
                                 <PortalAvatar name={`${w.first_name} ${w.last_name}`} photoUrl={w.photo_url} size={34} />
                                 <div className="min-w-0">
-                                  <p className="font-semibold truncate">{w.first_name} {w.last_name}</p>
+                                  <WorkerNameLink workerId={w.id} name={`${w.first_name} ${w.last_name}`} sucursal={w.cost_center} />
                                   <p className="text-[11px] text-muted-foreground truncate">{w.position ?? '—'}</p>
                                 </div>
                               </div>
