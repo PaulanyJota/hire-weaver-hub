@@ -129,9 +129,9 @@ export default function AttendanceTeamStatus() {
           {recordar.map(w => (
             <li key={w.worker_id} className="px-3 py-2.5 rounded-lg border border-slate-200 bg-white flex items-center gap-2">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold truncate" style={{ color: 'hsl(var(--p-text))' }}>{w.nombre}</p>
-                <p className="text-[11px] truncate" style={{ color: 'hsl(var(--p-muted))' }}>
-                  {w.cargo ?? 'Sin cargo'} · {w.sucursal ?? '—'}
+                <WorkerNameLink workerId={w.worker_id} name={w.nombre} sucursal={w.sucursal} className="text-sm" />
+                <p className="text-[11px] truncate mt-0.5" style={{ color: 'hsl(var(--p-muted))' }}>
+                  {w.cargo ?? 'Sin cargo'}
                 </p>
                 <p className="text-[11px] mt-0.5 tabular-nums" style={{ color: 'hsl(var(--p-muted))' }}>
                   Último día: {w.ultima_marca ?? '—'}
