@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity } from 'lucide-react';
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
