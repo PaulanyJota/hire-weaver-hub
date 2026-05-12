@@ -117,6 +117,7 @@ const Index = () => {
       case 'legal-outsourcing': return <LegalEmpresaView nombre="Nodo Outsourcing SpA" rut="78.337.989-9" empresaKey="outsourcing" />;
       case 'legal-est': return <LegalEmpresaView nombre="Nodo EST SpA" rut="78.328.185-6" empresaKey="est" />;
       case 'fin-flujo-caja': return <FinanzasPlaceholderView titulo="Flujo de Caja" subtitulo="Vista consolidada de ingresos y egresos." />;
+      case 'fin-accionistas': return <AccionistasView />;
       case 'fin-financiamiento-creditos': return <FinanzasPlaceholderView titulo="Financiamiento — Créditos" subtitulo="Gestión de líneas y créditos bancarios." />;
       case 'fin-financiamiento-factoring': return <FinanzasPlaceholderView titulo="Financiamiento — Factoring" subtitulo="Operaciones de factoring y cesiones de factura." />;
       case 'fin-financiamiento-deuda-privada': return <FinanzasPlaceholderView titulo="Financiamiento — Deuda Privada" subtitulo="Préstamos y deuda con privados." />;
