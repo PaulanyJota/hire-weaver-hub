@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { sucursalName } from '../lib/sucursales';
 import { formatRut } from '../lib/formatRut';
+import WorkerNameLink from '../components/WorkerNameLink';
 import { ArrowLeft, Users, CheckCircle2, Sunrise, Sunset } from 'lucide-react';
 
 interface Row {
@@ -122,9 +123,7 @@ export default function PortalSucursalDetalle() {
               return (
                 <tr key={r.worker_id}>
                   <td>
-                    <Link to={`/portal/trabajadores/${r.worker_id}`} className="font-semibold hover:underline" style={{ color: '#1B3A5C' }}>
-                      {r.nombre}
-                    </Link>
+                    <WorkerNameLink workerId={r.worker_id} name={r.nombre} sucursal={cc} />
                   </td>
                   <td className="font-mono tabular-nums text-xs">{formatRut(r.rut)}</td>
                   <td className="text-sm">{r.cargo}</td>

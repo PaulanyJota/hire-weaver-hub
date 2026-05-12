@@ -3,13 +3,14 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity } from 'lucide-react';
 import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
 import PortalDashboardExtras from '../components/PortalDashboardExtras';
+import WorkerNameLink from '../components/WorkerNameLink';
 
-interface Worker { id: string; first_name: string; last_name: string; photo_url: string | null; active: boolean }
+interface Worker { id: string; first_name: string; last_name: string; photo_url: string | null; active: boolean; cost_center: string | null }
 interface Att { worker_id: string; date: string; check_in: string | null; worked_hours: number | null; late_minutes: number | null }
 interface IncidentRow {
   id: string; date: string; incident_type: string; description: string | null; severity: number | null;
@@ -52,7 +53,7 @@ export default function PortalDashboard() {
         const since14Str = since14.toISOString().slice(0, 10);
 
         const [workersRes, todayRes, weekRes, last14Res, monthRes, incRes] = await Promise.all([
-          supabase.from('portal_workers').select('id, first_name, last_name, photo_url, active'),
+          supabase.from('portal_workers').select('id, first_name, last_name, photo_url, active, cost_center'),
           supabase.from('portal_attendance').select('worker_id, date, check_in, worked_hours, late_minutes').eq('date', today).not('check_in', 'is', null),
           supabase.from('portal_attendance').select('worker_id, date, check_in, worked_hours, late_minutes').gte('date', monday),
           supabase.from('portal_attendance').select('worker_id, date, check_in, worked_hours, late_minutes').gte('date', since14Str),
@@ -106,7 +107,12 @@ export default function PortalDashboard() {
     return Array.from(acc.entries())
       .map(([wid, horas]) => {
         const w = workersById[wid];
-        return { name: w ? `${w.first_name} ${w.last_name[0] ?? ''}.` : '—', horas: Number(horas.toFixed(1)) };
+        return {
+          id: wid,
+          name: w ? `${w.first_name} ${w.last_name}` : '—',
+          cost_center: w?.cost_center ?? null,
+          horas: Number(horas.toFixed(1)),
+        };
       })
       .sort((a, b) => b.horas - a.horas).slice(0, 10);
   }, [monthAtt, workersById]);
@@ -204,25 +210,31 @@ export default function PortalDashboard() {
           <h2 className="text-sm font-bold tracking-tight mb-4">Top horas · este mes</h2>
           {loading ? <Skeleton className="h-64 w-full" /> : top10.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-12">Sin datos este mes.</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={Math.max(260, top10.length * 28)}>
-              <BarChart data={top10} layout="vertical" margin={{ left: 8 }}>
-                <defs>
-                  <linearGradient id="gtop" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="hsl(152 60% 45%)" />
-                    <stop offset="100%" stopColor="hsl(152 70% 35%)" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" width={110} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12, boxShadow: '0 8px 24px -8px rgba(0,0,0,0.15)' }} />
-                <Bar dataKey="horas" fill="url(#gtop)" radius={[0, 6, 6, 0]}>
-                  {top10.map((_, i) => <Cell key={i} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
+          ) : (() => {
+            const max = Math.max(...top10.map(t => t.horas), 1);
+            return (
+              <ul className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+                {top10.map((t, i) => (
+                  <li key={t.id} className="flex items-center gap-3">
+                    <span className="text-[11px] font-bold tabular-nums w-5 text-slate-400 shrink-0">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <WorkerNameLink workerId={t.id} name={t.name} sucursal={t.cost_center} />
+                      <div className="mt-1.5 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${(t.horas / max) * 100}%`,
+                            background: 'linear-gradient(90deg, hsl(152 60% 45%), hsl(152 70% 35%))',
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <span className="text-xs font-mono tabular-nums shrink-0 text-slate-700">{t.horas}h</span>
+                  </li>
+                ))}
+              </ul>
+            );
+          })()}
         </div>
       </section>
 
@@ -245,8 +257,14 @@ export default function PortalDashboard() {
                 return (
                   <li key={r.worker_id} className="px-2 py-2.5 flex items-center gap-3 hover:bg-muted/40 rounded-lg transition-colors">
                     <PortalAvatar name={w ? `${w.first_name} ${w.last_name}` : '?'} photoUrl={w?.photo_url} size={34} />
-                    <span className="flex-1 text-sm font-medium truncate">{w ? `${w.first_name} ${w.last_name}` : '—'}</span>
-                    <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-[hsl(152_60%_38%/0.10)] text-[hsl(152_60%_28%)]">{time}</span>
+                    <div className="flex-1 min-w-0">
+                      <WorkerNameLink
+                        workerId={r.worker_id}
+                        name={w ? `${w.first_name} ${w.last_name}` : '—'}
+                        sucursal={w?.cost_center}
+                      />
+                    </div>
+                    <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-[hsl(152_60%_38%/0.10)] text-[hsl(152_60%_28%)] shrink-0">{time}</span>
                   </li>
                 );
               })}
