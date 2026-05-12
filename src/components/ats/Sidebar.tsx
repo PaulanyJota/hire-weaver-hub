@@ -60,6 +60,7 @@ const GROUPS: NavGroup[] = [
         })),
       },
       { id: 'fin-flujo-caja', label: 'Flujo de caja', icon: Icons.trending },
+      { id: 'fin-accionistas', label: 'Préstamos de accionistas', icon: Icons.dollar },
       {
         id: 'fin-financiamiento',
         label: 'Financiamiento',
