@@ -91,8 +91,10 @@ export const AccionistasView: React.FC = () => {
 
   const totales = useMemo(() => {
     const cap = rows.reduce((s, r) => s + Number(r.monto_capital || 0), 0);
+    const pendiente = rows.reduce((s, r) => s + Number(r.capital_pendiente || 0), 0);
+    const interes = rows.reduce((s, r) => s + Number(r.interes_acumulado || 0), 0);
     const debe = rows.reduce((s, r) => s + Number(r.saldo_total_debe || 0), 0);
-    return { cap, debe };
+    return { cap, pendiente, interes, debe };
   }, [rows]);
 
   const updateField = async (prestamo_id: string, field: 'fecha_prestamo' | 'monto_capital' | 'tasa_mensual', value: any) => {
