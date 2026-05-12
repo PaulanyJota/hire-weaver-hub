@@ -308,12 +308,14 @@ const RegistrarPagoModal: React.FC<{
   const save = async () => {
     if (!target) return;
     setSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from('pagos_accionistas').insert({
       prestamo_id: target.prestamo_id,
       fecha_pago: fecha,
       monto_intereses: intereses,
       monto_capital: capital,
       glosa: glosa || null,
+      registrado_por: user?.id ?? null,
     });
     setSaving(false);
     if (error) { toast.error('Error: ' + error.message); return; }
