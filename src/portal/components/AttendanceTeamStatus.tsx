@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertTriangle, CheckCircle2, Bell, Send, X } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import WorkerNameLink from './WorkerNameLink';
 
 type StatusRow = {
   worker_id: string;
