@@ -117,11 +117,12 @@ export const AccionistasView: React.FC = () => {
       >
         <div className="relative flex items-start justify-between flex-wrap gap-4">
           <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-widest text-white/65 font-semibold">Finanzas</p>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-1">Préstamos de accionistas</h1>
+            <p className="text-[11px] uppercase tracking-widest text-white/65 font-semibold">Finanzas · Financiamiento · Deuda Privada</p>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-1">Préstamos de Accionistas</h1>
             <p className="text-sm text-white/80 mt-1.5">
-              Capital total prestado: <span className="font-semibold">{fmtCLP(totales.cap)}</span>
-              {' · '}Saldo total adeudado: <span className="font-semibold">{fmtCLP(totales.debe)}</span>
+              Total prestado: <span className="font-semibold">{fmtCLP(totales.cap)}</span>
+              {' · '}Saldo pendiente: <span className="font-semibold">{fmtCLP(totales.debe)}</span>
+              {' · '}Interés acumulado: <span className="font-semibold">{fmtCLP(totales.interes)}</span>
             </p>
           </div>
           <Button
