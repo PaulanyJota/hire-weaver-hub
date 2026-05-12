@@ -257,8 +257,14 @@ export default function PortalDashboard() {
                 return (
                   <li key={r.worker_id} className="px-2 py-2.5 flex items-center gap-3 hover:bg-muted/40 rounded-lg transition-colors">
                     <PortalAvatar name={w ? `${w.first_name} ${w.last_name}` : '?'} photoUrl={w?.photo_url} size={34} />
-                    <span className="flex-1 text-sm font-medium truncate">{w ? `${w.first_name} ${w.last_name}` : '—'}</span>
-                    <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-[hsl(152_60%_38%/0.10)] text-[hsl(152_60%_28%)]">{time}</span>
+                    <div className="flex-1 min-w-0">
+                      <WorkerNameLink
+                        workerId={r.worker_id}
+                        name={w ? `${w.first_name} ${w.last_name}` : '—'}
+                        sucursal={w?.cost_center}
+                      />
+                    </div>
+                    <span className="text-xs font-mono px-2 py-0.5 rounded-md bg-[hsl(152_60%_38%/0.10)] text-[hsl(152_60%_28%)] shrink-0">{time}</span>
                   </li>
                 );
               })}
