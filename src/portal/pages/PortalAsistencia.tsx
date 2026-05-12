@@ -304,10 +304,7 @@ export default function PortalAsistencia() {
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <PortalAvatar name={r.nombre} photoUrl={r.photo_url} size={32} />
-                        <div className="min-w-0">
-                          <p className="font-semibold truncate" style={{ color: 'hsl(var(--p-text))' }}>{r.nombre}</p>
-                          <p className="text-[11px] truncate md:hidden" style={{ color: 'hsl(var(--p-muted))' }}>{r.sucursal ?? '—'}</p>
-                        </div>
+                        <WorkerNameLink workerId={r.worker_id} name={r.nombre} sucursal={r.sucursal ?? r.cost_center} className="text-sm md:[&>p:last-child]:hidden" />
                       </div>
                     </td>
                     <td className="px-5 py-3 hidden md:table-cell" style={{ color: 'hsl(var(--p-muted))' }}>{r.sucursal ?? '—'}</td>
