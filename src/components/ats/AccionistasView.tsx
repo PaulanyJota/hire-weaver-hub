@@ -218,43 +218,11 @@ export const AccionistasView: React.FC = () => {
         </div>
       </div>
 
-      {/* HISTORIAL */}
-      <Tabs defaultValue="historial">
-        <TabsList>
-          <TabsTrigger value="historial">Historial de pagos</TabsTrigger>
-        </TabsList>
-        <TabsContent value="historial">
-          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Accionista</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead className="text-right">Intereses</TableHead>
-                    <TableHead className="text-right">Capital</TableHead>
-                    <TableHead>Glosa</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pagos.length === 0 && (
-                    <TableRow><TableCell colSpan={5} className="text-center text-slate-500 py-8">Sin pagos registrados</TableCell></TableRow>
-                  )}
-                  {pagos.map(p => (
-                    <TableRow key={p.id}>
-                      <TableCell className="font-medium" style={{ color: NAVY }}>{p.accionista_nombre}</TableCell>
-                      <TableCell className="text-xs">{fmtFecha(p.fecha_pago)}</TableCell>
-                      <TableCell className="text-right tabular-nums" style={{ color: TEAL }}>{fmtCLP(p.monto_intereses)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{fmtCLP(p.monto_capital)}</TableCell>
-                      <TableCell className="text-xs text-slate-600">{p.glosa ?? '—'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+      {/* HISTORIAL collapsible por accionista */}
+      <div>
+        <h2 className="text-sm font-bold mb-3" style={{ color: NAVY }}>Historial de pagos</h2>
+        <HistorialPorAccionista pagos={pagos} />
+      </div>
 
       <RegistrarPagoModal
         open={pagoOpen}
