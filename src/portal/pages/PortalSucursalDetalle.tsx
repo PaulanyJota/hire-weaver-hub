@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { sucursalName } from '../lib/sucursales';
 import { formatRut } from '../lib/formatRut';
+import WorkerNameLink from '../components/WorkerNameLink';
 import { ArrowLeft, Users, CheckCircle2, Sunrise, Sunset } from 'lucide-react';
 
 interface Row {
