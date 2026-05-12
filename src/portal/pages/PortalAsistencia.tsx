@@ -243,9 +243,9 @@ export default function PortalAsistencia() {
                   >
                     <PortalAvatar name={r.nombre} photoUrl={r.photo_url} size={32} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold truncate" style={{ color: 'hsl(var(--p-text))' }}>{r.nombre}</p>
-                      <p className="text-[11px] truncate" style={{ color: 'hsl(var(--p-muted))' }}>
-                        {(r.sucursal ?? '—')} · {desc}
+                      <WorkerNameLink workerId={r.worker_id} name={r.nombre} sucursal={r.sucursal ?? r.cost_center} className="text-sm" />
+                      <p className="text-[11px] truncate mt-0.5" style={{ color: 'hsl(var(--p-muted))' }}>
+                        {desc}
                       </p>
                     </div>
                     {!sinMarca && r.pct_puntualidad != null && (
