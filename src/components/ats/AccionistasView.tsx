@@ -205,7 +205,7 @@ export const AccionistasView: React.FC = () => {
                     <Button
                       size="sm"
                       className="text-white text-xs h-8 hover:opacity-90"
-                      style={{ background: ORANGE }}
+                      style={{ background: TEAL }}
                       onClick={() => { setPagoTarget(r); setPagoOpen(true); }}
                     >
                       Registrar pago
