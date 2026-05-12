@@ -210,25 +210,31 @@ export default function PortalDashboard() {
           <h2 className="text-sm font-bold tracking-tight mb-4">Top horas · este mes</h2>
           {loading ? <Skeleton className="h-64 w-full" /> : top10.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-12">Sin datos este mes.</p>
-          ) : (
-            <ResponsiveContainer width="100%" height={Math.max(260, top10.length * 28)}>
-              <BarChart data={top10} layout="vertical" margin={{ left: 8 }}>
-                <defs>
-                  <linearGradient id="gtop" x1="0" y1="0" x2="1" y2="0">
-                    <stop offset="0%" stopColor="hsl(152 60% 45%)" />
-                    <stop offset="100%" stopColor="hsl(152 70% 35%)" />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
-                <XAxis type="number" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" axisLine={false} tickLine={false} />
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 11 }} stroke="hsl(var(--muted-foreground))" width={110} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12, boxShadow: '0 8px 24px -8px rgba(0,0,0,0.15)' }} />
-                <Bar dataKey="horas" fill="url(#gtop)" radius={[0, 6, 6, 0]}>
-                  {top10.map((_, i) => <Cell key={i} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          )}
+          ) : (() => {
+            const max = Math.max(...top10.map(t => t.horas), 1);
+            return (
+              <ul className="space-y-2.5 max-h-80 overflow-y-auto pr-1">
+                {top10.map((t, i) => (
+                  <li key={t.id} className="flex items-center gap-3">
+                    <span className="text-[11px] font-bold tabular-nums w-5 text-slate-400 shrink-0">{i + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <WorkerNameLink workerId={t.id} name={t.name} sucursal={t.cost_center} />
+                      <div className="mt-1.5 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                        <div
+                          className="h-full rounded-full"
+                          style={{
+                            width: `${(t.horas / max) * 100}%`,
+                            background: 'linear-gradient(90deg, hsl(152 60% 45%), hsl(152 70% 35%))',
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <span className="text-xs font-mono tabular-nums shrink-0 text-slate-700">{t.horas}h</span>
+                  </li>
+                ))}
+              </ul>
+            );
+          })()}
         </div>
       </section>
 
