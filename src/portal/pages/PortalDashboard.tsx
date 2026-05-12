@@ -53,7 +53,7 @@ export default function PortalDashboard() {
         const since14Str = since14.toISOString().slice(0, 10);
 
         const [workersRes, todayRes, weekRes, last14Res, monthRes, incRes] = await Promise.all([
-          supabase.from('portal_workers').select('id, first_name, last_name, photo_url, active'),
+          supabase.from('portal_workers').select('id, first_name, last_name, photo_url, active, cost_center'),
           supabase.from('portal_attendance').select('worker_id, date, check_in, worked_hours, late_minutes').eq('date', today).not('check_in', 'is', null),
           supabase.from('portal_attendance').select('worker_id, date, check_in, worked_hours, late_minutes').gte('date', monday),
           supabase.from('portal_attendance').select('worker_id, date, check_in, worked_hours, late_minutes').gte('date', since14Str),
