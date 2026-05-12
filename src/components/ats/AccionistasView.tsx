@@ -9,7 +9,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
@@ -91,8 +91,10 @@ export const AccionistasView: React.FC = () => {
 
   const totales = useMemo(() => {
     const cap = rows.reduce((s, r) => s + Number(r.monto_capital || 0), 0);
+    const pendiente = rows.reduce((s, r) => s + Number(r.capital_pendiente || 0), 0);
+    const interes = rows.reduce((s, r) => s + Number(r.interes_acumulado || 0), 0);
     const debe = rows.reduce((s, r) => s + Number(r.saldo_total_debe || 0), 0);
-    return { cap, debe };
+    return { cap, pendiente, interes, debe };
   }, [rows]);
 
   const updateField = async (prestamo_id: string, field: 'fecha_prestamo' | 'monto_capital' | 'tasa_mensual', value: any) => {
@@ -115,11 +117,12 @@ export const AccionistasView: React.FC = () => {
       >
         <div className="relative flex items-start justify-between flex-wrap gap-4">
           <div className="min-w-0">
-            <p className="text-[11px] uppercase tracking-widest text-white/65 font-semibold">Finanzas</p>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-1">Préstamos de accionistas</h1>
+            <p className="text-[11px] uppercase tracking-widest text-white/65 font-semibold">Finanzas · Financiamiento · Deuda Privada</p>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-1">Préstamos de Accionistas</h1>
             <p className="text-sm text-white/80 mt-1.5">
-              Capital total prestado: <span className="font-semibold">{fmtCLP(totales.cap)}</span>
-              {' · '}Saldo total adeudado: <span className="font-semibold">{fmtCLP(totales.debe)}</span>
+              Total prestado: <span className="font-semibold">{fmtCLP(totales.cap)}</span>
+              {' · '}Saldo pendiente: <span className="font-semibold">{fmtCLP(totales.debe)}</span>
+              {' · '}Interés acumulado: <span className="font-semibold">{fmtCLP(totales.interes)}</span>
             </p>
           </div>
           <Button
@@ -202,7 +205,7 @@ export const AccionistasView: React.FC = () => {
                     <Button
                       size="sm"
                       className="text-white text-xs h-8 hover:opacity-90"
-                      style={{ background: ORANGE }}
+                      style={{ background: TEAL }}
                       onClick={() => { setPagoTarget(r); setPagoOpen(true); }}
                     >
                       Registrar pago
@@ -215,43 +218,11 @@ export const AccionistasView: React.FC = () => {
         </div>
       </div>
 
-      {/* HISTORIAL */}
-      <Tabs defaultValue="historial">
-        <TabsList>
-          <TabsTrigger value="historial">Historial de pagos</TabsTrigger>
-        </TabsList>
-        <TabsContent value="historial">
-          <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Accionista</TableHead>
-                    <TableHead>Fecha</TableHead>
-                    <TableHead className="text-right">Intereses</TableHead>
-                    <TableHead className="text-right">Capital</TableHead>
-                    <TableHead>Glosa</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {pagos.length === 0 && (
-                    <TableRow><TableCell colSpan={5} className="text-center text-slate-500 py-8">Sin pagos registrados</TableCell></TableRow>
-                  )}
-                  {pagos.map(p => (
-                    <TableRow key={p.id}>
-                      <TableCell className="font-medium" style={{ color: NAVY }}>{p.accionista_nombre}</TableCell>
-                      <TableCell className="text-xs">{fmtFecha(p.fecha_pago)}</TableCell>
-                      <TableCell className="text-right tabular-nums" style={{ color: TEAL }}>{fmtCLP(p.monto_intereses)}</TableCell>
-                      <TableCell className="text-right tabular-nums">{fmtCLP(p.monto_capital)}</TableCell>
-                      <TableCell className="text-xs text-slate-600">{p.glosa ?? '—'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+      {/* HISTORIAL collapsible por accionista */}
+      <div>
+        <h2 className="text-sm font-bold mb-3" style={{ color: NAVY }}>Historial de pagos</h2>
+        <HistorialPorAccionista pagos={pagos} />
+      </div>
 
       <RegistrarPagoModal
         open={pagoOpen}
@@ -305,12 +276,14 @@ const RegistrarPagoModal: React.FC<{
   const save = async () => {
     if (!target) return;
     setSaving(true);
+    const { data: { user } } = await supabase.auth.getUser();
     const { error } = await supabase.from('pagos_accionistas').insert({
       prestamo_id: target.prestamo_id,
       fecha_pago: fecha,
       monto_intereses: intereses,
       monto_capital: capital,
       glosa: glosa || null,
+      registrado_por: user?.id ?? null,
     });
     setSaving(false);
     if (error) { toast.error('Error: ' + error.message); return; }
@@ -447,6 +420,80 @@ const NuevoPrestamoModal: React.FC<{
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+};
+
+// ----- Historial colapsable por accionista
+const HistorialPorAccionista: React.FC<{ pagos: PagoRow[] }> = ({ pagos }) => {
+  const [open, setOpen] = useState<Record<string, boolean>>({});
+  const grupos = useMemo(() => {
+    const map = new Map<string, PagoRow[]>();
+    for (const p of pagos) {
+      const k = p.accionista_nombre ?? '—';
+      if (!map.has(k)) map.set(k, []);
+      map.get(k)!.push(p);
+    }
+    return Array.from(map.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [pagos]);
+
+  if (pagos.length === 0) {
+    return (
+      <div className="rounded-xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+        Sin pagos registrados aún
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      {grupos.map(([nombre, items]) => {
+        const totInt = items.reduce((s, p) => s + Number(p.monto_intereses || 0), 0);
+        const totCap = items.reduce((s, p) => s + Number(p.monto_capital || 0), 0);
+        const isOpen = open[nombre] ?? false;
+        return (
+          <Collapsible
+            key={nombre}
+            open={isOpen}
+            onOpenChange={(v) => setOpen(o => ({ ...o, [nombre]: v }))}
+            className="rounded-xl border border-slate-200 bg-white overflow-hidden"
+          >
+            <CollapsibleTrigger className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors">
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-slate-400">{isOpen ? '▾' : '▸'}</span>
+                <span className="font-semibold text-sm" style={{ color: NAVY }}>{nombre}</span>
+                <span className="text-xs text-slate-500">{items.length} pago{items.length !== 1 ? 's' : ''}</span>
+              </div>
+              <div className="flex gap-4 text-xs tabular-nums">
+                <span style={{ color: TEAL }}>Int. {fmtCLP(totInt)}</span>
+                <span className="text-slate-700">Cap. {fmtCLP(totCap)}</span>
+              </div>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Fecha</TableHead>
+                    <TableHead className="text-right">Intereses</TableHead>
+                    <TableHead className="text-right">Capital</TableHead>
+                    <TableHead>Glosa</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {items.map(p => (
+                    <TableRow key={p.id}>
+                      <TableCell className="text-xs">{fmtFecha(p.fecha_pago)}</TableCell>
+                      <TableCell className="text-right tabular-nums" style={{ color: TEAL }}>{fmtCLP(p.monto_intereses)}</TableCell>
+                      <TableCell className="text-right tabular-nums">{fmtCLP(p.monto_capital)}</TableCell>
+                      <TableCell className="text-xs text-slate-600">{p.glosa ?? '—'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CollapsibleContent>
+          </Collapsible>
+        );
+      })}
+    </div>
   );
 };
 

@@ -120,7 +120,8 @@ const Index = () => {
       case 'fin-accionistas': return <AccionistasView />;
       case 'fin-financiamiento-creditos': return <FinanzasPlaceholderView titulo="Financiamiento — Créditos" subtitulo="Gestión de líneas y créditos bancarios." />;
       case 'fin-financiamiento-factoring': return <FinanzasPlaceholderView titulo="Financiamiento — Factoring" subtitulo="Operaciones de factoring y cesiones de factura." />;
-      case 'fin-financiamiento-deuda-privada': return <FinanzasPlaceholderView titulo="Financiamiento — Deuda Privada" subtitulo="Préstamos y deuda con privados." />;
+      case 'fin-financiamiento-deuda-privada': return <AccionistasView />;
+      case 'fin-accionistas': return <AccionistasView />;
       case 'settings': return (
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
