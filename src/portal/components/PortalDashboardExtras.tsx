@@ -249,6 +249,9 @@ export default function PortalDashboardExtras() {
         )}
       </section>
 
+      {/* Resumen Control de marcaje */}
+      <ControlMarcajeSummary />
+
       {/* Charts grid */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Tendencia asistencia */}
