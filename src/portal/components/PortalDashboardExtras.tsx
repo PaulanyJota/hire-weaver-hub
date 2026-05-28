@@ -8,6 +8,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Cake, FileWarning, AlertTriangle, ArrowRight } from 'lucide-react';
 import { sucursalName } from '../lib/sucursales';
+import ControlMarcajeSummary from './ControlMarcajeSummary';
 
 interface BranchSummary {
   cost_center: string;
