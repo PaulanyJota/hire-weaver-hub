@@ -125,6 +125,7 @@ export default function AttendanceTeamStatus() {
           icon={<Bell className="w-3.5 h-3.5" />}
           loading={loading}
           empty="Nadie pendiente de recordatorio."
+          emptyVariant="success"
         >
           {recordar.map(w => (
             <li key={w.worker_id} className="px-3 py-2.5 rounded-lg border border-slate-200 bg-white flex items-center gap-2">
