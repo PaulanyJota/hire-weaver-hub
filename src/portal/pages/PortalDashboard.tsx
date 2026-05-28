@@ -128,7 +128,7 @@ export default function PortalDashboard() {
   ];
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-7">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-7">
       {/* Hero */}
       <header className="p-fade-up relative overflow-hidden rounded-2xl p-8 text-white"
         style={{ background: 'linear-gradient(135deg, hsl(215 32% 14%) 0%, hsl(213 78% 28%) 55%, hsl(199 89% 42%) 100%)' }}>

@@ -70,7 +70,7 @@ export default function PortalSucursalDetalle() {
   ];
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       <Link to="/portal" className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground">
         <ArrowLeft className="w-3.5 h-3.5" /> Volver al inicio
       </Link>
