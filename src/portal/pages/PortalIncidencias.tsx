@@ -103,29 +103,32 @@ export default function PortalIncidencias() {
         </div>
       ) : (
         <div className="p-card overflow-hidden">
-          <table className="p-table">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Trabajador</th>
-                <th>Tipo</th>
-                <th>Severidad</th>
-                <th>Descripción</th>
-              </tr>
-            </thead>
-            <tbody>
-              {items.map(i => (
-                <tr key={i.id}>
-                  <td className="text-xs text-muted-foreground">{new Date(i.date).toLocaleDateString('es-CL')}</td>
-                  <td className="font-semibold">{i.worker?.first_name} {i.worker?.last_name}</td>
-                  <td className="capitalize text-sm">{i.incident_type.replace('_', ' ')}</td>
-                  <td><span className={`p-pill ${sevPill(i.severity)}`}>{i.severity ?? '-'}/5</span></td>
-                  <td className="text-muted-foreground max-w-md truncate">{i.description ?? '—'}</td>
+          <div className="overflow-x-auto">
+            <table className="p-table">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Trabajador</th>
+                  <th>Tipo</th>
+                  <th>Severidad</th>
+                  <th>Descripción</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {items.map(i => (
+                  <tr key={i.id}>
+                    <td className="text-xs text-muted-foreground">{new Date(i.date).toLocaleDateString('es-CL')}</td>
+                    <td className="font-semibold">{i.worker?.first_name} {i.worker?.last_name}</td>
+                    <td className="capitalize text-sm">{i.incident_type.replace('_', ' ')}</td>
+                    <td><span className={`p-pill ${sevPill(i.severity)}`}>{i.severity ?? '-'}/5</span></td>
+                    <td className="text-muted-foreground max-w-md truncate">{i.description ?? '—'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
+
       )}
 
       {open && (
