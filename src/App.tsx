@@ -21,6 +21,7 @@ import PortalAprobaciones from "@/portal/pages/PortalAprobaciones";
 import PortalIncidencias from "@/portal/pages/PortalIncidencias";
 import PortalConfiguracion from "@/portal/pages/PortalConfiguracion";
 import PortalSucursalDetalle from "@/portal/pages/PortalSucursalDetalle";
+import PortalControlMarcaje from "@/portal/pages/PortalControlMarcaje";
 
 const queryClient = new QueryClient();
 
