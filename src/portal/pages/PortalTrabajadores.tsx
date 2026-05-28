@@ -30,6 +30,7 @@ export default function PortalTrabajadores() {
   const [search, setSearch] = useState('');
   const [estadoFilter, setEstadoFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const sucursalesCount = useSucursalesCount();
 
   useEffect(() => {
     let cancelled = false;
