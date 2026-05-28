@@ -80,7 +80,7 @@ export default function PortalTrabajadores() {
   const sucursalesDisplay = sucursalesCount ?? new Set(workers.map(w => w.cost_center).filter(Boolean)).size;
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       <PortalPageHeader
         eyebrow="Equipo"
         title="Trabajadores"
@@ -139,8 +139,9 @@ export default function PortalTrabajadores() {
                 </button>
 
                 {!isCollapsed && (
-                  <div className="border-t border-slate-200">
+                  <div className="border-t border-slate-200 overflow-x-auto">
                     <table className="p-table">
+
                       <thead>
                         <tr>
                           <th>Trabajador</th>

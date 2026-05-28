@@ -38,7 +38,7 @@ export default function PortalConfiguracion() {
   }, [company]);
 
   return (
-    <div className="p-8 max-w-5xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-5xl mx-auto space-y-6">
       <PortalPageHeader
         eyebrow="Ajustes"
         title="Configuración"
@@ -84,31 +84,34 @@ export default function PortalConfiguracion() {
       {tab === 'usuarios' && (
         <div className="p-card overflow-hidden">
           {loading ? <div className="p-4"><Skeleton className="h-32 w-full" /></div> : (
-            <table className="p-table">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>Rol</th>
-                  <th>Estado</th>
-                  <th>Último acceso</th>
-                </tr>
-              </thead>
-              <tbody>
-                {users.map(u => (
-                  <tr key={u.id}>
-                    <td className="font-semibold">{u.full_name}</td>
-                    <td className="capitalize text-sm">{u.role.replace('_', ' ')}</td>
-                    <td>
-                      <span className={`p-pill ${u.active ? 'p-pill-success' : 'p-pill-muted'}`}>
-                        {u.active ? 'Activo' : 'Inactivo'}
-                      </span>
-                    </td>
-                    <td className="text-xs text-muted-foreground">{u.last_login_at ? new Date(u.last_login_at).toLocaleString('es-CL') : 'Nunca'}</td>
+            <div className="overflow-x-auto">
+              <table className="p-table">
+                <thead>
+                  <tr>
+                    <th>Nombre</th>
+                    <th>Rol</th>
+                    <th>Estado</th>
+                    <th>Último acceso</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {users.map(u => (
+                    <tr key={u.id}>
+                      <td className="font-semibold">{u.full_name}</td>
+                      <td className="capitalize text-sm">{u.role.replace('_', ' ')}</td>
+                      <td>
+                        <span className={`p-pill ${u.active ? 'p-pill-success' : 'p-pill-muted'}`}>
+                          {u.active ? 'Activo' : 'Inactivo'}
+                        </span>
+                      </td>
+                      <td className="text-xs text-muted-foreground">{u.last_login_at ? new Date(u.last_login_at).toLocaleString('es-CL') : 'Nunca'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
+
         </div>
       )}
     </div>

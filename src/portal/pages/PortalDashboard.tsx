@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
-import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity } from 'lucide-react';
+import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity, Menu } from 'lucide-react';
+import { usePortalSidebar } from '../hooks/usePortalSidebar';
+
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
@@ -128,27 +130,31 @@ export default function PortalDashboard() {
   ];
 
   return (
-    <div className="p-8 max-w-7xl mx-auto space-y-7">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-7">
       {/* Hero */}
-      <header className="p-fade-up relative overflow-hidden rounded-2xl p-8 text-white"
+      <header className="p-fade-up relative overflow-hidden rounded-2xl p-4 sm:p-6 lg:p-8 text-white"
         style={{ background: 'linear-gradient(135deg, hsl(215 32% 14%) 0%, hsl(213 78% 28%) 55%, hsl(199 89% 42%) 100%)' }}>
         <div className="absolute -top-20 -right-10 w-72 h-72 rounded-full opacity-30 blur-3xl"
           style={{ background: 'radial-gradient(closest-side, hsl(199 89% 60%), transparent)' }} />
-        <div className="relative flex items-start justify-between flex-wrap gap-4">
-          <div>
-            <p className="text-xs uppercase tracking-widest text-white/65 font-semibold">Panel general</p>
-            <h1 className="text-3xl font-bold tracking-tight mt-1">Hola, {firstName} 👋</h1>
-            <p className="text-sm text-white/75 capitalize mt-1.5">
-              {today}{isNodoAdmin && ' · Vista global Nodo'}{company && !isNodoAdmin && ` · ${company.name}`}
-            </p>
+        <div className="relative flex items-start justify-between flex-wrap gap-3">
+          <div className="flex items-start gap-3 min-w-0 flex-1">
+            <HamburgerBtn />
+            <div className="min-w-0">
+              <p className="text-[10px] sm:text-xs uppercase tracking-widest text-white/65 font-semibold">Panel general</p>
+              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight mt-1 break-words">Hola, {firstName} 👋</h1>
+              <p className="text-xs sm:text-sm text-white/75 capitalize mt-1.5">
+                {today}{isNodoAdmin && ' · Vista global Nodo'}{company && !isNodoAdmin && ` · ${company.name}`}
+              </p>
+            </div>
           </div>
-          <div className="flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 backdrop-blur border border-white/15">
+          <div className="hidden sm:flex items-center gap-2 px-3 py-2 rounded-xl bg-white/10 backdrop-blur border border-white/15">
             <Activity className="w-4 h-4" />
             <span className="text-xs font-medium">Datos en vivo</span>
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           </div>
         </div>
       </header>
+
 
       {/* KPIs */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-stagger">
@@ -307,3 +313,18 @@ export default function PortalDashboard() {
     </div>
   );
 }
+
+function HamburgerBtn() {
+  const { toggle } = usePortalSidebar();
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label="Abrir menú"
+      className="lg:hidden shrink-0 mt-0.5 w-10 h-10 rounded-xl bg-white/10 backdrop-blur border border-white/15 flex items-center justify-center hover:bg-white/15 transition-colors"
+    >
+      <Menu className="w-5 h-5" />
+    </button>
+  );
+}
+
