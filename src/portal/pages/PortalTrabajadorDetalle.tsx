@@ -229,7 +229,9 @@ export default function PortalTrabajadorDetalle() {
         </div>
 
         <div className="rounded-xl overflow-hidden border border-border">
+          <div className="overflow-x-auto">
           <table className="p-table">
+
             <thead>
               <tr>
                 <th>Fecha</th>
