@@ -313,3 +313,18 @@ export default function PortalDashboard() {
     </div>
   );
 }
+
+function HamburgerBtn() {
+  const { toggle } = usePortalSidebar();
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      aria-label="Abrir menú"
+      className="lg:hidden shrink-0 mt-0.5 w-10 h-10 rounded-xl bg-white/10 backdrop-blur border border-white/15 flex items-center justify-center hover:bg-white/15 transition-colors"
+    >
+      <Menu className="w-5 h-5" />
+    </button>
+  );
+}
+
