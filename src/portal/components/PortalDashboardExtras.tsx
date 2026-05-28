@@ -53,23 +53,27 @@ export default function PortalDashboardExtras() {
   const [workers, setWorkers] = useState<WorkerRow[]>([]);
   const [contracts, setContracts] = useState<ContractRow[]>([]);
 
+  const [trend, setTrend] = useState<TrendRow[]>([]);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
       try {
         const since = last7Days()[0];
-        const [bRes, wRes, aRes, cRes] = await Promise.all([
+        const [bRes, wRes, aRes, cRes, tRes] = await Promise.all([
           supabase.rpc('get_branches_summary'),
           supabase.from('portal_workers').select('id, first_name, last_name, cost_center, hire_date, active'),
           supabase.from('portal_attendance').select('worker_id, date, worked_hours').gte('date', since),
           supabase.from('portal_contracts').select('worker_id, end_date, is_current').eq('is_current', true),
+          supabase.rpc('get_attendance_trend', { p_days: 7 }),
         ]);
         if (cancelled) return;
         setBranches((bRes.data ?? []) as BranchSummary[]);
         setWorkers((wRes.data ?? []) as WorkerRow[]);
         setWeekAtt((aRes.data ?? []) as AttRow[]);
         setContracts((cRes.data ?? []) as ContractRow[]);
+        setTrend((tRes.data ?? []) as TrendRow[]);
       } catch (err) {
         console.error('[dashboard-extras]', err);
       } finally {
