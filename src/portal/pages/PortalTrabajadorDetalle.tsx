@@ -118,7 +118,7 @@ export default function PortalTrabajadorDetalle() {
 
   if (loading) {
     return (
-      <div className="p-8 max-w-6xl mx-auto space-y-4">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-4">
         <Skeleton className="h-8 w-40" />
         <Skeleton className="h-32 w-full" />
         <Skeleton className="h-64 w-full" />
@@ -128,7 +128,7 @@ export default function PortalTrabajadorDetalle() {
 
   if (!worker) {
     return (
-      <div className="p-8 max-w-6xl mx-auto">
+      <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto">
         <Link to="/portal/trabajadores" className="inline-flex items-center gap-2 text-sm text-[hsl(213_78%_29%)] hover:underline">
           <ArrowLeft className="w-4 h-4" /> Volver
         </Link>
@@ -140,7 +140,7 @@ export default function PortalTrabajadorDetalle() {
   const fullName = `${worker.first_name} ${worker.last_name}`;
 
   return (
-    <div className="p-8 max-w-6xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 lg:p-8 max-w-6xl mx-auto space-y-6">
       <Link to="/portal/trabajadores" className="inline-flex items-center gap-1.5 text-sm font-medium text-[hsl(213_78%_29%)] hover:gap-2 transition-all">
         <ArrowLeft className="w-4 h-4" /> Volver a trabajadores
       </Link>
