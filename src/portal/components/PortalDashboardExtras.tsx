@@ -22,6 +22,14 @@ interface BranchSummary {
   ultima_marca: string | null;
 }
 
+interface TrendRow {
+  dia: string;
+  dia_label: string;
+  marcaron: number;
+  activos: number;
+  pct: number;
+}
+
 interface AttRow { worker_id: string; date: string; worked_hours: number | null }
 interface WorkerRow { id: string; first_name: string; last_name: string; cost_center: string | null; hire_date: string | null; active: boolean }
 interface ContractRow { worker_id: string; end_date: string | null; is_current: boolean }
