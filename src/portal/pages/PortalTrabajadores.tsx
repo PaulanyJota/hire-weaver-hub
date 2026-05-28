@@ -7,6 +7,7 @@ import PortalPageHeader from '../components/PortalPageHeader';
 import { formatRut } from '../lib/formatRut';
 import { sucursalName } from '../lib/sucursales';
 import WorkerNameLink from '../components/WorkerNameLink';
+import { useSucursalesCount } from '../hooks/useSucursalesCount';
 import { Search, ArrowRight, ChevronDown, MapPin } from 'lucide-react';
 
 interface Worker {
