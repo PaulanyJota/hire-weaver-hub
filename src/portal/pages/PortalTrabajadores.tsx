@@ -77,15 +77,16 @@ export default function PortalTrabajadores() {
   }, [filtered]);
 
   const activeCount = workers.filter(w => w.active).length;
-  const sucursalesCount = new Set(workers.map(w => w.cost_center).filter(Boolean)).size;
+  const sucursalesDisplay = sucursalesCount ?? new Set(workers.map(w => w.cost_center).filter(Boolean)).size;
 
   return (
     <div className="p-8 max-w-7xl mx-auto space-y-6">
       <PortalPageHeader
         eyebrow="Equipo"
         title="Trabajadores"
-        subtitle={`${filtered.length} de ${workers.length} · ${activeCount} activos · ${sucursalesCount} sucursales`}
+        subtitle={`${filtered.length} de ${workers.length} · ${activeCount} activos · ${sucursalesDisplay} sucursales`}
       />
+
 
       <div className="p-card p-4 flex flex-wrap gap-3 items-center">
         <div className="relative flex-1 min-w-[260px]">
