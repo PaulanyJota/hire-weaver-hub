@@ -191,43 +191,57 @@ export default function PortalDashboardExtras() {
           <div className="p-card p-8 text-center text-sm text-muted-foreground">Sin sucursales registradas.</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {branches.map(b => (
-              <Link
-                key={b.cost_center}
-                to={`/portal/sucursal/${encodeURIComponent(b.cost_center)}`}
-                className="p-card p-card-hover p-5 group cursor-pointer"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background: '#1B3A5C15', color: '#1B3A5C' }}>
-                      <MapPin className="w-5 h-5" />
+            {branches.map(b => {
+              const sinMarcaje = b.pct_asistencia_hoy === 0 && b.turno_promedio_inicio === '—';
+              const pctColor =
+                b.pct_asistencia_hoy >= 80 ? '#1D9E75' :
+                b.pct_asistencia_hoy >= 50 ? '#F97316' : '#dc2626';
+              return (
+                <Link
+                  key={b.cost_center}
+                  to={`/portal/sucursal/${encodeURIComponent(b.cost_center)}`}
+                  className="p-card p-card-hover p-5 group cursor-pointer relative flex flex-col"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ background: '#1B3A5C15', color: '#1B3A5C' }}>
+                        <MapPin className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-[15px] truncate" style={{ color: '#1B3A5C' }}>{b.sucursal_nombre}</p>
+                        <p className="text-[11px] text-muted-foreground">{b.cost_center}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-[15px] truncate" style={{ color: '#1B3A5C' }}>{b.sucursal_nombre}</p>
-                      <p className="text-[11px] text-muted-foreground">{b.cost_center}</p>
+                  </div>
+                  <div className="mt-4 flex items-baseline gap-2">
+                    <span className="text-3xl font-bold tabular-nums" style={{ color: '#1B3A5C' }}>{b.workers_activos}</span>
+                    <span className="text-xs text-muted-foreground">activos</span>
+                  </div>
+                  <div className="mt-3 space-y-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Asistencia hoy</span>
+                      {sinMarcaje ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                          Sin marcaje configurado
+                        </span>
+                      ) : (
+                        <span className="font-semibold tabular-nums" style={{ color: pctColor }}>{b.pct_asistencia_hoy}%</span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Turno promedio</span>
+                      <span className="font-mono tabular-nums" style={{ color: '#1B3A5C' }}>
+                        {b.turno_promedio_inicio}–{b.turno_promedio_fin}
+                      </span>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-3xl font-bold tabular-nums" style={{ color: '#1B3A5C' }}>{b.workers_activos}</span>
-                  <span className="text-xs text-muted-foreground">activos</span>
-                </div>
-                <div className="mt-3 space-y-1 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Asistencia hoy</span>
-                    <span className="font-semibold tabular-nums" style={{ color: '#1D9E75' }}>{b.pct_asistencia_hoy}%</span>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-1 text-[11px] font-semibold" style={{ color: '#3DA5E0' }}>
+                    Ver detalle <ArrowRight className="w-3.5 h-3.5" />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Turno promedio</span>
-                    <span className="font-mono tabular-nums" style={{ color: '#1B3A5C' }}>
-                      {b.turno_promedio_inicio}–{b.turno_promedio_fin}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>
