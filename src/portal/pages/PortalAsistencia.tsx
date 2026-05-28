@@ -133,7 +133,7 @@ export default function PortalAsistencia() {
       <PortalPageHeader
         eyebrow="Control"
         title="Asistencia"
-        subtitle={`Últimos ${days} días · ${empresaLabel} · ${sucursales.length} ${sucursales.length === 1 ? 'sucursal' : 'sucursales'}`}
+        subtitle={`Últimos ${days} días · ${empresaLabel} · ${sucursalesCount ?? sucursales.length} ${(sucursalesCount ?? sucursales.length) === 1 ? 'sucursal' : 'sucursales'}`}
         right={
           <select
             className="px-3 py-2 rounded-xl bg-white/10 backdrop-blur border border-white/15 text-white text-xs font-medium focus:outline-none [&>option]:text-foreground"
