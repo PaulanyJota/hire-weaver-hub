@@ -139,8 +139,9 @@ export default function PortalTrabajadores() {
                 </button>
 
                 {!isCollapsed && (
-                  <div className="border-t border-slate-200">
+                  <div className="border-t border-slate-200 overflow-x-auto">
                     <table className="p-table">
+
                       <thead>
                         <tr>
                           <th>Trabajador</th>
