@@ -264,7 +264,9 @@ export default function PortalTrabajadorDetalle() {
               })}
             </tbody>
           </table>
+          </div>
         </div>
+
       </section>
     </div>
   );
