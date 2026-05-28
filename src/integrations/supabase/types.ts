@@ -1128,6 +1128,16 @@ export type Database = {
           ya_recordado_hoy: boolean
         }[]
       }
+      get_attendance_trend: {
+        Args: { p_days?: number }
+        Returns: {
+          activos: number
+          dia: string
+          dia_label: string
+          marcaron: number
+          pct: number
+        }[]
+      }
       get_branch_detail: {
         Args: { p_cost_center: string }
         Returns: {
