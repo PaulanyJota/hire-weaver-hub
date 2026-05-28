@@ -1171,6 +1171,24 @@ export type Database = {
           workers_marcaron_hoy: number
         }[]
       }
+      get_marcaje_control: {
+        Args: never
+        Returns: {
+          cargo: string
+          dias_desde_ingreso: number
+          dias_sin_marcar: number
+          estado: string
+          estado_label: string
+          filas_geovictoria: number
+          hire_date: string
+          nombre: string
+          rut: string
+          sucursal_codigo: string
+          sucursal_nombre: string
+          ultimo_checkin: string
+          worker_id: string
+        }[]
+      }
       get_prestamos_resumen: {
         Args: never
         Returns: {
