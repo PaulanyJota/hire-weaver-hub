@@ -8,6 +8,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Cake, FileWarning, AlertTriangle, ArrowRight } from 'lucide-react';
 import { sucursalName } from '../lib/sucursales';
+import ControlMarcajeSummary from './ControlMarcajeSummary';
 
 interface BranchSummary {
   cost_center: string;
@@ -247,6 +248,9 @@ export default function PortalDashboardExtras() {
           </div>
         )}
       </section>
+
+      {/* Resumen Control de marcaje */}
+      <ControlMarcajeSummary />
 
       {/* Charts grid */}
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
