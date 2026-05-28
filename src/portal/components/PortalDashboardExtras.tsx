@@ -85,19 +85,16 @@ export default function PortalDashboardExtras() {
 
   const activeWorkers = useMemo(() => workers.filter(w => w.active), [workers]);
 
-  // Tendencia última semana — % asistencia diaria
-  const trendData = useMemo(() => {
-    const days = last7Days();
-    const total = activeWorkers.length || 1;
-    return days.map(d => {
-      const present = new Set(weekAtt.filter(a => a.date === d).map(a => a.worker_id)).size;
-      const dt = new Date(d + 'T00:00:00');
-      return {
-        dia: dt.toLocaleDateString('es-CL', { weekday: 'short' }).replace('.', ''),
-        pct: Math.round((present / total) * 100),
-      };
-    });
-  }, [weekAtt, activeWorkers]);
+  // Tendencia última semana — % asistencia diaria desde RPC
+  const trendData = useMemo(
+    () => trend.map(t => ({
+      dia: t.dia_label,
+      pct: t.pct,
+      marcaron: t.marcaron,
+      activos: t.activos,
+    })),
+    [trend]
+  );
 
   // Donut por sucursal
   const donutData = useMemo(() => {
