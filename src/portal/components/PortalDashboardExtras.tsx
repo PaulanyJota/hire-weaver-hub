@@ -22,6 +22,14 @@ interface BranchSummary {
   ultima_marca: string | null;
 }
 
+interface TrendRow {
+  dia: string;
+  dia_label: string;
+  marcaron: number;
+  activos: number;
+  pct: number;
+}
+
 interface AttRow { worker_id: string; date: string; worked_hours: number | null }
 interface WorkerRow { id: string; first_name: string; last_name: string; cost_center: string | null; hire_date: string | null; active: boolean }
 interface ContractRow { worker_id: string; end_date: string | null; is_current: boolean }
@@ -45,23 +53,27 @@ export default function PortalDashboardExtras() {
   const [workers, setWorkers] = useState<WorkerRow[]>([]);
   const [contracts, setContracts] = useState<ContractRow[]>([]);
 
+  const [trend, setTrend] = useState<TrendRow[]>([]);
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setLoading(true);
       try {
         const since = last7Days()[0];
-        const [bRes, wRes, aRes, cRes] = await Promise.all([
+        const [bRes, wRes, aRes, cRes, tRes] = await Promise.all([
           supabase.rpc('get_branches_summary'),
           supabase.from('portal_workers').select('id, first_name, last_name, cost_center, hire_date, active'),
           supabase.from('portal_attendance').select('worker_id, date, worked_hours').gte('date', since),
           supabase.from('portal_contracts').select('worker_id, end_date, is_current').eq('is_current', true),
+          supabase.rpc('get_attendance_trend', { p_days: 7 }),
         ]);
         if (cancelled) return;
         setBranches((bRes.data ?? []) as BranchSummary[]);
         setWorkers((wRes.data ?? []) as WorkerRow[]);
         setWeekAtt((aRes.data ?? []) as AttRow[]);
         setContracts((cRes.data ?? []) as ContractRow[]);
+        setTrend((tRes.data ?? []) as TrendRow[]);
       } catch (err) {
         console.error('[dashboard-extras]', err);
       } finally {
@@ -73,19 +85,16 @@ export default function PortalDashboardExtras() {
 
   const activeWorkers = useMemo(() => workers.filter(w => w.active), [workers]);
 
-  // Tendencia última semana — % asistencia diaria
-  const trendData = useMemo(() => {
-    const days = last7Days();
-    const total = activeWorkers.length || 1;
-    return days.map(d => {
-      const present = new Set(weekAtt.filter(a => a.date === d).map(a => a.worker_id)).size;
-      const dt = new Date(d + 'T00:00:00');
-      return {
-        dia: dt.toLocaleDateString('es-CL', { weekday: 'short' }).replace('.', ''),
-        pct: Math.round((present / total) * 100),
-      };
-    });
-  }, [weekAtt, activeWorkers]);
+  // Tendencia última semana — % asistencia diaria desde RPC
+  const trendData = useMemo(
+    () => trend.map(t => ({
+      dia: t.dia_label,
+      pct: t.pct,
+      marcaron: t.marcaron,
+      activos: t.activos,
+    })),
+    [trend]
+  );
 
   // Donut por sucursal
   const donutData = useMemo(() => {
@@ -182,43 +191,57 @@ export default function PortalDashboardExtras() {
           <div className="p-card p-8 text-center text-sm text-muted-foreground">Sin sucursales registradas.</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {branches.map(b => (
-              <Link
-                key={b.cost_center}
-                to={`/portal/sucursal/${encodeURIComponent(b.cost_center)}`}
-                className="p-card p-card-hover p-5 group cursor-pointer"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ background: '#1B3A5C15', color: '#1B3A5C' }}>
-                      <MapPin className="w-5 h-5" />
+            {branches.map(b => {
+              const sinMarcaje = b.pct_asistencia_hoy === 0 && b.turno_promedio_inicio === '—';
+              const pctColor =
+                b.pct_asistencia_hoy >= 80 ? '#1D9E75' :
+                b.pct_asistencia_hoy >= 50 ? '#F97316' : '#dc2626';
+              return (
+                <Link
+                  key={b.cost_center}
+                  to={`/portal/sucursal/${encodeURIComponent(b.cost_center)}`}
+                  className="p-card p-card-hover p-5 group cursor-pointer relative flex flex-col"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
+                        style={{ background: '#1B3A5C15', color: '#1B3A5C' }}>
+                        <MapPin className="w-5 h-5" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-bold text-[15px] truncate" style={{ color: '#1B3A5C' }}>{b.sucursal_nombre}</p>
+                        <p className="text-[11px] text-muted-foreground">{b.cost_center}</p>
+                      </div>
                     </div>
-                    <div className="min-w-0">
-                      <p className="font-bold text-[15px] truncate" style={{ color: '#1B3A5C' }}>{b.sucursal_nombre}</p>
-                      <p className="text-[11px] text-muted-foreground">{b.cost_center}</p>
+                  </div>
+                  <div className="mt-4 flex items-baseline gap-2">
+                    <span className="text-3xl font-bold tabular-nums" style={{ color: '#1B3A5C' }}>{b.workers_activos}</span>
+                    <span className="text-xs text-muted-foreground">activos</span>
+                  </div>
+                  <div className="mt-3 space-y-1 text-xs">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Asistencia hoy</span>
+                      {sinMarcaje ? (
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+                          Sin marcaje configurado
+                        </span>
+                      ) : (
+                        <span className="font-semibold tabular-nums" style={{ color: pctColor }}>{b.pct_asistencia_hoy}%</span>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Turno promedio</span>
+                      <span className="font-mono tabular-nums" style={{ color: '#1B3A5C' }}>
+                        {b.turno_promedio_inicio}–{b.turno_promedio_fin}
+                      </span>
                     </div>
                   </div>
-                  <ArrowRight className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="mt-4 flex items-baseline gap-2">
-                  <span className="text-3xl font-bold tabular-nums" style={{ color: '#1B3A5C' }}>{b.workers_activos}</span>
-                  <span className="text-xs text-muted-foreground">activos</span>
-                </div>
-                <div className="mt-3 space-y-1 text-xs">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Asistencia hoy</span>
-                    <span className="font-semibold tabular-nums" style={{ color: '#1D9E75' }}>{b.pct_asistencia_hoy}%</span>
+                  <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-end gap-1 text-[11px] font-semibold" style={{ color: '#3DA5E0' }}>
+                    Ver detalle <ArrowRight className="w-3.5 h-3.5" />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">Turno promedio</span>
-                    <span className="font-mono tabular-nums" style={{ color: '#1B3A5C' }}>
-                      {b.turno_promedio_inicio}–{b.turno_promedio_fin}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
         )}
       </section>
@@ -236,7 +259,21 @@ export default function PortalDashboardExtras() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                 <XAxis dataKey="dia" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 100]} unit="%" />
-                <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, border: '1px solid #e2e8f0' }} formatter={(v: any) => `${v}%`} />
+                <Tooltip
+                  contentStyle={{ borderRadius: 12, fontSize: 12, border: '1px solid #e2e8f0' }}
+                  content={({ active, payload }: any) => {
+                    if (!active || !payload?.length) return null;
+                    const d = payload[0].payload;
+                    return (
+                      <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm">
+                        <p className="font-semibold" style={{ color: '#1B3A5C' }}>{d.dia}</p>
+                        <p className="tabular-nums mt-0.5" style={{ color: '#1D9E75' }}>
+                          {d.marcaron} de {d.activos} marcaron ({d.pct}%)
+                        </p>
+                      </div>
+                    );
+                  }}
+                />
                 <Line type="monotone" dataKey="pct" stroke="#1D9E75" strokeWidth={2.5} dot={{ r: 4, fill: '#1D9E75' }} />
               </LineChart>
             </ResponsiveContainer>

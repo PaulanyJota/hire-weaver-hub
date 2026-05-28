@@ -7,6 +7,7 @@ import { usePortalAuth } from '../hooks/usePortalAuth';
 import PortalPageHeader from '../components/PortalPageHeader';
 import AttendanceTeamStatus from '../components/AttendanceTeamStatus';
 import WorkerNameLink from '../components/WorkerNameLink';
+import { useSucursalesCount } from '../hooks/useSucursalesCount';
 
 type Row = {
   worker_id: string;
@@ -31,6 +32,7 @@ type SortKey = 'nombre' | 'sucursal' | 'ultimo_check_in' | 'dias_marcados' | 'di
 
 export default function PortalAsistencia() {
   const { company } = usePortalAuth();
+  const sucursalesCount = useSucursalesCount();
   const [days, setDays] = useState<number>(30);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,7 +133,7 @@ export default function PortalAsistencia() {
       <PortalPageHeader
         eyebrow="Control"
         title="Asistencia"
-        subtitle={`Últimos ${days} días · ${empresaLabel} · ${sucursales.length} ${sucursales.length === 1 ? 'sucursal' : 'sucursales'}`}
+        subtitle={`Últimos ${days} días · ${empresaLabel} · ${sucursalesCount ?? sucursales.length} ${(sucursalesCount ?? sucursales.length) === 1 ? 'sucursal' : 'sucursales'}`}
         right={
           <select
             className="px-3 py-2 rounded-xl bg-white/10 backdrop-blur border border-white/15 text-white text-xs font-medium focus:outline-none [&>option]:text-foreground"

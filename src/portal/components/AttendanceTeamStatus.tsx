@@ -125,6 +125,7 @@ export default function AttendanceTeamStatus() {
           icon={<Bell className="w-3.5 h-3.5" />}
           loading={loading}
           empty="Nadie pendiente de recordatorio."
+          emptyVariant="success"
         >
           {recordar.map(w => (
             <li key={w.worker_id} className="px-3 py-2.5 rounded-lg border border-slate-200 bg-white flex items-center gap-2">
@@ -257,7 +258,7 @@ export default function AttendanceTeamStatus() {
 }
 
 function Column({
-  title, count, tone, icon, loading, empty, children,
+  title, count, tone, icon, loading, empty, emptyVariant = 'muted', children,
 }: {
   title: string;
   count: number;
@@ -265,6 +266,7 @@ function Column({
   icon: React.ReactNode;
   loading: boolean;
   empty: string;
+  emptyVariant?: 'muted' | 'success';
   children: React.ReactNode;
 }) {
   const badge =
@@ -290,9 +292,17 @@ function Column({
       {loading ? (
         <div className="space-y-2">{[0,1,2].map(i => <Skeleton key={i} className="h-14 w-full rounded-lg" />)}</div>
       ) : count === 0 ? (
-        <div className="py-8 text-center">
-          <p className="text-xs" style={{ color: 'hsl(var(--p-muted))' }}>{empty}</p>
-        </div>
+        emptyVariant === 'success' ? (
+          <div className="py-10 flex flex-col items-center justify-center gap-2 text-center">
+            <CheckCircle2 className="w-10 h-10" style={{ color: '#1D9E75' }} />
+            <p className="text-sm font-semibold" style={{ color: '#1D9E75' }}>Todo el equipo al día</p>
+            <p className="text-[11px]" style={{ color: 'hsl(var(--p-muted))' }}>{empty}</p>
+          </div>
+        ) : (
+          <div className="py-8 text-center">
+            <p className="text-xs" style={{ color: 'hsl(var(--p-muted))' }}>{empty}</p>
+          </div>
+        )
       ) : (
         <ul className="space-y-2 max-h-[400px] overflow-y-auto pr-1">{children}</ul>
       )}
