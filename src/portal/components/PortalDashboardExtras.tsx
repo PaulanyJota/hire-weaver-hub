@@ -69,6 +69,8 @@ export default function PortalDashboardExtras() {
           supabase.rpc('get_attendance_trend', { p_days: 7 }),
         ]);
         if (cancelled) return;
+        if (tRes.error) console.error('[trend-rpc]', tRes.error);
+        else console.log('[trend-rpc] data:', tRes.data);
         setBranches((bRes.data ?? []) as BranchSummary[]);
         setWorkers((wRes.data ?? []) as WorkerRow[]);
         setWeekAtt((aRes.data ?? []) as AttRow[]);
