@@ -259,7 +259,21 @@ export default function PortalDashboardExtras() {
                 <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                 <XAxis dataKey="dia" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
                 <YAxis tick={{ fontSize: 11 }} axisLine={false} tickLine={false} domain={[0, 100]} unit="%" />
-                <Tooltip contentStyle={{ borderRadius: 12, fontSize: 12, border: '1px solid #e2e8f0' }} formatter={(v: any) => `${v}%`} />
+                <Tooltip
+                  contentStyle={{ borderRadius: 12, fontSize: 12, border: '1px solid #e2e8f0' }}
+                  content={({ active, payload }: any) => {
+                    if (!active || !payload?.length) return null;
+                    const d = payload[0].payload;
+                    return (
+                      <div className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs shadow-sm">
+                        <p className="font-semibold" style={{ color: '#1B3A5C' }}>{d.dia}</p>
+                        <p className="tabular-nums mt-0.5" style={{ color: '#1D9E75' }}>
+                          {d.marcaron} de {d.activos} marcaron ({d.pct}%)
+                        </p>
+                      </div>
+                    );
+                  }}
+                />
                 <Line type="monotone" dataKey="pct" stroke="#1D9E75" strokeWidth={2.5} dot={{ r: 4, fill: '#1D9E75' }} />
               </LineChart>
             </ResponsiveContainer>
