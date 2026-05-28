@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Users, ClipboardCheck, AlertTriangle, Settings, LogOut, Clock } from 'lucide-react';
+import { Home, Users, ClipboardCheck, AlertTriangle, Settings, LogOut, Clock, ShieldCheck } from 'lucide-react';
 import { NodoWillLogo } from '@/components/NodoWillLogo';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { cn } from '@/lib/utils';
@@ -8,6 +8,7 @@ const items = [
   { to: '/portal', label: 'Inicio', icon: Home, end: true },
   { to: '/portal/trabajadores', label: 'Trabajadores', icon: Users },
   { to: '/portal/asistencia', label: 'Asistencia', icon: Clock },
+  { to: '/portal/control-marcaje', label: 'Control de marcaje', icon: ShieldCheck },
   { to: '/portal/aprobaciones', label: 'Aprobaciones', icon: ClipboardCheck, adminOnly: true },
   { to: '/portal/incidencias', label: 'Incidencias', icon: AlertTriangle },
   { to: '/portal/configuracion', label: 'Configuración', icon: Settings, adminOnly: true },
