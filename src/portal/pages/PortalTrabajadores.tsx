@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { formatRut } from '../lib/formatRut';
-import { sucursalName } from '../lib/sucursales';
+import { sucursalName, sucursalGeoIndex } from '../lib/sucursales';
 import WorkerNameLink from '../components/WorkerNameLink';
 import { useSucursalesCount } from '../hooks/useSucursalesCount';
 import { Search, ArrowRight, ChevronDown, MapPin, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
