@@ -151,12 +151,12 @@ export default function PortalTrabajadores() {
       ) : (
         <div className="space-y-4">
           {groups.map(g => {
-            const isOpen = !!expanded[g.cost_center];
+            const isOpen = !!expandedSucursales[g.cost_center];
             return (
               <div key={g.cost_center} className="p-card overflow-hidden">
                 <button
                   type="button"
-                  onClick={() => setExpanded(c => ({ ...c, [g.cost_center]: !c[g.cost_center] }))}
+                  onClick={() => setExpandedSucursales(current => ({ ...current, [g.cost_center]: !current[g.cost_center] }))}
                   className="w-full flex items-center justify-between gap-3 px-5 py-4 hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
