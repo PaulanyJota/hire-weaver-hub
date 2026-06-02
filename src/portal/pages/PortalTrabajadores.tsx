@@ -163,11 +163,11 @@ export default function PortalTrabajadores() {
                       style={{ background: '#F97316' }}>
                       {g.activos} activos
                     </span>
-                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${!isOpen ? '-rotate-90' : ''}`} />
                   </div>
                 </button>
 
-                {!isCollapsed && (
+                {isOpen && (
                   <div className="border-t border-slate-200 overflow-x-auto">
                     <table className="p-table">
 
