@@ -24,31 +24,42 @@ interface Worker {
   photo_url: string | null;
 }
 
+type SortKey = 'name' | 'rut' | 'position' | 'hire_date' | 'active';
+type SortDirection = 'asc' | 'desc';
+
+interface SortState {
+  columna: SortKey;
+  direccion: SortDirection;
+}
+
 export default function PortalTrabajadores() {
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [estadoFilter, setEstadoFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [sortKey, setSortKey] = useState<'name' | 'rut' | 'position' | 'hire_date' | 'active'>('name');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
+  const [expandedSucursales, setExpandedSucursales] = useState<Record<string, boolean>>({});
+  const [sort, setSort] = useState<SortState>({ columna: 'name', direccion: 'asc' });
   const sucursalesCount = useSucursalesCount();
 
-  const toggleSort = (key: typeof sortKey) => {
-    if (sortKey === key) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
-    else { setSortKey(key); setSortDir(key === 'hire_date' || key === 'active' ? 'desc' : 'asc'); }
+  const toggleSort = (key: SortKey) => {
+    setSort(current => {
+      if (current.columna === key) {
+        return { columna: key, direccion: current.direccion === 'asc' ? 'desc' : 'asc' };
+      }
+      return { columna: key, direccion: key === 'hire_date' || key === 'active' ? 'desc' : 'asc' };
+    });
   };
 
-  const sortIcon = (key: typeof sortKey) => {
-    if (sortKey !== key) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
-    return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
+  const sortIcon = (key: SortKey) => {
+    if (sort.columna !== key) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
+    return sort.direccion === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
   };
 
   const sortWorkers = (list: Worker[]) => {
-    const dir = sortDir === 'asc' ? 1 : -1;
+    const dir = sort.direccion === 'asc' ? 1 : -1;
     return [...list].sort((a, b) => {
       let av: any, bv: any;
-      switch (sortKey) {
+      switch (sort.columna) {
         case 'name': av = `${a.first_name} ${a.last_name}`.toLowerCase(); bv = `${b.first_name} ${b.last_name}`.toLowerCase(); break;
         case 'rut': av = (a.rut ?? a.rut_display ?? '').toString(); bv = (b.rut ?? b.rut_display ?? '').toString(); break;
         case 'position': av = (a.position ?? '').toLowerCase(); bv = (b.position ?? '').toLowerCase(); break;
@@ -140,12 +151,12 @@ export default function PortalTrabajadores() {
       ) : (
         <div className="space-y-4">
           {groups.map(g => {
-            const isOpen = !!expanded[g.cost_center];
+            const isOpen = !!expandedSucursales[g.cost_center];
             return (
               <div key={g.cost_center} className="p-card overflow-hidden">
                 <button
                   type="button"
-                  onClick={() => setExpanded(c => ({ ...c, [g.cost_center]: !c[g.cost_center] }))}
+                  onClick={() => setExpandedSucursales(current => ({ ...current, [g.cost_center]: !current[g.cost_center] }))}
                   className="w-full flex items-center justify-between gap-3 px-5 py-4 hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
