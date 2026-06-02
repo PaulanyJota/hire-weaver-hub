@@ -175,6 +175,13 @@ export default function PortalDashboardExtras() {
     return out.slice(0, 8);
   }, [activeWorkers, contracts, workers]);
 
+  const branchesOrdenadas = useMemo(
+    () => [...branches].sort((a, b) => sucursalGeoIndex(a.cost_center) - sucursalGeoIndex(b.cost_center)),
+    [branches]
+  );
+
+
+
   return (
     <>
       {/* Cards por sucursal */}
