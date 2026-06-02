@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { formatRut } from '../lib/formatRut';
-import { sucursalName } from '../lib/sucursales';
+import { sucursalName, sucursalGeoIndex } from '../lib/sucursales';
 import WorkerNameLink from '../components/WorkerNameLink';
 import { useSucursalesCount } from '../hooks/useSucursalesCount';
 import { Search, ArrowRight, ChevronDown, MapPin, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
@@ -113,7 +113,11 @@ export default function PortalTrabajadores() {
         workers: list,
         activos: list.filter(w => w.active).length,
       }))
-      .sort((a, b) => b.activos - a.activos);
+      .sort((a, b) => {
+        const ga = a.cost_center === '__none__' ? 999 : sucursalGeoIndex(a.cost_center);
+        const gb = b.cost_center === '__none__' ? 999 : sucursalGeoIndex(b.cost_center);
+        return ga - gb;
+      });
   }, [filtered]);
 
   const activeCount = workers.filter(w => w.active).length;

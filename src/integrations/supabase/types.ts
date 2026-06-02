@@ -1092,6 +1092,7 @@ export type Database = {
       }
     }
     Functions: {
+      apply_raw_punches: { Args: { p: Json }; Returns: number }
       get_attendance_ranking: {
         Args: { p_days?: number }
         Returns: {
@@ -1126,6 +1127,18 @@ export type Database = {
           ultima_marca: string
           worker_id: string
           ya_recordado_hoy: boolean
+        }[]
+      }
+      get_attendance_today: {
+        Args: { p_company_id?: string }
+        Returns: {
+          check_in: string
+          check_out: string
+          cost_center: string
+          nombre: string
+          sucursal: string
+          worked_hours: number
+          worker_id: string
         }[]
       }
       get_attendance_trend: {
@@ -1208,6 +1221,16 @@ export type Database = {
           total_pagado_capital: number
           total_pagado_intereses: number
           ultimo_pago_intereses: string
+        }[]
+      }
+      get_week_hours: {
+        Args: { p_company_id?: string }
+        Returns: {
+          cost_center: string
+          horas: number
+          nombre: string
+          sucursal: string
+          worker_id: string
         }[]
       }
       has_role: {

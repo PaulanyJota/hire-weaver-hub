@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Cake, FileWarning, AlertTriangle, ArrowRight } from 'lucide-react';
-import { sucursalName } from '../lib/sucursales';
+import { sucursalName, sucursalGeoIndex, sucursalGeoIndexByName } from '../lib/sucursales';
 import ControlMarcajeSummary from './ControlMarcajeSummary';
 
 interface BranchSummary {
@@ -175,6 +175,13 @@ export default function PortalDashboardExtras() {
     return out.slice(0, 8);
   }, [activeWorkers, contracts, workers]);
 
+  const branchesOrdenadas = useMemo(
+    () => [...branches].sort((a, b) => sucursalGeoIndex(a.cost_center) - sucursalGeoIndex(b.cost_center)),
+    [branches]
+  );
+
+
+
   return (
     <>
       {/* Cards por sucursal */}
@@ -194,7 +201,7 @@ export default function PortalDashboardExtras() {
           <div className="p-card p-8 text-center text-sm text-muted-foreground">Sin sucursales registradas.</div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {branches.map(b => {
+            {branchesOrdenadas.map(b => {
               const sinMarcaje = b.pct_asistencia_hoy === 0 && b.turno_promedio_inicio === '—';
               const pctColor =
                 b.pct_asistencia_hoy >= 80 ? '#1D9E75' :
