@@ -29,7 +29,7 @@ export default function PortalTrabajadores() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [estadoFilter, setEstadoFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [sortKey, setSortKey] = useState<'name' | 'rut' | 'position' | 'hire_date' | 'active'>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const sucursalesCount = useSucursalesCount();
@@ -140,12 +140,12 @@ export default function PortalTrabajadores() {
       ) : (
         <div className="space-y-4">
           {groups.map(g => {
-            const isCollapsed = collapsed[g.cost_center];
+            const isOpen = !!expanded[g.cost_center];
             return (
               <div key={g.cost_center} className="p-card overflow-hidden">
                 <button
                   type="button"
-                  onClick={() => setCollapsed(c => ({ ...c, [g.cost_center]: !c[g.cost_center] }))}
+                  onClick={() => setExpanded(c => ({ ...c, [g.cost_center]: !c[g.cost_center] }))}
                   className="w-full flex items-center justify-between gap-3 px-5 py-4 hover:bg-slate-50 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
@@ -163,11 +163,11 @@ export default function PortalTrabajadores() {
                       style={{ background: '#F97316' }}>
                       {g.activos} activos
                     </span>
-                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${isCollapsed ? '-rotate-90' : ''}`} />
+                    <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform ${!isOpen ? '-rotate-90' : ''}`} />
                   </div>
                 </button>
 
-                {!isCollapsed && (
+                {isOpen && (
                   <div className="border-t border-slate-200 overflow-x-auto">
                     <table className="p-table">
 
