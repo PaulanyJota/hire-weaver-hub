@@ -173,11 +173,11 @@ export default function PortalTrabajadores() {
 
                       <thead>
                         <tr>
-                          <th><button type="button" onClick={() => toggleSort('name')} className="inline-flex items-center gap-1 hover:text-foreground">Trabajador {sortIcon('name')}</button></th>
-                          <th><button type="button" onClick={() => toggleSort('rut')} className="inline-flex items-center gap-1 hover:text-foreground">RUT {sortIcon('rut')}</button></th>
-                          <th><button type="button" onClick={() => toggleSort('position')} className="inline-flex items-center gap-1 hover:text-foreground">Cargo {sortIcon('position')}</button></th>
-                          <th><button type="button" onClick={() => toggleSort('hire_date')} className="inline-flex items-center gap-1 hover:text-foreground">Ingreso {sortIcon('hire_date')}</button></th>
-                          <th><button type="button" onClick={() => toggleSort('active')} className="inline-flex items-center gap-1 hover:text-foreground">Estado {sortIcon('active')}</button></th>
+                          <th onClick={() => toggleSort('name')} className="cursor-pointer select-none hover:bg-slate-100 transition-colors"><span className="inline-flex items-center gap-1">Trabajador {sortIcon('name')}</span></th>
+                          <th onClick={() => toggleSort('rut')} className="cursor-pointer select-none hover:bg-slate-100 transition-colors"><span className="inline-flex items-center gap-1">RUT {sortIcon('rut')}</span></th>
+                          <th onClick={() => toggleSort('position')} className="cursor-pointer select-none hover:bg-slate-100 transition-colors"><span className="inline-flex items-center gap-1">Cargo {sortIcon('position')}</span></th>
+                          <th onClick={() => toggleSort('hire_date')} className="cursor-pointer select-none hover:bg-slate-100 transition-colors"><span className="inline-flex items-center gap-1">Ingreso {sortIcon('hire_date')}</span></th>
+                          <th onClick={() => toggleSort('active')} className="cursor-pointer select-none hover:bg-slate-100 transition-colors"><span className="inline-flex items-center gap-1">Estado {sortIcon('active')}</span></th>
                           <th className="text-right">Acciones</th>
                         </tr>
                       </thead>
