@@ -29,7 +29,7 @@ export default function PortalTrabajadores() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [estadoFilter, setEstadoFilter] = useState<'all' | 'active' | 'inactive'>('all');
-  const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [sortKey, setSortKey] = useState<'name' | 'rut' | 'position' | 'hire_date' | 'active'>('name');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const sucursalesCount = useSucursalesCount();
