@@ -52,6 +52,8 @@ const App = () => (
                     <Route path="trabajadores" element={<PortalTrabajadores />} />
                     <Route path="trabajadores/:id" element={<PortalTrabajadorDetalle />} />
                     <Route path="asistencia" element={<PortalAsistencia />} />
+                    <Route path="asistencias-hoy" element={<PortalAsistenciasHoy />} />
+                    <Route path="horas-semana" element={<PortalHorasSemana />} />
                     <Route path="control-marcaje" element={<PortalControlMarcaje />} />
                     <Route path="sucursal/:cost_center" element={<PortalSucursalDetalle />} />
                     <Route
