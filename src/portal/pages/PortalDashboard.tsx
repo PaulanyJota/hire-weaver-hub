@@ -124,9 +124,9 @@ export default function PortalDashboard() {
   const firstName = profile?.full_name.split(' ')[0] ?? '';
 
   const cards = [
-    { label: 'Trabajadores activos', value: activeWorkers, icon: Users, glow: 'hsl(213 78% 29% / 0.15)', accent: 'hsl(213 78% 29%)' },
-    { label: 'Asistencias hoy', value: kpiAttendanceToday, sub: `${attendanceRate}% del equipo`, icon: CheckCircle2, glow: 'hsl(152 60% 45% / 0.18)', accent: 'hsl(152 60% 38%)' },
-    { label: 'Horas semana', value: kpiHoursWeek.toFixed(0), sub: 'horas registradas', icon: Clock, glow: 'hsl(199 89% 48% / 0.18)', accent: 'hsl(199 89% 42%)' },
+    { label: 'Trabajadores activos', value: activeWorkers, icon: Users, glow: 'hsl(213 78% 29% / 0.15)', accent: 'hsl(213 78% 29%)', to: '/portal/trabajadores' },
+    { label: 'Asistencias hoy', value: kpiAttendanceToday, sub: `${attendanceRate}% del equipo`, icon: CheckCircle2, glow: 'hsl(152 60% 45% / 0.18)', accent: 'hsl(152 60% 38%)', to: '/portal/asistencias-hoy' },
+    { label: 'Horas semana', value: kpiHoursWeek.toFixed(0), sub: 'horas registradas', icon: Clock, glow: 'hsl(199 89% 48% / 0.18)', accent: 'hsl(199 89% 42%)', to: '/portal/horas-semana' },
     { label: 'Atrasos semana', value: kpiLateWeek, sub: 'minutos acumulados', icon: Timer, glow: 'hsl(25 95% 53% / 0.18)', accent: 'hsl(25 90% 45%)' },
   ];
 
@@ -159,8 +159,8 @@ export default function PortalDashboard() {
 
       {/* KPIs */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-stagger">
-        {cards.map(c => (
-          <div key={c.label} className="p-kpi" style={{ ['--p-kpi-glow' as any]: c.glow }}>
+        {cards.map(c => {
+          const inner = (
             <div className="flex items-start justify-between">
               <div>
                 <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{c.label}</p>
@@ -174,8 +174,25 @@ export default function PortalDashboard() {
                 <c.icon className="w-5 h-5" />
               </div>
             </div>
-          </div>
-        ))}
+          );
+          if (c.to) {
+            return (
+              <Link
+                key={c.label}
+                to={c.to}
+                className="p-kpi cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all"
+                style={{ ['--p-kpi-glow' as any]: c.glow }}
+              >
+                {inner}
+              </Link>
+            );
+          }
+          return (
+            <div key={c.label} className="p-kpi" style={{ ['--p-kpi-glow' as any]: c.glow }}>
+              {inner}
+            </div>
+          );
+        })}
       </section>
 
       {/* Sucursales + Charts enriquecidos */}
