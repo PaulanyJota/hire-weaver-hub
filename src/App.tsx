@@ -22,6 +22,8 @@ import PortalIncidencias from "@/portal/pages/PortalIncidencias";
 import PortalConfiguracion from "@/portal/pages/PortalConfiguracion";
 import PortalSucursalDetalle from "@/portal/pages/PortalSucursalDetalle";
 import PortalControlMarcaje from "@/portal/pages/PortalControlMarcaje";
+import PortalAsistenciasHoy from "@/portal/pages/PortalAsistenciasHoy";
+import PortalHorasSemana from "@/portal/pages/PortalHorasSemana";
 
 const queryClient = new QueryClient();
 
