@@ -30,7 +30,36 @@ export default function PortalTrabajadores() {
   const [search, setSearch] = useState('');
   const [estadoFilter, setEstadoFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [sortKey, setSortKey] = useState<'name' | 'rut' | 'position' | 'hire_date' | 'active'>('name');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const sucursalesCount = useSucursalesCount();
+
+  const toggleSort = (key: typeof sortKey) => {
+    if (sortKey === key) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+    else { setSortKey(key); setSortDir(key === 'hire_date' || key === 'active' ? 'desc' : 'asc'); }
+  };
+
+  const sortIcon = (key: typeof sortKey) => {
+    if (sortKey !== key) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
+    return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
+  };
+
+  const sortWorkers = (list: Worker[]) => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...list].sort((a, b) => {
+      let av: any, bv: any;
+      switch (sortKey) {
+        case 'name': av = `${a.first_name} ${a.last_name}`.toLowerCase(); bv = `${b.first_name} ${b.last_name}`.toLowerCase(); break;
+        case 'rut': av = (a.rut ?? a.rut_display ?? '').toString(); bv = (b.rut ?? b.rut_display ?? '').toString(); break;
+        case 'position': av = (a.position ?? '').toLowerCase(); bv = (b.position ?? '').toLowerCase(); break;
+        case 'hire_date': av = a.hire_date ?? ''; bv = b.hire_date ?? ''; break;
+        case 'active': av = a.active ? 1 : 0; bv = b.active ? 1 : 0; break;
+      }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
