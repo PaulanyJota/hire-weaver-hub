@@ -173,16 +173,16 @@ export default function PortalTrabajadores() {
 
                       <thead>
                         <tr>
-                          <th>Trabajador</th>
-                          <th>RUT</th>
-                          <th>Cargo</th>
-                          <th>Ingreso</th>
-                          <th>Estado</th>
+                          <th><button type="button" onClick={() => toggleSort('name')} className="inline-flex items-center gap-1 hover:text-foreground">Trabajador {sortIcon('name')}</button></th>
+                          <th><button type="button" onClick={() => toggleSort('rut')} className="inline-flex items-center gap-1 hover:text-foreground">RUT {sortIcon('rut')}</button></th>
+                          <th><button type="button" onClick={() => toggleSort('position')} className="inline-flex items-center gap-1 hover:text-foreground">Cargo {sortIcon('position')}</button></th>
+                          <th><button type="button" onClick={() => toggleSort('hire_date')} className="inline-flex items-center gap-1 hover:text-foreground">Ingreso {sortIcon('hire_date')}</button></th>
+                          <th><button type="button" onClick={() => toggleSort('active')} className="inline-flex items-center gap-1 hover:text-foreground">Estado {sortIcon('active')}</button></th>
                           <th className="text-right">Acciones</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {g.workers.map(w => (
+                        {sortWorkers(g.workers).map(w => (
                           <tr key={w.id}>
                             <td>
                               <div className="flex items-center gap-3">
