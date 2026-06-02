@@ -9,9 +9,6 @@ import { sucursalName } from '../lib/sucursales';
 import WorkerNameLink from '../components/WorkerNameLink';
 import { useSucursalesCount } from '../hooks/useSucursalesCount';
 import { Search, ArrowRight, ChevronDown, MapPin, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
-import WorkerNameLink from '../components/WorkerNameLink';
-import { useSucursalesCount } from '../hooks/useSucursalesCount';
-import { Search, ArrowRight, ChevronDown, MapPin } from 'lucide-react';
 
 interface Worker {
   id: string;
