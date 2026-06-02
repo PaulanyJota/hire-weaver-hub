@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
 import { MapPin, Cake, FileWarning, AlertTriangle, ArrowRight } from 'lucide-react';
-import { sucursalName } from '../lib/sucursales';
+import { sucursalName, sucursalGeoIndex, sucursalGeoIndexByName } from '../lib/sucursales';
 import ControlMarcajeSummary from './ControlMarcajeSummary';
 
 interface BranchSummary {
