@@ -57,7 +57,8 @@ export default function PortalAsistencia() {
   }, [days]);
 
   const sucursales = useMemo(
-    () => Array.from(new Set(rows.map(r => r.sucursal).filter(Boolean))) as string[],
+    () => (Array.from(new Set(rows.map(r => r.sucursal).filter(Boolean))) as string[])
+      .sort((a, b) => sucursalGeoIndexByName(a) - sucursalGeoIndexByName(b)),
     [rows]
   );
 
