@@ -113,7 +113,11 @@ export default function PortalTrabajadores() {
         workers: list,
         activos: list.filter(w => w.active).length,
       }))
-      .sort((a, b) => b.activos - a.activos);
+      .sort((a, b) => {
+        const ga = a.cost_center === '__none__' ? 999 : sucursalGeoIndex(a.cost_center);
+        const gb = b.cost_center === '__none__' ? 999 : sucursalGeoIndex(b.cost_center);
+        return ga - gb;
+      });
   }, [filtered]);
 
   const activeCount = workers.filter(w => w.active).length;
