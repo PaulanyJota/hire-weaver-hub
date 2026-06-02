@@ -8,7 +8,7 @@ import { formatRut } from '../lib/formatRut';
 import { sucursalName } from '../lib/sucursales';
 import WorkerNameLink from '../components/WorkerNameLink';
 import { useSucursalesCount } from '../hooks/useSucursalesCount';
-import { Search, ArrowRight, ChevronDown, MapPin } from 'lucide-react';
+import { Search, ArrowRight, ChevronDown, MapPin, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 
 interface Worker {
   id: string;
@@ -30,7 +30,36 @@ export default function PortalTrabajadores() {
   const [search, setSearch] = useState('');
   const [estadoFilter, setEstadoFilter] = useState<'all' | 'active' | 'inactive'>('all');
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({});
+  const [sortKey, setSortKey] = useState<'name' | 'rut' | 'position' | 'hire_date' | 'active'>('name');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const sucursalesCount = useSucursalesCount();
+
+  const toggleSort = (key: typeof sortKey) => {
+    if (sortKey === key) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
+    else { setSortKey(key); setSortDir(key === 'hire_date' || key === 'active' ? 'desc' : 'asc'); }
+  };
+
+  const sortIcon = (key: typeof sortKey) => {
+    if (sortKey !== key) return <ArrowUpDown className="w-3 h-3 opacity-40" />;
+    return sortDir === 'asc' ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />;
+  };
+
+  const sortWorkers = (list: Worker[]) => {
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...list].sort((a, b) => {
+      let av: any, bv: any;
+      switch (sortKey) {
+        case 'name': av = `${a.first_name} ${a.last_name}`.toLowerCase(); bv = `${b.first_name} ${b.last_name}`.toLowerCase(); break;
+        case 'rut': av = (a.rut ?? a.rut_display ?? '').toString(); bv = (b.rut ?? b.rut_display ?? '').toString(); break;
+        case 'position': av = (a.position ?? '').toLowerCase(); bv = (b.position ?? '').toLowerCase(); break;
+        case 'hire_date': av = a.hire_date ?? ''; bv = b.hire_date ?? ''; break;
+        case 'active': av = a.active ? 1 : 0; bv = b.active ? 1 : 0; break;
+      }
+      if (av < bv) return -1 * dir;
+      if (av > bv) return 1 * dir;
+      return 0;
+    });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -144,16 +173,16 @@ export default function PortalTrabajadores() {
 
                       <thead>
                         <tr>
-                          <th>Trabajador</th>
-                          <th>RUT</th>
-                          <th>Cargo</th>
-                          <th>Ingreso</th>
-                          <th>Estado</th>
+                          <th><button type="button" onClick={() => toggleSort('name')} className="inline-flex items-center gap-1 hover:text-foreground">Trabajador {sortIcon('name')}</button></th>
+                          <th><button type="button" onClick={() => toggleSort('rut')} className="inline-flex items-center gap-1 hover:text-foreground">RUT {sortIcon('rut')}</button></th>
+                          <th><button type="button" onClick={() => toggleSort('position')} className="inline-flex items-center gap-1 hover:text-foreground">Cargo {sortIcon('position')}</button></th>
+                          <th><button type="button" onClick={() => toggleSort('hire_date')} className="inline-flex items-center gap-1 hover:text-foreground">Ingreso {sortIcon('hire_date')}</button></th>
+                          <th><button type="button" onClick={() => toggleSort('active')} className="inline-flex items-center gap-1 hover:text-foreground">Estado {sortIcon('active')}</button></th>
                           <th className="text-right">Acciones</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {g.workers.map(w => (
+                        {sortWorkers(g.workers).map(w => (
                           <tr key={w.id}>
                             <td>
                               <div className="flex items-center gap-3">
