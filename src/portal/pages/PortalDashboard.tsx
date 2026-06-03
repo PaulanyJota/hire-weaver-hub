@@ -17,7 +17,7 @@ interface Worker { id: string; first_name: string; last_name: string; photo_url:
 interface Att { worker_id: string; date: string; check_in: string | null; worked_hours: number | null; late_minutes: number | null }
 interface IncidentRow {
   id: string; date: string; incident_type: string; description: string | null; severity: number | null;
-  worker: { first_name: string; last_name: string } | null;
+  worker: { id: string; first_name: string; last_name: string } | null;
 }
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
