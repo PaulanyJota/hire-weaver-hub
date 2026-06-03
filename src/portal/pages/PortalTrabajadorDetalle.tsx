@@ -82,7 +82,7 @@ export default function PortalTrabajadorDetalle() {
       const since = new Date(); since.setDate(since.getDate() - 30);
       const sinceStr = since.toISOString().slice(0, 10);
 
-      const [w, c, a, ab] = await Promise.all([
+      const [w, c, a, ab, prof, pay] = await Promise.all([
         supabase.from('portal_workers')
           .select('id, first_name, last_name, rut, rut_display, position, area, sub_area, division, cost_center, hire_date, termination_date, active, photo_url, email, phone')
           .eq('id', id).maybeSingle(),
@@ -95,12 +95,18 @@ export default function PortalTrabajadorDetalle() {
         supabase.from('portal_absences')
           .select('id', { count: 'exact', head: true })
           .eq('worker_id', id).gte('start_date', sinceStr),
+        supabase.rpc('get_worker_profile' as any, { p_worker_id: id }),
+        supabase.rpc('get_worker_pay_history' as any, { p_worker_id: id }),
       ]);
       if (cancelled) return;
       setWorker((w.data as Worker) ?? null);
       setContract((c.data as Contract) ?? null);
       setAttendance((a.data ?? []) as Attendance[]);
       setAbsences30(ab.count ?? 0);
+      const profArr = (prof.data ?? []) as any[];
+      setProfileExt(profArr[0] ?? null);
+      const payArr = ((pay.data ?? []) as any[]).slice().sort((x, y) => (x.period < y.period ? 1 : -1));
+      setPayHistory(payArr);
       setLoading(false);
     };
     load();
