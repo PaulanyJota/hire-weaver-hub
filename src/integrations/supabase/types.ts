@@ -582,6 +582,45 @@ export type Database = {
           },
         ]
       }
+      portal_commissions: {
+        Row: {
+          amount: number
+          buk_liquidacion_id: number | null
+          concept: string
+          cost_center: string | null
+          id: string
+          period: string
+          portal_company_id: string | null
+          rut: string
+          synced_at: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          amount?: number
+          buk_liquidacion_id?: number | null
+          concept: string
+          cost_center?: string | null
+          id?: string
+          period: string
+          portal_company_id?: string | null
+          rut: string
+          synced_at?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          amount?: number
+          buk_liquidacion_id?: number | null
+          concept?: string
+          cost_center?: string | null
+          id?: string
+          period?: string
+          portal_company_id?: string | null
+          rut?: string
+          synced_at?: string | null
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
       portal_companies: {
         Row: {
           active: boolean
@@ -1092,6 +1131,7 @@ export type Database = {
       }
     }
     Functions: {
+      apply_commissions: { Args: { p: Json }; Returns: number }
       apply_raw_punches: { Args: { p: Json }; Returns: number }
       get_attendance_ranking: {
         Args: { p_days?: number }
@@ -1182,6 +1222,28 @@ export type Database = {
           ultima_marca: string
           workers_activos: number
           workers_marcaron_hoy: number
+        }[]
+      }
+      get_commissions_summary: {
+        Args: { p_company_id?: string }
+        Returns: {
+          cost_center: string
+          orden: number
+          period: string
+          sucursal: string
+          total_amount: number
+          worker_count: number
+        }[]
+      }
+      get_commissions_worker_detail: {
+        Args: { p_company_id: string; p_cost_center: string; p_period: string }
+        Returns: {
+          amount: number
+          concept: string
+          nombre: string
+          rut: string
+          total_worker: number
+          worker_id: string
         }[]
       }
       get_marcaje_control: {
