@@ -4,9 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
 import { formatRut } from '../lib/formatRut';
+import { fmtPeriodSafe } from '../components/SucursalPayroll';
 import {
   ArrowLeft, Mail, Phone, MapPin, Building2, Calendar, BadgeCheck,
-  Briefcase, FileText, CalendarX, Clock, CalendarCheck, Timer,
+  Briefcase, FileText, CalendarX, Clock, CalendarCheck, Timer, DollarSign,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
