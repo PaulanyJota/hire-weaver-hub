@@ -6,7 +6,8 @@ import PortalPageHeader from '../components/PortalPageHeader';
 import { sucursalName } from '../lib/sucursales';
 import { formatRut } from '../lib/formatRut';
 import WorkerNameLink from '../components/WorkerNameLink';
-import { ArrowLeft, Users, CheckCircle2, Sunrise, Sunset } from 'lucide-react';
+import { ArrowLeft, Users, CheckCircle2, Sunrise, Sunset, DollarSign } from 'lucide-react';
+import SucursalComisiones from '../components/SucursalComisiones';
 
 interface Row {
   worker_id: string;
