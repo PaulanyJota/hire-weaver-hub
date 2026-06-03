@@ -93,7 +93,11 @@ export default function PortalAprobaciones() {
                     <CalendarRange className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="font-semibold">{a.worker?.first_name} {a.worker?.last_name}</p>
+                    {a.worker?.id ? (
+                      <WorkerNameLink workerId={a.worker.id} name={`${a.worker.first_name} ${a.worker.last_name}`} />
+                    ) : (
+                      <p className="font-semibold">{a.worker?.first_name} {a.worker?.last_name}</p>
+                    )}
                     <p className="text-xs text-muted-foreground capitalize mt-0.5">{a.request_type.replace('_', ' ')}</p>
                   </div>
                 </div>
