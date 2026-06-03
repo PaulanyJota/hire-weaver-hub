@@ -5,6 +5,7 @@ import PortalPageHeader from '../components/PortalPageHeader';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { sucursalGeoIndexByName } from '../lib/sucursales';
 import { ChevronDown, MapPin } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 type Row = {
   cost_center: string | null;
