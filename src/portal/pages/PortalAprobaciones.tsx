@@ -29,7 +29,7 @@ export default function PortalAprobaciones() {
     setLoading(true);
     const { data } = await supabase
       .from('portal_approval_requests')
-      .select('id, request_type, start_date, end_date, reason, submitted_at, worker:portal_workers(first_name,last_name)')
+      .select('id, request_type, start_date, end_date, reason, submitted_at, worker:portal_workers(id,first_name,last_name)')
       .eq('status', 'pendiente')
       .order('submitted_at', { ascending: false });
     setItems((data ?? []) as any);
