@@ -31,6 +31,7 @@ export default function PortalSucursalDetalle() {
   const nombre = sucursalName(cc);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<'trabajadores' | 'comisiones'>('trabajadores');
 
   useEffect(() => {
     let cancelled = false;
