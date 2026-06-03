@@ -34,7 +34,7 @@ export default function PortalIncidencias() {
     setLoading(true);
     const [{ data: inc }, { data: ws }] = await Promise.all([
       supabase.from('portal_incidents')
-        .select('id, incident_type, date, description, severity, worker:portal_workers(first_name,last_name)')
+        .select('id, incident_type, date, description, severity, worker:portal_workers(id,first_name,last_name)')
         .order('date', { ascending: false }),
       supabase.from('portal_workers').select('id, first_name, last_name').eq('active', true).order('first_name'),
     ]);
