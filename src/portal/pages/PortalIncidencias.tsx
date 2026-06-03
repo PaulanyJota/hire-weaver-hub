@@ -119,7 +119,7 @@ export default function PortalIncidencias() {
                 {items.map(i => (
                   <tr key={i.id}>
                     <td className="text-xs text-muted-foreground">{new Date(i.date).toLocaleDateString('es-CL')}</td>
-                    <td className="font-semibold">{i.worker?.first_name} {i.worker?.last_name}</td>
+                    <td>{i.worker?.id ? <WorkerNameLink workerId={i.worker.id} name={`${i.worker.first_name} ${i.worker.last_name}`} /> : <span className="font-semibold">{i.worker?.first_name} {i.worker?.last_name}</span>}</td>
                     <td className="capitalize text-sm">{i.incident_type.replace('_', ' ')}</td>
                     <td><span className={`p-pill ${sevPill(i.severity)}`}>{i.severity ?? '-'}/5</span></td>
                     <td className="text-muted-foreground max-w-md truncate">{i.description ?? '—'}</td>
