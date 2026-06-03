@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Plus, X, AlertTriangle } from 'lucide-react';
 import PortalPageHeader from '../components/PortalPageHeader';
+import WorkerNameLink from '../components/WorkerNameLink';
 
 interface Incident {
   id: string;
@@ -12,7 +13,7 @@ interface Incident {
   date: string;
   description: string | null;
   severity: number | null;
-  worker: { first_name: string; last_name: string } | null;
+  worker: { id: string; first_name: string; last_name: string } | null;
 }
 
 interface WorkerOpt { id: string; first_name: string; last_name: string; }
