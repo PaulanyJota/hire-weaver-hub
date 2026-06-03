@@ -199,6 +199,56 @@ export default function PortalTrabajadorDetalle() {
         </div>
       </section>
 
+      {/* Contrato */}
+      <section
+        className="rounded-2xl p-6 text-white shadow-lg"
+        style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' }}
+      >
+        <p className="text-[11px] uppercase tracking-wider font-semibold opacity-80">Contrato</p>
+        <h2 className="text-xl font-bold mt-1">Información contractual</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+          <ContractTile label="Tipo de contrato" value={profileExt?.contract_type ?? '—'} />
+          <ContractTile label="Vencimiento" value={profileExt?.contract_end ? new Date(profileExt.contract_end + 'T00:00:00').toLocaleDateString('es-CL') : '—'} />
+          <ContractTile label="Modalidad" value={profileExt?.modality ?? '—'} />
+          <ContractTile label="Horas semanales" value={profileExt?.weekly_hours != null ? `${profileExt.weekly_hours} h` : '—'} />
+        </div>
+      </section>
+
+      {/* Remuneraciones */}
+      <section className="p-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-2">
+          <DollarSign className="w-4 h-4" style={{ color: '#a855f7' }} />
+          <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Remuneraciones</h2>
+          <span className="ml-auto text-xs text-muted-foreground tabular-nums">{payHistory.length} período{payHistory.length === 1 ? '' : 's'}</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="p-table">
+            <thead>
+              <tr>
+                <th>Período</th>
+                <th className="text-right">Sueldo líquido</th>
+                <th className="text-right">Comisiones</th>
+                <th className="text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payHistory.length === 0 ? (
+                <tr><td colSpan={4} className="p-10 text-center text-muted-foreground">Sin remuneraciones registradas.</td></tr>
+              ) : payHistory.map(r => (
+                <tr key={r.period}>
+                  <td className="font-semibold" style={{ color: '#1B3A5C' }}>{fmtPeriodSafe(r.period)}</td>
+                  <td className="text-right font-mono tabular-nums">
+                    {Number(r.sueldo_liquido) > 0 ? '$' + Math.round(Number(r.sueldo_liquido)).toLocaleString('es-CL') : <span className="text-muted-foreground">—</span>}
+                  </td>
+                  <td className="text-right font-mono tabular-nums">{'$' + Math.round(Number(r.comisiones) || 0).toLocaleString('es-CL')}</td>
+                  <td className="text-right font-mono tabular-nums font-bold" style={{ color: '#a855f7' }}>{'$' + Math.round(Number(r.total) || 0).toLocaleString('es-CL')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+
       {/* Asistencia */}
       <section className="p-card p-6 space-y-6">
         <div className="flex items-center justify-between">
