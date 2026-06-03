@@ -28,11 +28,25 @@ const fmtCLP = (n: number) =>
   '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
 
 const fmtPeriod = (p: string) => {
-  const d = new Date(p);
-  if (isNaN(d.getTime())) return p;
-  const m = d.toLocaleDateString('es-CL', { month: 'long', year: 'numeric', timeZone: 'America/Santiago' });
+  if (!p) return '';
+  const ymd = p.slice(0, 10).split('-');
+  if (ymd.length < 2) return p;
+  const y = Number(ymd[0]); const mo = Number(ymd[1]);
+  if (!y || !mo) return p;
+  const d = new Date(Date.UTC(y, mo - 1, 1));
+  const m = d.toLocaleDateString('es-CL', { month: 'long', year: 'numeric', timeZone: 'UTC' });
   return m.charAt(0).toUpperCase() + m.slice(1);
 };
+
+interface MetricsRow {
+  period: string;
+  period_total: number;
+  historical_total: number;
+  prev_month_total: number;
+  mom_pct: number | null;
+  prev_year_total: number;
+  yoy_pct: number | null;
+}
 
 export default function SucursalComisiones({ costCenter }: { costCenter: string }) {
   const { profile } = usePortalAuth();
