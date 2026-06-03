@@ -4,6 +4,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { sucursalGeoIndexByName } from '../lib/sucursales';
+import WorkerNameLink from '../components/WorkerNameLink';
 
 type Row = {
   worker_id: string;
