@@ -354,3 +354,12 @@ function MiniKpi({ icon, label, value, color }: { icon: React.ReactNode; label: 
     </div>
   );
 }
+
+function ContractTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-white/15 backdrop-blur rounded-xl p-4 border border-white/20">
+      <p className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">{label}</p>
+      <p className="text-lg font-bold mt-1 capitalize">{value}</p>
+    </div>
+  );
+}
