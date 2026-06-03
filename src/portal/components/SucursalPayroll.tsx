@@ -4,6 +4,7 @@ import { usePortalAuth } from '@/portal/hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatRut } from '@/portal/lib/formatRut';
 import { DollarSign } from 'lucide-react';
+import WorkerNameLink from './WorkerNameLink';
 
 interface PayrollRow {
   worker_id: string;
