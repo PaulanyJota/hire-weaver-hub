@@ -4,6 +4,7 @@ import { usePortalAuth } from '@/portal/hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import { formatRut } from '@/portal/lib/formatRut';
 import { DollarSign } from 'lucide-react';
+import WorkerNameLink from './WorkerNameLink';
 
 interface PayrollRow {
   worker_id: string;
@@ -165,7 +166,7 @@ export default function SucursalPayroll({ costCenter }: { costCenter: string }) 
                 <tr><td colSpan={6} className="p-10 text-center text-muted-foreground">Sin remuneraciones en este período.</td></tr>
               ) : rows.map(r => (
                 <tr key={r.worker_id}>
-                  <td className="font-semibold" style={{ color: '#1B3A5C' }}>{r.nombre}</td>
+                  <td><WorkerNameLink workerId={r.worker_id} name={r.nombre} /></td>
                   <td className="font-mono tabular-nums text-xs">{formatRut(r.rut)}</td>
                   <td className="text-sm">{r.cargo}</td>
                   <td className="text-right font-mono tabular-nums">

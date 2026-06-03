@@ -4,9 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
 import { formatRut } from '../lib/formatRut';
+import { fmtPeriodSafe } from '../components/SucursalPayroll';
 import {
   ArrowLeft, Mail, Phone, MapPin, Building2, Calendar, BadgeCheck,
-  Briefcase, FileText, CalendarX, Clock, CalendarCheck, Timer,
+  Briefcase, FileText, CalendarX, Clock, CalendarCheck, Timer, DollarSign,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
@@ -69,6 +70,8 @@ export default function PortalTrabajadorDetalle() {
   const [contract, setContract] = useState<Contract | null>(null);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [absences30, setAbsences30] = useState(0);
+  const [profileExt, setProfileExt] = useState<any | null>(null);
+  const [payHistory, setPayHistory] = useState<Array<{ period: string; sueldo_liquido: number; comisiones: number; total: number }>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -79,7 +82,7 @@ export default function PortalTrabajadorDetalle() {
       const since = new Date(); since.setDate(since.getDate() - 30);
       const sinceStr = since.toISOString().slice(0, 10);
 
-      const [w, c, a, ab] = await Promise.all([
+      const [w, c, a, ab, prof, pay] = await Promise.all([
         supabase.from('portal_workers')
           .select('id, first_name, last_name, rut, rut_display, position, area, sub_area, division, cost_center, hire_date, termination_date, active, photo_url, email, phone')
           .eq('id', id).maybeSingle(),
@@ -92,12 +95,18 @@ export default function PortalTrabajadorDetalle() {
         supabase.from('portal_absences')
           .select('id', { count: 'exact', head: true })
           .eq('worker_id', id).gte('start_date', sinceStr),
+        supabase.rpc('get_worker_profile' as any, { p_worker_id: id }),
+        supabase.rpc('get_worker_pay_history' as any, { p_worker_id: id }),
       ]);
       if (cancelled) return;
       setWorker((w.data as Worker) ?? null);
       setContract((c.data as Contract) ?? null);
       setAttendance((a.data ?? []) as Attendance[]);
       setAbsences30(ab.count ?? 0);
+      const profArr = (prof.data ?? []) as any[];
+      setProfileExt(profArr[0] ?? null);
+      const payArr = ((pay.data ?? []) as any[]).slice().sort((x, y) => (x.period < y.period ? 1 : -1));
+      setPayHistory(payArr);
       setLoading(false);
     };
     load();
@@ -187,6 +196,56 @@ export default function PortalTrabajadorDetalle() {
           {worker.termination_date && (
             <InfoRow icon={<CalendarX className="w-4 h-4" />} label="Fecha de término" value={fmtDate(worker.termination_date)} />
           )}
+        </div>
+      </section>
+
+      {/* Contrato */}
+      <section
+        className="rounded-2xl p-6 text-white shadow-lg"
+        style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' }}
+      >
+        <p className="text-[11px] uppercase tracking-wider font-semibold opacity-80">Contrato</p>
+        <h2 className="text-xl font-bold mt-1">Información contractual</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
+          <ContractTile label="Tipo de contrato" value={profileExt?.contract_type ?? '—'} />
+          <ContractTile label="Vencimiento" value={profileExt?.contract_end ? new Date(profileExt.contract_end + 'T00:00:00').toLocaleDateString('es-CL') : '—'} />
+          <ContractTile label="Modalidad" value={profileExt?.modality ?? '—'} />
+          <ContractTile label="Horas semanales" value={profileExt?.weekly_hours != null ? `${profileExt.weekly_hours} h` : '—'} />
+        </div>
+      </section>
+
+      {/* Remuneraciones */}
+      <section className="p-card overflow-hidden">
+        <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-2">
+          <DollarSign className="w-4 h-4" style={{ color: '#a855f7' }} />
+          <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Remuneraciones</h2>
+          <span className="ml-auto text-xs text-muted-foreground tabular-nums">{payHistory.length} período{payHistory.length === 1 ? '' : 's'}</span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="p-table">
+            <thead>
+              <tr>
+                <th>Período</th>
+                <th className="text-right">Sueldo líquido</th>
+                <th className="text-right">Comisiones</th>
+                <th className="text-right">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {payHistory.length === 0 ? (
+                <tr><td colSpan={4} className="p-10 text-center text-muted-foreground">Sin remuneraciones registradas.</td></tr>
+              ) : payHistory.map(r => (
+                <tr key={r.period}>
+                  <td className="font-semibold" style={{ color: '#1B3A5C' }}>{fmtPeriodSafe(r.period)}</td>
+                  <td className="text-right font-mono tabular-nums">
+                    {Number(r.sueldo_liquido) > 0 ? '$' + Math.round(Number(r.sueldo_liquido)).toLocaleString('es-CL') : <span className="text-muted-foreground">—</span>}
+                  </td>
+                  <td className="text-right font-mono tabular-nums">{'$' + Math.round(Number(r.comisiones) || 0).toLocaleString('es-CL')}</td>
+                  <td className="text-right font-mono tabular-nums font-bold" style={{ color: '#a855f7' }}>{'$' + Math.round(Number(r.total) || 0).toLocaleString('es-CL')}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       </section>
 
@@ -292,6 +351,15 @@ function MiniKpi({ icon, label, value, color }: { icon: React.ReactNode; label: 
         {label}
       </div>
       <p className="text-2xl font-bold mt-1.5 tracking-tight" style={{ color }}>{value}</p>
+    </div>
+  );
+}
+
+function ContractTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-white/15 backdrop-blur rounded-xl p-4 border border-white/20">
+      <p className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">{label}</p>
+      <p className="text-lg font-bold mt-1 capitalize">{value}</p>
     </div>
   );
 }

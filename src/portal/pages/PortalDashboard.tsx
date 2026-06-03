@@ -17,7 +17,7 @@ interface Worker { id: string; first_name: string; last_name: string; photo_url:
 interface Att { worker_id: string; date: string; check_in: string | null; worked_hours: number | null; late_minutes: number | null }
 interface IncidentRow {
   id: string; date: string; incident_type: string; description: string | null; severity: number | null;
-  worker: { first_name: string; last_name: string } | null;
+  worker: { id: string; first_name: string; last_name: string } | null;
 }
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
@@ -62,7 +62,7 @@ export default function PortalDashboard() {
           supabase.from('portal_attendance').select('worker_id, date, check_in, worked_hours, late_minutes').gte('date', since14Str),
           supabase.from('portal_attendance').select('worker_id, date, check_in, worked_hours, late_minutes').gte('date', monthStart),
           supabase.from('portal_incidents')
-            .select('id, date, incident_type, description, severity, worker:portal_workers(first_name,last_name)')
+            .select('id, date, incident_type, description, severity, worker:portal_workers(id,first_name,last_name)')
             .order('date', { ascending: false }).limit(5),
         ]);
         if (cancelled) return;
@@ -315,7 +315,13 @@ export default function PortalDashboard() {
                     <span className={`p-pill ${sevClass} mt-0.5`}>{sev}/5</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate">
-                        {i.worker?.first_name} {i.worker?.last_name}
+                        {i.worker?.id ? (
+                          <Link to={`/portal/trabajadores/${i.worker.id}`} className="hover:text-[#1D9E75] transition-colors">
+                            {i.worker.first_name} {i.worker.last_name}
+                          </Link>
+                        ) : (
+                          <>{i.worker?.first_name} {i.worker?.last_name}</>
+                        )}
                         <span className="ml-2 text-xs text-muted-foreground font-normal capitalize">· {i.incident_type.replace('_', ' ')}</span>
                       </p>
                       {i.description && <p className="text-xs text-muted-foreground mt-0.5 truncate">{i.description}</p>}

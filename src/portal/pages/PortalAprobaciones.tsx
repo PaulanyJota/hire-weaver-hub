@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Check, X, ClipboardCheck, CalendarRange } from 'lucide-react';
 import PortalPageHeader from '../components/PortalPageHeader';
+import WorkerNameLink from '../components/WorkerNameLink';
 
 interface Approval {
   id: string;
@@ -13,7 +14,7 @@ interface Approval {
   end_date: string;
   reason: string | null;
   submitted_at: string;
-  worker: { first_name: string; last_name: string } | null;
+  worker: { id: string; first_name: string; last_name: string } | null;
 }
 
 export default function PortalAprobaciones() {
@@ -28,7 +29,7 @@ export default function PortalAprobaciones() {
     setLoading(true);
     const { data } = await supabase
       .from('portal_approval_requests')
-      .select('id, request_type, start_date, end_date, reason, submitted_at, worker:portal_workers(first_name,last_name)')
+      .select('id, request_type, start_date, end_date, reason, submitted_at, worker:portal_workers(id,first_name,last_name)')
       .eq('status', 'pendiente')
       .order('submitted_at', { ascending: false });
     setItems((data ?? []) as any);
@@ -92,7 +93,11 @@ export default function PortalAprobaciones() {
                     <CalendarRange className="w-5 h-5" />
                   </div>
                   <div>
-                    <p className="font-semibold">{a.worker?.first_name} {a.worker?.last_name}</p>
+                    {a.worker?.id ? (
+                      <WorkerNameLink workerId={a.worker.id} name={`${a.worker.first_name} ${a.worker.last_name}`} />
+                    ) : (
+                      <p className="font-semibold">{a.worker?.first_name} {a.worker?.last_name}</p>
+                    )}
                     <p className="text-xs text-muted-foreground capitalize mt-0.5">{a.request_type.replace('_', ' ')}</p>
                   </div>
                 </div>

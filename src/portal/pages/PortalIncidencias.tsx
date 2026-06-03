@@ -5,6 +5,7 @@ import { useToast } from '@/hooks/use-toast';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Plus, X, AlertTriangle } from 'lucide-react';
 import PortalPageHeader from '../components/PortalPageHeader';
+import WorkerNameLink from '../components/WorkerNameLink';
 
 interface Incident {
   id: string;
@@ -12,7 +13,7 @@ interface Incident {
   date: string;
   description: string | null;
   severity: number | null;
-  worker: { first_name: string; last_name: string } | null;
+  worker: { id: string; first_name: string; last_name: string } | null;
 }
 
 interface WorkerOpt { id: string; first_name: string; last_name: string; }
@@ -33,7 +34,7 @@ export default function PortalIncidencias() {
     setLoading(true);
     const [{ data: inc }, { data: ws }] = await Promise.all([
       supabase.from('portal_incidents')
-        .select('id, incident_type, date, description, severity, worker:portal_workers(first_name,last_name)')
+        .select('id, incident_type, date, description, severity, worker:portal_workers(id,first_name,last_name)')
         .order('date', { ascending: false }),
       supabase.from('portal_workers').select('id, first_name, last_name').eq('active', true).order('first_name'),
     ]);
@@ -118,7 +119,7 @@ export default function PortalIncidencias() {
                 {items.map(i => (
                   <tr key={i.id}>
                     <td className="text-xs text-muted-foreground">{new Date(i.date).toLocaleDateString('es-CL')}</td>
-                    <td className="font-semibold">{i.worker?.first_name} {i.worker?.last_name}</td>
+                    <td>{i.worker?.id ? <WorkerNameLink workerId={i.worker.id} name={`${i.worker.first_name} ${i.worker.last_name}`} /> : <span className="font-semibold">{i.worker?.first_name} {i.worker?.last_name}</span>}</td>
                     <td className="capitalize text-sm">{i.incident_type.replace('_', ' ')}</td>
                     <td><span className={`p-pill ${sevPill(i.severity)}`}>{i.severity ?? '-'}/5</span></td>
                     <td className="text-muted-foreground max-w-md truncate">{i.description ?? '—'}</td>

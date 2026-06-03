@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '@/portal/hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -120,10 +121,10 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
   );
 
   const grouped = useMemo(() => {
-    const m = new Map<string, { nombre: string; rut: string; total: number; items: WorkerRow[] }>();
+    const m = new Map<string, { workerId: string | null; nombre: string; rut: string; total: number; items: WorkerRow[] }>();
     for (const w of workers) {
       const key = w.worker_id ?? w.rut;
-      const g = m.get(key) ?? { nombre: w.nombre, rut: w.rut, total: Number(w.total_worker) || 0, items: [] };
+      const g = m.get(key) ?? { workerId: w.worker_id, nombre: w.nombre, rut: w.rut, total: Number(w.total_worker) || 0, items: [] };
       g.items.push(w);
       g.total = Number(w.total_worker) || g.total;
       m.set(key, g);
@@ -264,15 +265,28 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
               const isOpen = openWorker === g.key;
               return (
                 <li key={g.key}>
-                  <button
-                    type="button"
+                  <div
+                    role="button"
+                    tabIndex={0}
                     onClick={() => setOpenWorker(isOpen ? null : g.key)}
-                    className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors text-left"
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpenWorker(isOpen ? null : g.key); } }}
+                    className="w-full flex items-center justify-between px-5 py-3 hover:bg-slate-50 transition-colors text-left cursor-pointer"
                   >
                     <div className="flex items-center gap-3 min-w-0">
                       <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform shrink-0 ${isOpen ? '' : '-rotate-90'}`} />
                       <div className="min-w-0">
-                        <p className="font-semibold text-sm truncate" style={{ color: '#1B3A5C' }}>{g.nombre}</p>
+                        {g.workerId ? (
+                          <Link
+                            to={`/portal/trabajadores/${g.workerId}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="font-semibold text-sm truncate block hover:text-[#1D9E75] transition-colors"
+                            style={{ color: '#1B3A5C' }}
+                          >
+                            {g.nombre}
+                          </Link>
+                        ) : (
+                          <p className="font-semibold text-sm truncate" style={{ color: '#1B3A5C' }}>{g.nombre}</p>
+                        )}
                         <p className="text-xs text-muted-foreground font-mono tabular-nums">{formatRut(g.rut)}</p>
                       </div>
                     </div>
@@ -280,7 +294,7 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
                       <p className="font-bold tabular-nums text-sm" style={{ color: '#a855f7' }}>{fmtCLP(g.total)}</p>
                       <p className="text-[10px] text-muted-foreground">{g.items.length} concepto{g.items.length === 1 ? '' : 's'}</p>
                     </div>
-                  </button>
+                  </div>
                   {isOpen && (
                     <div className="px-5 pb-4 pt-1 bg-slate-50/50">
                       <table className="w-full text-sm">
