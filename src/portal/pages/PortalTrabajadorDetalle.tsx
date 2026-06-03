@@ -64,6 +64,15 @@ const isWeekend = (d: string) => {
   return w === 0 || w === 6;
 };
 
+function ContractTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="bg-white/15 backdrop-blur rounded-xl p-4 border border-white/20">
+      <p className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">{label}</p>
+      <p className="text-lg font-bold mt-1 capitalize">{value}</p>
+    </div>
+  );
+}
+
 export default function PortalTrabajadorDetalle() {
   const { id } = useParams<{ id: string }>();
   const [worker, setWorker] = useState<Worker | null>(null);
@@ -355,11 +364,3 @@ function MiniKpi({ icon, label, value, color }: { icon: React.ReactNode; label: 
   );
 }
 
-function ContractTile({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="bg-white/15 backdrop-blur rounded-xl p-4 border border-white/20">
-      <p className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">{label}</p>
-      <p className="text-lg font-bold mt-1 capitalize">{value}</p>
-    </div>
-  );
-}
