@@ -179,6 +179,42 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
         </div>
       </div>
 
+      {/* Métricas comparativas */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {(() => {
+          const fmtPct = (v: number | null | undefined) => {
+            if (v === null || v === undefined) return null;
+            const n = Number(v);
+            const sign = n > 0 ? '+' : '';
+            return `${sign}${n.toFixed(1)}%`;
+          };
+          const pctColor = (v: number | null | undefined) => {
+            if (v === null || v === undefined) return '#94a3b8';
+            return Number(v) >= 0 ? '#1D9E75' : '#dc2626';
+          };
+          const cards = [
+            { label: 'Histórico acumulado', value: metrics ? fmtCLP(metrics.historical_total) : '—', color: '#1B3A5C' },
+            {
+              label: 'Variación vs mes anterior',
+              value: metrics ? (fmtPct(metrics.mom_pct) ?? '—') : '—',
+              color: pctColor(metrics?.mom_pct),
+            },
+            {
+              label: 'Variación vs mismo mes año anterior',
+              value: metrics ? (fmtPct(metrics.yoy_pct) ?? 's/d') : 's/d',
+              color: metrics?.yoy_pct == null ? '#94a3b8' : pctColor(metrics?.yoy_pct),
+            },
+          ];
+          return cards.map(c => (
+            <div key={c.label} className="p-card p-5">
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{c.label}</p>
+              <p className="text-2xl font-bold mt-2 tabular-nums" style={{ color: c.color }}>{c.value}</p>
+            </div>
+          ));
+        })()}
+      </div>
+
+
       {/* Gráfico evolución */}
       <div className="p-card p-5">
         <div className="flex items-center gap-2 mb-4">
