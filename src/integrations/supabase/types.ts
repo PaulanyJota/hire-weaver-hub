@@ -665,6 +665,7 @@ export type Database = {
           end_date: string | null
           id: string
           is_current: boolean
+          modality: string | null
           position: string | null
           start_date: string | null
           updated_at: string
@@ -678,6 +679,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           is_current?: boolean
+          modality?: string | null
           position?: string | null
           start_date?: string | null
           updated_at?: string
@@ -691,6 +693,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           is_current?: boolean
+          modality?: string | null
           position?: string | null
           start_date?: string | null
           updated_at?: string
@@ -1364,6 +1367,37 @@ export type Database = {
           horas: number
           nombre: string
           sucursal: string
+          worker_id: string
+        }[]
+      }
+      get_worker_pay_history: {
+        Args: { p_worker_id: string }
+        Returns: {
+          comisiones: number
+          period: string
+          sueldo_liquido: number
+          total: number
+        }[]
+      }
+      get_worker_profile: {
+        Args: { p_worker_id: string }
+        Returns: {
+          active: boolean
+          area: string
+          cargo: string
+          contract_end: string
+          contract_start: string
+          contract_type: string
+          cost_center: string
+          email: string
+          hire_date: string
+          modality: string
+          nombre: string
+          phone: string
+          photo_url: string
+          rut: string
+          termination_date: string
+          weekly_hours: number
           worker_id: string
         }[]
       }
