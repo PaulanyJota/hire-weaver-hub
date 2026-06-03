@@ -62,7 +62,7 @@ export default function PortalDashboard() {
           supabase.from('portal_attendance').select('worker_id, date, check_in, worked_hours, late_minutes').gte('date', since14Str),
           supabase.from('portal_attendance').select('worker_id, date, check_in, worked_hours, late_minutes').gte('date', monthStart),
           supabase.from('portal_incidents')
-            .select('id, date, incident_type, description, severity, worker:portal_workers(first_name,last_name)')
+            .select('id, date, incident_type, description, severity, worker:portal_workers(id,first_name,last_name)')
             .order('date', { ascending: false }).limit(5),
         ]);
         if (cancelled) return;
