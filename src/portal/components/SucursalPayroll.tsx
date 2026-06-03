@@ -114,6 +114,31 @@ export default function SucursalPayroll({ costCenter }: { costCenter: string }) 
         </div>
       </div>
 
+      <div
+        className="rounded-2xl p-5 text-white shadow-lg"
+        style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' }}
+      >
+        <p className="text-[11px] uppercase tracking-wider font-semibold opacity-80">
+          Totales {period && <>· {fmtPeriodSafe(period)}</>}
+        </p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-3">
+          <div className="bg-white/15 backdrop-blur rounded-xl p-4 border border-white/20">
+            <p className="text-xs opacity-90">Suma sueldo líquido</p>
+            <p className="text-2xl font-bold mt-1 tabular-nums">
+              {totals.liquido > 0 ? fmtCLP(totals.liquido) : '—'}
+            </p>
+          </div>
+          <div className="bg-white/15 backdrop-blur rounded-xl p-4 border border-white/20">
+            <p className="text-xs opacity-90">Suma comisiones</p>
+            <p className="text-2xl font-bold mt-1 tabular-nums">{fmtCLP(totals.comisiones)}</p>
+          </div>
+          <div className="bg-white/15 backdrop-blur rounded-xl p-4 border border-white/20">
+            <p className="text-xs opacity-90">Total general</p>
+            <p className="text-2xl font-bold mt-1 tabular-nums">{fmtCLP(totals.total)}</p>
+          </div>
+        </div>
+      </div>
+
       <div className="p-card overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between">
           <h3 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>
