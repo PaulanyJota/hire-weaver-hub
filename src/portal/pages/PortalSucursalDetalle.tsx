@@ -4,10 +4,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { sucursalName } from '../lib/sucursales';
-import { formatRut } from '../lib/formatRut';
-import WorkerNameLink from '../components/WorkerNameLink';
 import { ArrowLeft, Users, CheckCircle2, Sunrise, Sunset, DollarSign } from 'lucide-react';
 import SucursalComisiones from '../components/SucursalComisiones';
+import SucursalPayroll from '../components/SucursalPayroll';
 
 interface Row {
   worker_id: string;
@@ -120,56 +119,8 @@ export default function PortalSucursalDetalle() {
         })}
       </div>
 
-      {tab === 'trabajadores' && (
-        <div className="p-card overflow-hidden">
-          <div className="px-5 py-4 border-b border-slate-200">
-            <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Detalle de trabajadores</h2>
-          </div>
-          <div className="overflow-x-auto">
-            <table className="p-table">
-              <thead>
-                <tr>
-                  <th>Nombre</th>
-                  <th>RUT</th>
-                  <th>Cargo</th>
-                  <th>Última entrada</th>
-                  <th>Última salida</th>
-                  <th>Turno</th>
-                  <th>Score</th>
-                </tr>
-              </thead>
-              <tbody>
-                {loading ? (
-                  [1,2,3,4].map(i => <tr key={i}><td colSpan={7}><Skeleton className="h-8 w-full" /></td></tr>)
-                ) : rows.length === 0 ? (
-                  <tr><td colSpan={7} className="p-12 text-center text-muted-foreground">Sin trabajadores en esta sucursal.</td></tr>
-                ) : rows.map(r => {
-                  const score = r.pct_puntualidad;
-                  const scoreColor = score == null ? '#94a3b8' : score >= 90 ? '#1D9E75' : score >= 50 ? '#F97316' : '#dc2626';
-                  return (
-                    <tr key={r.worker_id}>
-                      <td>
-                        <WorkerNameLink workerId={r.worker_id} name={r.nombre} sucursal={cc} />
-                      </td>
-                      <td className="font-mono tabular-nums text-xs">{formatRut(r.rut)}</td>
-                      <td className="text-sm">{r.cargo}</td>
-                      <td className="font-mono tabular-nums text-xs">{r.ultima_entrada}</td>
-                      <td className="font-mono tabular-nums text-xs">{r.ultima_salida}</td>
-                      <td className="font-mono tabular-nums text-xs">{r.turno_inicio}–{r.turno_fin}</td>
-                      <td>
-                        <span className="px-2 py-0.5 rounded-md text-xs font-bold tabular-nums"
-                          style={{ background: `${scoreColor}15`, color: scoreColor }}>
-                          {score == null ? '—' : `${score}%`}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      )}
+      {tab === 'trabajadores' && <SucursalPayroll costCenter={cc} />}
+
 
       {tab === 'comisiones' && <SucursalComisiones costCenter={cc} />}
     </div>

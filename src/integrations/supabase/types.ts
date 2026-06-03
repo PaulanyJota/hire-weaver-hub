@@ -808,6 +808,45 @@ export type Database = {
           },
         ]
       }
+      portal_payroll: {
+        Row: {
+          buk_liquidacion_id: number | null
+          cost_center: string | null
+          created_at: string | null
+          id: string
+          net_salary: number | null
+          period: string
+          portal_company_id: string | null
+          rut: string
+          synced_at: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          buk_liquidacion_id?: number | null
+          cost_center?: string | null
+          created_at?: string | null
+          id?: string
+          net_salary?: number | null
+          period: string
+          portal_company_id?: string | null
+          rut: string
+          synced_at?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          buk_liquidacion_id?: number | null
+          cost_center?: string | null
+          created_at?: string | null
+          id?: string
+          net_salary?: number | null
+          period?: string
+          portal_company_id?: string | null
+          rut?: string
+          synced_at?: string | null
+          worker_id?: string | null
+        }
+        Relationships: []
+      }
       portal_user_profiles: {
         Row: {
           active: boolean
@@ -1132,6 +1171,7 @@ export type Database = {
     }
     Functions: {
       apply_commissions: { Args: { p: Json }; Returns: number }
+      apply_payroll: { Args: { p: Json }; Returns: number }
       apply_raw_punches: { Args: { p: Json }; Returns: number }
       get_attendance_ranking: {
         Args: { p_days?: number }
@@ -1209,6 +1249,24 @@ export type Database = {
           worker_id: string
         }[]
       }
+      get_branch_payroll: {
+        Args: { p_company_id: string; p_cost_center: string; p_period: string }
+        Returns: {
+          cargo: string
+          comisiones: number
+          nombre: string
+          rut: string
+          sueldo_liquido: number
+          total: number
+          worker_id: string
+        }[]
+      }
+      get_branch_periods: {
+        Args: { p_company_id: string; p_cost_center: string }
+        Returns: {
+          period: string
+        }[]
+      }
       get_branches_summary: {
         Args: never
         Returns: {
@@ -1222,6 +1280,20 @@ export type Database = {
           ultima_marca: string
           workers_activos: number
           workers_marcaron_hoy: number
+        }[]
+      }
+      get_commissions_metrics: {
+        Args: { p_company_id: string; p_cost_center: string; p_period: string }
+        Returns: {
+          historical_total: number
+          mom_pct: number
+          period: string
+          period_total: number
+          prev_month_period: string
+          prev_month_total: number
+          prev_year_period: string
+          prev_year_total: number
+          yoy_pct: number
         }[]
       }
       get_commissions_summary: {

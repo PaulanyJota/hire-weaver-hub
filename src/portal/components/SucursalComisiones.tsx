@@ -28,11 +28,25 @@ const fmtCLP = (n: number) =>
   '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
 
 const fmtPeriod = (p: string) => {
-  const d = new Date(p);
-  if (isNaN(d.getTime())) return p;
-  const m = d.toLocaleDateString('es-CL', { month: 'long', year: 'numeric', timeZone: 'America/Santiago' });
+  if (!p) return '';
+  const ymd = p.slice(0, 10).split('-');
+  if (ymd.length < 2) return p;
+  const y = Number(ymd[0]); const mo = Number(ymd[1]);
+  if (!y || !mo) return p;
+  const d = new Date(Date.UTC(y, mo - 1, 1));
+  const m = d.toLocaleDateString('es-CL', { month: 'long', year: 'numeric', timeZone: 'UTC' });
   return m.charAt(0).toUpperCase() + m.slice(1);
 };
+
+interface MetricsRow {
+  period: string;
+  period_total: number;
+  historical_total: number;
+  prev_month_total: number;
+  mom_pct: number | null;
+  prev_year_total: number;
+  yoy_pct: number | null;
+}
 
 export default function SucursalComisiones({ costCenter }: { costCenter: string }) {
   const { profile } = usePortalAuth();
@@ -43,6 +57,21 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
   const [workers, setWorkers] = useState<WorkerRow[]>([]);
   const [loadingW, setLoadingW] = useState(false);
   const [openWorker, setOpenWorker] = useState<string | null>(null);
+  const [metrics, setMetrics] = useState<MetricsRow | null>(null);
+
+  useEffect(() => {
+    if (!period || !companyId) { setMetrics(null); return; }
+    let cancel = false;
+    (async () => {
+      const { data, error } = await supabase.rpc('get_commissions_metrics', {
+        p_company_id: companyId, p_cost_center: costCenter, p_period: period,
+      });
+      if (cancel) return;
+      if (error) { console.error('[commissions-metrics]', error); setMetrics(null); return; }
+      setMetrics(((data ?? [])[0] as MetricsRow) ?? null);
+    })();
+    return () => { cancel = true; };
+  }, [companyId, costCenter, period]);
 
   useEffect(() => {
     let cancel = false;
@@ -149,6 +178,42 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
           </div>
         </div>
       </div>
+
+      {/* Métricas comparativas */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {(() => {
+          const fmtPct = (v: number | null | undefined) => {
+            if (v === null || v === undefined) return null;
+            const n = Number(v);
+            const sign = n > 0 ? '+' : '';
+            return `${sign}${n.toFixed(1)}%`;
+          };
+          const pctColor = (v: number | null | undefined) => {
+            if (v === null || v === undefined) return '#94a3b8';
+            return Number(v) >= 0 ? '#1D9E75' : '#dc2626';
+          };
+          const cards = [
+            { label: 'Histórico acumulado', value: metrics ? fmtCLP(metrics.historical_total) : '—', color: '#1B3A5C' },
+            {
+              label: 'Variación vs mes anterior',
+              value: metrics ? (fmtPct(metrics.mom_pct) ?? '—') : '—',
+              color: pctColor(metrics?.mom_pct),
+            },
+            {
+              label: 'Variación vs mismo mes año anterior',
+              value: metrics ? (fmtPct(metrics.yoy_pct) ?? 's/d') : 's/d',
+              color: metrics?.yoy_pct == null ? '#94a3b8' : pctColor(metrics?.yoy_pct),
+            },
+          ];
+          return cards.map(c => (
+            <div key={c.label} className="p-card p-5">
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{c.label}</p>
+              <p className="text-2xl font-bold mt-2 tabular-nums" style={{ color: c.color }}>{c.value}</p>
+            </div>
+          ));
+        })()}
+      </div>
+
 
       {/* Gráfico evolución */}
       <div className="p-card p-5">
