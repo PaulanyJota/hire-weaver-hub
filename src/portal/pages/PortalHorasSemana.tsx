@@ -111,7 +111,7 @@ export default function PortalHorasSemana() {
                     <ul className="divide-y divide-slate-100">
                       {g.workers.map(w => (
                         <li key={w.worker_id} className="flex items-center justify-between px-5 py-2.5">
-                          <span className="text-sm" style={{ color: '#1B3A5C' }}>{w.nombre}</span>
+                          <Link to={`/portal/trabajadores/${w.worker_id}`} className="text-sm hover:text-[#1D9E75] transition-colors" style={{ color: '#1B3A5C' }}>{w.nombre}</Link>
                           <span className="text-sm font-mono tabular-nums text-slate-700">{Number(w.horas ?? 0).toFixed(1)} h</span>
                         </li>
                       ))}
