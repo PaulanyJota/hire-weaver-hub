@@ -78,7 +78,7 @@ export default function PortalAsistenciasHoy() {
               <tbody>
                 {sorted.map(r => (
                   <tr key={r.worker_id} className="border-t border-slate-100 hover:bg-slate-50/60">
-                    <td className="px-5 py-3 font-medium" style={{ color: '#1B3A5C' }}>{r.nombre}</td>
+                    <td className="px-5 py-3"><WorkerNameLink workerId={r.worker_id} name={r.nombre} /></td>
                     <td className="px-5 py-3 text-muted-foreground">{r.sucursal ?? '—'}</td>
                     <td className="px-5 py-3 font-mono tabular-nums">{r.check_in ?? '—'}</td>
                     <td className="px-5 py-3 font-mono tabular-nums">{r.check_out ?? '—'}</td>
