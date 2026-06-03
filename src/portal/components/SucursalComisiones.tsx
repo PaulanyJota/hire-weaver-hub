@@ -121,10 +121,10 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
   );
 
   const grouped = useMemo(() => {
-    const m = new Map<string, { nombre: string; rut: string; total: number; items: WorkerRow[] }>();
+    const m = new Map<string, { workerId: string | null; nombre: string; rut: string; total: number; items: WorkerRow[] }>();
     for (const w of workers) {
       const key = w.worker_id ?? w.rut;
-      const g = m.get(key) ?? { nombre: w.nombre, rut: w.rut, total: Number(w.total_worker) || 0, items: [] };
+      const g = m.get(key) ?? { workerId: w.worker_id, nombre: w.nombre, rut: w.rut, total: Number(w.total_worker) || 0, items: [] };
       g.items.push(w);
       g.total = Number(w.total_worker) || g.total;
       m.set(key, g);
