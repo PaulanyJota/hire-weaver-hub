@@ -70,6 +70,8 @@ export default function PortalTrabajadorDetalle() {
   const [contract, setContract] = useState<Contract | null>(null);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [absences30, setAbsences30] = useState(0);
+  const [profileExt, setProfileExt] = useState<any | null>(null);
+  const [payHistory, setPayHistory] = useState<Array<{ period: string; sueldo_liquido: number; comisiones: number; total: number }>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
