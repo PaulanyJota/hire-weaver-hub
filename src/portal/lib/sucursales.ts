@@ -1,5 +1,6 @@
 export const SUCURSAL_MAP: Record<string, string> = {
   LC_AE: 'Aeropuerto SCL',
+  LC_VI: 'Vitacura',
   LC_CO: 'Concepción',
   LC_LS: 'La Serena',
   'LC_ÑU': 'Ñuñoa',
@@ -18,6 +19,7 @@ export const SUCURSAL_ORDEN_GEO: string[] = [
   'LC_LS', // La Serena
   'LC_VM', // Viña del Mar
   'LC_AE', // Aeropuerto SCL
+  'LC_VI', // Vitacura
   'LC_ÑU', // Ñuñoa
   'LC_NU', // Ñuñoa (alias)
   'LC_CO', // Concepción
@@ -31,6 +33,7 @@ const NOMBRE_ORDEN_GEO: string[] = [
   'La Serena',
   'Viña del Mar',
   'Aeropuerto SCL',
+  'Vitacura',
   'Ñuñoa',
   'Concepción',
   'Temuco',
