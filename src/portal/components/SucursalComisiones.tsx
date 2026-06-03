@@ -57,6 +57,21 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
   const [workers, setWorkers] = useState<WorkerRow[]>([]);
   const [loadingW, setLoadingW] = useState(false);
   const [openWorker, setOpenWorker] = useState<string | null>(null);
+  const [metrics, setMetrics] = useState<MetricsRow | null>(null);
+
+  useEffect(() => {
+    if (!period || !companyId) { setMetrics(null); return; }
+    let cancel = false;
+    (async () => {
+      const { data, error } = await supabase.rpc('get_commissions_metrics', {
+        p_company_id: companyId, p_cost_center: costCenter, p_period: period,
+      });
+      if (cancel) return;
+      if (error) { console.error('[commissions-metrics]', error); setMetrics(null); return; }
+      setMetrics(((data ?? [])[0] as MetricsRow) ?? null);
+    })();
+    return () => { cancel = true; };
+  }, [companyId, costCenter, period]);
 
   useEffect(() => {
     let cancel = false;
