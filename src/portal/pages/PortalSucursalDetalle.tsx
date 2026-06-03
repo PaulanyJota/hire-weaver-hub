@@ -6,7 +6,8 @@ import PortalPageHeader from '../components/PortalPageHeader';
 import { sucursalName } from '../lib/sucursales';
 import { formatRut } from '../lib/formatRut';
 import WorkerNameLink from '../components/WorkerNameLink';
-import { ArrowLeft, Users, CheckCircle2, Sunrise, Sunset } from 'lucide-react';
+import { ArrowLeft, Users, CheckCircle2, Sunrise, Sunset, DollarSign } from 'lucide-react';
+import SucursalComisiones from '../components/SucursalComisiones';
 
 interface Row {
   worker_id: string;
@@ -30,6 +31,7 @@ export default function PortalSucursalDetalle() {
   const nombre = sucursalName(cc);
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState<'trabajadores' | 'comisiones'>('trabajadores');
 
   useEffect(() => {
     let cancelled = false;
@@ -96,55 +98,80 @@ export default function PortalSucursalDetalle() {
         ))}
       </section>
 
-      <div className="p-card overflow-hidden">
-        <div className="px-5 py-4 border-b border-slate-200">
-          <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Detalle de trabajadores</h2>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="p-table">
-            <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>RUT</th>
-                <th>Cargo</th>
-                <th>Última entrada</th>
-                <th>Última salida</th>
-                <th>Turno</th>
-                <th>Score</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                [1,2,3,4].map(i => <tr key={i}><td colSpan={7}><Skeleton className="h-8 w-full" /></td></tr>)
-              ) : rows.length === 0 ? (
-                <tr><td colSpan={7} className="p-12 text-center text-muted-foreground">Sin trabajadores en esta sucursal.</td></tr>
-              ) : rows.map(r => {
-                const score = r.pct_puntualidad;
-                const scoreColor = score == null ? '#94a3b8' : score >= 90 ? '#1D9E75' : score >= 50 ? '#F97316' : '#dc2626';
-                return (
-                  <tr key={r.worker_id}>
-                    <td>
-                      <WorkerNameLink workerId={r.worker_id} name={r.nombre} sucursal={cc} />
-                    </td>
-                    <td className="font-mono tabular-nums text-xs">{formatRut(r.rut)}</td>
-                    <td className="text-sm">{r.cargo}</td>
-                    <td className="font-mono tabular-nums text-xs">{r.ultima_entrada}</td>
-                    <td className="font-mono tabular-nums text-xs">{r.ultima_salida}</td>
-                    <td className="font-mono tabular-nums text-xs">{r.turno_inicio}–{r.turno_fin}</td>
-                    <td>
-                      <span className="px-2 py-0.5 rounded-md text-xs font-bold tabular-nums"
-                        style={{ background: `${scoreColor}15`, color: scoreColor }}>
-                        {score == null ? '—' : `${score}%`}
-                      </span>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-
+      <div className="flex gap-2 border-b border-slate-200">
+        {([
+          { id: 'trabajadores', label: 'Trabajadores', icon: Users },
+          { id: 'comisiones', label: 'Comisiones', icon: DollarSign },
+        ] as const).map(t => {
+          const active = tab === t.id;
+          return (
+            <button
+              key={t.id}
+              onClick={() => setTab(t.id)}
+              className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${
+                active
+                  ? 'border-purple-500 text-purple-600'
+                  : 'border-transparent text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              <t.icon className="w-4 h-4" /> {t.label}
+            </button>
+          );
+        })}
       </div>
+
+      {tab === 'trabajadores' && (
+        <div className="p-card overflow-hidden">
+          <div className="px-5 py-4 border-b border-slate-200">
+            <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Detalle de trabajadores</h2>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="p-table">
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>RUT</th>
+                  <th>Cargo</th>
+                  <th>Última entrada</th>
+                  <th>Última salida</th>
+                  <th>Turno</th>
+                  <th>Score</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  [1,2,3,4].map(i => <tr key={i}><td colSpan={7}><Skeleton className="h-8 w-full" /></td></tr>)
+                ) : rows.length === 0 ? (
+                  <tr><td colSpan={7} className="p-12 text-center text-muted-foreground">Sin trabajadores en esta sucursal.</td></tr>
+                ) : rows.map(r => {
+                  const score = r.pct_puntualidad;
+                  const scoreColor = score == null ? '#94a3b8' : score >= 90 ? '#1D9E75' : score >= 50 ? '#F97316' : '#dc2626';
+                  return (
+                    <tr key={r.worker_id}>
+                      <td>
+                        <WorkerNameLink workerId={r.worker_id} name={r.nombre} sucursal={cc} />
+                      </td>
+                      <td className="font-mono tabular-nums text-xs">{formatRut(r.rut)}</td>
+                      <td className="text-sm">{r.cargo}</td>
+                      <td className="font-mono tabular-nums text-xs">{r.ultima_entrada}</td>
+                      <td className="font-mono tabular-nums text-xs">{r.ultima_salida}</td>
+                      <td className="font-mono tabular-nums text-xs">{r.turno_inicio}–{r.turno_fin}</td>
+                      <td>
+                        <span className="px-2 py-0.5 rounded-md text-xs font-bold tabular-nums"
+                          style={{ background: `${scoreColor}15`, color: scoreColor }}>
+                          {score == null ? '—' : `${score}%`}
+                        </span>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {tab === 'comisiones' && <SucursalComisiones costCenter={cc} />}
     </div>
   );
 }
