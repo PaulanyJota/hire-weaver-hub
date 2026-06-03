@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '@/portal/hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
