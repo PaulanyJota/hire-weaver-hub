@@ -273,7 +273,18 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
                     <div className="flex items-center gap-3 min-w-0">
                       <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform shrink-0 ${isOpen ? '' : '-rotate-90'}`} />
                       <div className="min-w-0">
-                        <p className="font-semibold text-sm truncate" style={{ color: '#1B3A5C' }}>{g.nombre}</p>
+                        {g.workerId ? (
+                          <Link
+                            to={`/portal/trabajadores/${g.workerId}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="font-semibold text-sm truncate block hover:text-[#1D9E75] transition-colors"
+                            style={{ color: '#1B3A5C' }}
+                          >
+                            {g.nombre}
+                          </Link>
+                        ) : (
+                          <p className="font-semibold text-sm truncate" style={{ color: '#1B3A5C' }}>{g.nombre}</p>
+                        )}
                         <p className="text-xs text-muted-foreground font-mono tabular-nums">{formatRut(g.rut)}</p>
                       </div>
                     </div>
