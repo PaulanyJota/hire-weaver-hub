@@ -14,7 +14,7 @@ export default function Auth() {
   const [info, setInfo] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!authLoading && user) navigate('/', { replace: true });
+    if (!authLoading && user) navigate('/dashboard', { replace: true });
   }, [user, authLoading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
