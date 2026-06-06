@@ -61,9 +61,14 @@ export default function PortalAsistencia() {
 
   // Refresh all inferred schedules once on mount (best-effort)
   useEffect(() => {
-    supabase.rpc('refresh_all_inferred_schedules' as any, { p_company_id: company?.id ?? null, p_lookback_days: 60 })
-      .then(() => { /* trigger reload of smart data */ loadSmart(); })
-      .catch((e) => console.error('refresh_all_inferred_schedules', e));
+    (async () => {
+      try {
+        await supabase.rpc('refresh_all_inferred_schedules' as any, { p_company_id: company?.id ?? null, p_lookback_days: 60 });
+      } catch (e) {
+        console.error('refresh_all_inferred_schedules', e);
+      }
+      loadSmart();
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company?.id]);
 
