@@ -908,6 +908,9 @@ export type Database = {
         Row: {
           active: boolean
           area: string | null
+          buk_company_id: number | null
+          buk_contract_type: string | null
+          buk_days: Json | null
           buk_employee_id: string | null
           buk_synced_at: string | null
           cost_center: string | null
@@ -931,6 +934,9 @@ export type Database = {
         Insert: {
           active?: boolean
           area?: string | null
+          buk_company_id?: number | null
+          buk_contract_type?: string | null
+          buk_days?: Json | null
           buk_employee_id?: string | null
           buk_synced_at?: string | null
           cost_center?: string | null
@@ -954,6 +960,9 @@ export type Database = {
         Update: {
           active?: boolean
           area?: string | null
+          buk_company_id?: number | null
+          buk_contract_type?: string | null
+          buk_days?: Json | null
           buk_employee_id?: string | null
           buk_synced_at?: string | null
           cost_center?: string | null
@@ -1483,6 +1492,31 @@ export type Database = {
             Returns: number
           }
       refresh_attendance_mirror: { Args: never; Returns: undefined }
+      sync_contracts_from_workers: { Args: never; Returns: Json }
+      update_contract_salary_by_rut: {
+        Args: { p_liquid_salary: number; p_rut: string }
+        Returns: Json
+      }
+      update_worker_schedule_from_buk: {
+        Args: {
+          p_buk_employee_id: string
+          p_dias_activos: string
+          p_weekly_hours: number
+        }
+        Returns: Json
+      }
+      upsert_worker_contract: {
+        Args: {
+          p_buk_employee_id: string
+          p_contract_type: string
+          p_end_date?: string
+          p_modality: string
+          p_position?: string
+          p_start_date?: string
+          p_weekly_hours?: number
+        }
+        Returns: Json
+      }
     }
     Enums: {
       app_role: "admin" | "user"
