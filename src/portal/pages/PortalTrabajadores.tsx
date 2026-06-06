@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
@@ -7,8 +7,9 @@ import PortalPageHeader from '../components/PortalPageHeader';
 import { formatRut } from '../lib/formatRut';
 import { sucursalName, sucursalGeoIndex } from '../lib/sucursales';
 import WorkerNameLink from '../components/WorkerNameLink';
+import SearchAutocomplete, { type AutocompleteItem } from '../components/SearchAutocomplete';
 import { useSucursalesCount } from '../hooks/useSucursalesCount';
-import { Search, ArrowRight, ChevronDown, MapPin, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { ArrowRight, ChevronDown, MapPin, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 
 interface Worker {
   id: string;
