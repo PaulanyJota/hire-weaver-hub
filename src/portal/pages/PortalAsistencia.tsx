@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Clock, AlertTriangle, CheckCircle2, UserX, ArrowUpDown } from 'lucide-react';
+import { Clock, AlertTriangle, CheckCircle2, UserX, ArrowUpDown, X } from 'lucide-react';
 import { PortalAvatar } from '../components/Avatar';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import PortalPageHeader from '../components/PortalPageHeader';
-import AttendanceTeamStatus from '../components/AttendanceTeamStatus';
+import AttendanceTeamStatus, { type PresenteRow } from '../components/AttendanceTeamStatus';
 import WorkerNameLink from '../components/WorkerNameLink';
 import { useSucursalesCount } from '../hooks/useSucursalesCount';
 import { sucursalGeoIndexByName } from '../lib/sucursales';
