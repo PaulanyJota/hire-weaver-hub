@@ -123,6 +123,27 @@ export default function PortalTrabajadorDetalle() {
       setSalaryHist(((sal.data ?? []) as any[]).map((r: any) => ({
         period: r.period, liquid_salary: Number(r.liquid_salary ?? 0), delta_pct: r.delta_pct == null ? null : Number(r.delta_pct),
       })));
+
+      // Inferred schedule: try to fetch; if missing, infer then fetch again
+      const fetchInferred = async () => {
+        const { data: row } = await supabase.from('worker_inferred_schedule' as any)
+          .select('dias_activos, hora_entrada, hora_salida, jornada_horas')
+          .eq('worker_id', id).maybeSingle();
+        return row as any;
+      };
+      let sched = await fetchInferred();
+      if (!sched) {
+        await supabase.rpc('infer_worker_schedule' as any, { p_worker_id: id, p_lookback_days: 60 });
+        sched = await fetchInferred();
+      }
+      if (!cancelled && sched) {
+        setInferred({
+          dias_activos: Array.isArray(sched.dias_activos) ? sched.dias_activos.map((n: any) => Number(n)) : [],
+          hora_entrada: sched.hora_entrada ?? null,
+          hora_salida: sched.hora_salida ?? null,
+          jornada_horas: sched.jornada_horas != null ? Number(sched.jornada_horas) : null,
+        });
+      }
       setLoading(false);
     };
     load();
