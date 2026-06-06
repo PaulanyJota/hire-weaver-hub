@@ -35,7 +35,7 @@ interface AttRow { worker_id: string; date: string; worked_hours: number | null 
 interface WorkerRow { id: string; first_name: string; last_name: string; cost_center: string | null; hire_date: string | null; active: boolean }
 interface ContractRow { worker_id: string; end_date: string | null; is_current: boolean }
 
-const PALETTE = ['#1B3A5C', '#F97316', '#3DA5E0', '#1D9E75', '#0F2440', '#7C3AED', '#EAB308', '#DC2626'];
+const PALETTE = ['#1B3A5C', '#F97316', '#3DA5E0', '#1D9E75', '#0F2440', '#1d4ed8', '#EAB308', '#DC2626'];
 
 const last7Days = () => {
   const days: string[] = [];

@@ -165,7 +165,7 @@ export default function PortalContratos() {
       {/* Header gradient */}
       <header
         className="relative overflow-hidden rounded-2xl p-6 text-white shadow-lg"
-        style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%)' }}
       >
         <div className="absolute -top-20 -right-10 w-72 h-72 rounded-full opacity-25 blur-3xl"
           style={{ background: 'radial-gradient(closest-side, #f9a8d4, transparent)' }} />
@@ -202,7 +202,7 @@ export default function PortalContratos() {
       {venc30.length > 0 && (
         <div
           className="rounded-2xl p-5 text-white shadow-md cursor-pointer transition-transform hover:scale-[1.005]"
-          style={{ background: 'linear-gradient(135deg, #ec4899 0%, #f43f5e 100%)' }}
+          style={{ background: 'linear-gradient(135deg, #1e40af 0%, #f43f5e 100%)' }}
           onClick={() => setShowVenc(v => !v)}
         >
           <div className="flex items-center gap-3">
@@ -247,7 +247,7 @@ export default function PortalContratos() {
       {/* Masa salarial por sucursal */}
       <section className="p-card overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-2">
-          <Building2 className="w-4 h-4" style={{ color: '#a855f7' }} />
+          <Building2 className="w-4 h-4" style={{ color: '#2563eb' }} />
           <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Masa salarial por sucursal</h2>
           <span className="ml-auto text-xs text-muted-foreground">{(kpis?.masa_por_sucursal ?? []).length} sucursales</span>
         </div>
@@ -267,12 +267,12 @@ export default function PortalContratos() {
               ) : (kpis!.masa_por_sucursal).map(r => (
                 <tr
                   key={r.cost_center}
-                  className="cursor-pointer hover:bg-purple-50/50"
+                  className="cursor-pointer hover:bg-blue-50/50"
                   onClick={() => navigate(`/portal/sucursal/${encodeURIComponent(r.cost_center)}`)}
                 >
                   <td className="font-semibold" style={{ color: '#1B3A5C' }}>{r.branch_name}</td>
                   <td className="text-right tabular-nums">{r.worker_count}</td>
-                  <td className="text-right font-mono tabular-nums font-bold" style={{ color: '#a855f7' }}>{fmtCLP(r.total_liquid)}</td>
+                  <td className="text-right font-mono tabular-nums font-bold" style={{ color: '#2563eb' }}>{fmtCLP(r.total_liquid)}</td>
                   <td className="text-right pr-4"><ArrowRight className="w-4 h-4 inline text-muted-foreground" /></td>
                 </tr>
               ))}
@@ -284,7 +284,7 @@ export default function PortalContratos() {
       {/* Trabajadores */}
       <section className="p-card overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-2">
-          <Users className="w-4 h-4" style={{ color: '#a855f7' }} />
+          <Users className="w-4 h-4" style={{ color: '#2563eb' }} />
           <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Trabajadores y remuneraciones</h2>
           <span className="ml-auto text-xs text-muted-foreground">{sortedWorkers.length} trabajadores</span>
         </div>
@@ -340,7 +340,7 @@ function Kpi({ icon, label, value, extra }: { icon: React.ReactNode; label: stri
   return (
     <div className="rounded-2xl p-4 border border-slate-200 bg-white" style={{ boxShadow: 'var(--p-shadow-sm)' }}>
       <div className="flex items-center gap-2 text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-        <span style={{ color: '#a855f7' }}>{icon}</span>{label}
+        <span style={{ color: '#2563eb' }}>{icon}</span>{label}
       </div>
       <p className="text-2xl font-bold mt-1.5 tracking-tight" style={{ color: '#1B3A5C' }}>{value}</p>
       {extra}

@@ -96,7 +96,7 @@ export default function SucursalPayroll({ costCenter }: { costCenter: string }) 
     <div className="space-y-5">
       <div
         className="rounded-2xl p-5 text-white shadow-lg"
-        style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%)' }}
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -117,7 +117,7 @@ export default function SucursalPayroll({ costCenter }: { costCenter: string }) 
 
       <div
         className="rounded-2xl p-5 text-white shadow-lg"
-        style={{ background: 'linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #ec4899 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%)' }}
       >
         <p className="text-[11px] uppercase tracking-wider font-semibold opacity-80">
           Totales {period && <>· {fmtPeriodSafe(period)}</>}
@@ -173,7 +173,7 @@ export default function SucursalPayroll({ costCenter }: { costCenter: string }) 
                     {Number(r.sueldo_liquido) > 0 ? fmtCLP(r.sueldo_liquido) : <span className="text-muted-foreground">—</span>}
                   </td>
                   <td className="text-right font-mono tabular-nums">{fmtCLP(r.comisiones)}</td>
-                  <td className="text-right font-mono tabular-nums font-bold" style={{ color: '#a855f7' }}>{fmtCLP(r.total)}</td>
+                  <td className="text-right font-mono tabular-nums font-bold" style={{ color: '#2563eb' }}>{fmtCLP(r.total)}</td>
                 </tr>
               ))}
             </tbody>
@@ -183,7 +183,7 @@ export default function SucursalPayroll({ costCenter }: { costCenter: string }) 
                   <td colSpan={3} className="font-bold text-sm" style={{ color: '#1B3A5C' }}>Totales</td>
                   <td className="text-right font-mono tabular-nums font-bold">{fmtCLP(totals.liquido)}</td>
                   <td className="text-right font-mono tabular-nums font-bold">{fmtCLP(totals.comisiones)}</td>
-                  <td className="text-right font-mono tabular-nums font-bold" style={{ color: '#a855f7' }}>{fmtCLP(totals.total)}</td>
+                  <td className="text-right font-mono tabular-nums font-bold" style={{ color: '#2563eb' }}>{fmtCLP(totals.total)}</td>
                 </tr>
               </tfoot>
             )}
