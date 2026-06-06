@@ -4,16 +4,19 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
-  FileText, Users, AlertTriangle, DollarSign, Search, X,
+  FileText, Users, AlertTriangle, DollarSign, Search, X, Briefcase,
 } from 'lucide-react';
 
 const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
 
 const fmtCLP = (n: number | null | undefined) =>
-  n == null ? '—' : '$' + Math.round(Number(n)).toLocaleString('es-CL');
+  n == null || Number(n) === 0 ? '—' : '$' + Math.round(Number(n)).toLocaleString('es-CL');
 
-const fmtDate = (d: string | null) =>
-  d ? new Date(d + 'T00:00:00').toLocaleDateString('es-CL') : '—';
+const fmtDate = (d: string | null) => {
+  if (!d) return null;
+  const [y, m, day] = d.split('-');
+  return `${day}/${m}/${y}`;
+};
 
 const CC_NAME: Record<string, string> = {
   LC_AE: 'Aeropuerto SCL', LC_CO: 'Concepción', LC_LS: 'La Serena', LC_ÑU: 'Ñuñoa',
@@ -29,17 +32,18 @@ interface Row {
   cost_center: string;
   branch: string;
   contract_type: string | null;
+  modality: string | null;
   start_date: string | null;
   end_date: string | null;
   liquid_salary: number;
   position: string | null;
-  modality: string | null;
 }
 
 export default function PortalContratos() {
   const { company } = usePortalAuth();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [showVenc, setShowVenc] = useState(false);
 
@@ -47,45 +51,50 @@ export default function PortalContratos() {
     let cancelled = false;
     const load = async () => {
       setLoading(true);
+      setError(null);
       const cid = company?.id ?? LUCANO_COMPANY_ID;
+      try {
+        const { data, error } = await supabase
+          .from('portal_contracts')
+          .select(`
+            id, worker_id, contract_type, modality, start_date, end_date,
+            liquid_salary, position, is_current,
+            portal_workers!inner ( id, first_name, last_name, cost_center, portal_company_id )
+          `)
+          .eq('is_current', true)
+          .eq('portal_workers.portal_company_id', cid);
 
-      const { data, error } = await supabase
-        .from('portal_contracts')
-        .select(`
-          worker_id, contract_type, start_date, end_date, liquid_salary, position, modality, is_current,
-          portal_workers!inner ( id, first_name, last_name, cost_center, portal_company_id )
-        `)
-        .eq('is_current', true)
-        .eq('portal_workers.portal_company_id', cid);
+        if (error) throw error;
 
-      if (error) console.error('[PortalContratos]', error);
+        const mapped: Row[] = (data ?? []).map((c: any) => {
+          const w = Array.isArray(c.portal_workers) ? c.portal_workers[0] : c.portal_workers;
+          return {
+            worker_id: w?.id ?? c.worker_id,
+            first_name: w?.first_name ?? '',
+            last_name: w?.last_name ?? '',
+            nombre: `${w?.first_name ?? ''} ${w?.last_name ?? ''}`.trim() || '—',
+            cost_center: w?.cost_center ?? '',
+            branch: CC_NAME[w?.cost_center] ?? w?.cost_center ?? '—',
+            contract_type: c.contract_type,
+            modality: c.modality,
+            start_date: c.start_date,
+            end_date: c.end_date,
+            liquid_salary: Number(c.liquid_salary ?? 0),
+            position: c.position,
+          };
+        });
 
-      const mapped: Row[] = (data ?? []).map((c: any) => {
-        const w = c.portal_workers;
-        return {
-          worker_id: w.id,
-          first_name: w.first_name,
-          last_name: w.last_name,
-          nombre: `${w.first_name} ${w.last_name}`,
-          cost_center: w.cost_center ?? '',
-          branch: CC_NAME[w.cost_center] ?? w.cost_center ?? '—',
-          contract_type: c.contract_type,
-          start_date: c.start_date,
-          end_date: c.end_date,
-          liquid_salary: Number(c.liquid_salary ?? 0),
-          position: c.position,
-          modality: c.modality,
-        };
-      });
+        mapped.sort((a, b) =>
+          (a.cost_center || '').localeCompare(b.cost_center || '') ||
+          (a.last_name || '').localeCompare(b.last_name || '')
+        );
 
-      mapped.sort((a, b) =>
-        (a.cost_center || '').localeCompare(b.cost_center || '') ||
-        (a.last_name || '').localeCompare(b.last_name || '')
-      );
-
-      if (!cancelled) {
-        setRows(mapped);
-        setLoading(false);
+        if (!cancelled) setRows(mapped);
+      } catch (e: any) {
+        console.error('[PortalContratos] load error', e);
+        if (!cancelled) setError(e?.message ?? 'Error al cargar contratos');
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     };
     load();
@@ -96,14 +105,14 @@ export default function PortalContratos() {
     const total = rows.length;
     const indef = rows.filter(r => r.contract_type === 'indefinido').length;
     const plazo = rows.filter(r => r.contract_type === 'plazo_fijo').length;
+    const est = rows.filter(r => (r.modality ?? '').toUpperCase() === 'EST').length;
     const masa = rows.reduce((acc, r) => acc + (r.liquid_salary || 0), 0);
-    const avg = total > 0 ? masa / total : 0;
     return {
       total,
       indef_pct: total ? Math.round((indef / total) * 100) : 0,
       plazo_pct: total ? Math.round((plazo / total) * 100) : 0,
+      est_pct: total ? Math.round((est / total) * 100) : 0,
       masa,
-      avg,
     };
   }, [rows]);
 
@@ -139,7 +148,7 @@ export default function PortalContratos() {
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
-      {/* Header oscuro azul marino (consistente con resto del portal) */}
+      {/* Header */}
       <header
         className="relative overflow-hidden rounded-2xl p-6 text-white shadow-lg"
         style={{ background: 'linear-gradient(135deg, hsl(215 32% 14%) 0%, hsl(213 78% 28%) 55%, hsl(199 89% 42%) 100%)' }}
@@ -155,13 +164,19 @@ export default function PortalContratos() {
         </div>
       </header>
 
+      {error && (
+        <div className="rounded-xl p-4 bg-red-50 border border-red-200 text-red-700 text-sm">
+          {error}
+        </div>
+      )}
+
       {/* KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         <Kpi icon={<Users className="w-4 h-4" />} label="Total trabajadores" value={String(kpis.total)} />
         <Kpi icon={<FileText className="w-4 h-4" />} label="% Indefinidos" value={`${kpis.indef_pct}%`} />
         <Kpi icon={<FileText className="w-4 h-4" />} label="% Plazo fijo" value={`${kpis.plazo_pct}%`} />
+        <Kpi icon={<Briefcase className="w-4 h-4" />} label="% EST" value={`${kpis.est_pct}%`} />
         <Kpi icon={<DollarSign className="w-4 h-4" />} label="Masa salarial" value={fmtCLP(kpis.masa)} />
-        <Kpi icon={<DollarSign className="w-4 h-4" />} label="Líquido promedio" value={fmtCLP(kpis.avg)} />
       </div>
 
       {/* Alerta vencimientos */}
@@ -210,7 +225,7 @@ export default function PortalContratos() {
         </div>
       )}
 
-      {/* Tabla de trabajadores */}
+      {/* Tabla */}
       <section className="p-card overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="flex items-center gap-2">
@@ -239,42 +254,42 @@ export default function PortalContratos() {
           </div>
         </div>
         <div className="overflow-x-auto">
-          <table className="p-table">
+          <table className="p-table w-full">
             <thead>
-              <tr>
-                <th>Nombre</th>
-                <th>Sucursal</th>
-                <th>Tipo de contrato</th>
-                <th>Vencimiento</th>
-                <th className="text-right">Sueldo líquido</th>
+              <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                <th className="px-6 py-3 font-semibold">Nombre</th>
+                <th className="px-4 py-3 font-semibold">Sucursal</th>
+                <th className="px-4 py-3 font-semibold">Tipo</th>
+                <th className="px-4 py-3 font-semibold">Modalidad</th>
+                <th className="px-4 py-3 font-semibold">Vencimiento</th>
+                <th className="px-6 py-3 font-semibold text-right">Sueldo líquido</th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={5} className="p-10 text-center text-muted-foreground">Sin resultados.</td></tr>
+                <tr><td colSpan={6} className="p-10 text-center text-muted-foreground">Sin resultados.</td></tr>
               ) : filtered.map(r => (
-                <tr key={r.worker_id}>
-                  <td>
+                <tr key={r.worker_id} className="border-b border-slate-100 hover:bg-slate-50/60">
+                  <td className="px-6 py-3">
                     <Link to={`/portal/trabajadores/${r.worker_id}`} className="font-semibold hover:underline" style={{ color: '#1B3A5C' }}>
                       {r.nombre}
                     </Link>
                     {r.position && <p className="text-[11px] text-slate-500">{r.position}</p>}
                   </td>
-                  <td className="text-xs">
+                  <td className="px-4 py-3 text-xs">
                     <span className="font-medium text-slate-700">{r.branch}</span>
                     {r.cost_center && r.cost_center !== r.branch && (
                       <span className="ml-1 text-slate-400 font-mono">({r.cost_center})</span>
                     )}
                   </td>
-                  <td>
-                    <ContractBadge type={r.contract_type} />
-                  </td>
-                  <td className="font-mono text-xs">
+                  <td className="px-4 py-3"><ContractBadge type={r.contract_type} /></td>
+                  <td className="px-4 py-3"><ModalityBadge modality={r.modality} /></td>
+                  <td className="px-4 py-3 font-mono text-xs">
                     {r.end_date
                       ? <span className="text-slate-700">{fmtDate(r.end_date)}</span>
                       : <span className="text-slate-400 italic">Sin vencimiento</span>}
                   </td>
-                  <td className="text-right font-mono tabular-nums font-semibold" style={{ color: '#1B3A5C' }}>
+                  <td className="px-6 py-3 text-right font-mono tabular-nums font-semibold" style={{ color: '#1B3A5C' }}>
                     {r.liquid_salary > 0 ? fmtCLP(r.liquid_salary) : <span className="text-slate-400 font-normal">—</span>}
                   </td>
                 </tr>
@@ -314,4 +329,21 @@ function ContractBadge({ type }: { type: string | null }) {
     );
   }
   return <span className="text-xs text-slate-400">—</span>;
+}
+
+function ModalityBadge({ modality }: { modality: string | null }) {
+  if (!modality) return <span className="text-xs text-slate-400">—</span>;
+  const m = modality.toUpperCase();
+  if (m === 'EST') {
+    return (
+      <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-sky-50 text-sky-700 border border-sky-200">
+        EST
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+      Outsourcing
+    </span>
+  );
 }
