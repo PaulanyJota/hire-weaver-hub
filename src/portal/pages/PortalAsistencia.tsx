@@ -284,7 +284,7 @@ export default function PortalAsistencia() {
                   key={t}
                   onClick={() => setModalTab(t)}
                   className={`px-3 py-2 text-xs font-bold border-b-2 transition-colors ${
-                    modalTab === t ? 'border-[#7c3aed] text-[#7c3aed]' : 'border-transparent text-slate-500 hover:text-slate-700'
+                    modalTab === t ? 'border-[#1d4ed8] text-[#1d4ed8]' : 'border-transparent text-slate-500 hover:text-slate-700'
                   }`}
                 >
                   {t === 'presentes' ? `Presentes (${smart.presentes.length})` : `Ausentes esperados (${smart.ausentes.length})`}
