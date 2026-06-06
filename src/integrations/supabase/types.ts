@@ -1161,6 +1161,44 @@ export type Database = {
         }
         Relationships: []
       }
+      worker_inferred_schedule: {
+        Row: {
+          dias_activos: Json
+          hora_entrada: string | null
+          hora_salida: string | null
+          jornada_horas: number | null
+          record_count: number
+          updated_at: string
+          worker_id: string
+        }
+        Insert: {
+          dias_activos?: Json
+          hora_entrada?: string | null
+          hora_salida?: string | null
+          jornada_horas?: number | null
+          record_count?: number
+          updated_at?: string
+          worker_id: string
+        }
+        Update: {
+          dias_activos?: Json
+          hora_entrada?: string | null
+          hora_salida?: string | null
+          jornada_horas?: number | null
+          record_count?: number
+          updated_at?: string
+          worker_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "worker_inferred_schedule_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: true
+            referencedRelation: "portal_workers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       portal_dashboard_metrics: {
@@ -1226,6 +1264,10 @@ export type Database = {
           worked_hours: number
           worker_id: string
         }[]
+      }
+      get_attendance_today_smart: {
+        Args: { p_company_id: string; p_date?: string }
+        Returns: Json
       }
       get_attendance_trend: {
         Args: { p_days?: number }
@@ -1420,10 +1462,21 @@ export type Database = {
         }
         Returns: boolean
       }
+      infer_worker_schedule: {
+        Args: { p_lookback_days?: number; p_worker_id: string }
+        Returns: undefined
+      }
       normalize_postulante_nombre: { Args: { n: string }; Returns: string }
       portal_current_user_company_id: { Args: never; Returns: string }
       portal_is_admin: { Args: never; Returns: boolean }
       portal_is_nodo_admin: { Args: never; Returns: boolean }
+      refresh_all_inferred_schedules: {
+        Args: { p_company_id?: string }
+        Returns: {
+          status: string
+          worker_id: string
+        }[]
+      }
       refresh_attendance_mirror: { Args: never; Returns: undefined }
     }
     Enums: {
