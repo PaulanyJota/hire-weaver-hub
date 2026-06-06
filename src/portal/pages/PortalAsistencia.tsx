@@ -42,6 +42,44 @@ export default function PortalAsistencia() {
   const [sortKey, setSortKey] = useState<SortKey>('pct_puntualidad');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
+  // Smart attendance (Parte C)
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  });
+  type SmartData = {
+    esperados_hoy: number;
+    marcaron_hoy: number;
+    pct_asistencia_real: number;
+    presentes: PresenteRow[];
+    ausentes: Array<{ worker_id: string; nombre: string; branch_name: string | null; cost_center?: string | null }>;
+  };
+  const [smart, setSmart] = useState<SmartData | null>(null);
+  const [smartLoading, setSmartLoading] = useState(true);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalTab, setModalTab] = useState<'presentes' | 'ausentes'>('presentes');
+
+  // Refresh all inferred schedules once on mount (best-effort)
+  useEffect(() => {
+    supabase.rpc('refresh_all_inferred_schedules' as any, { p_company_id: company?.id ?? null, p_lookback_days: 60 })
+      .then(() => { /* trigger reload of smart data */ loadSmart(); })
+      .catch((e) => console.error('refresh_all_inferred_schedules', e));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [company?.id]);
+
+  const loadSmart = async () => {
+    setSmartLoading(true);
+    const { data, error } = await supabase.rpc('get_attendance_today_smart' as any, {
+      p_company_id: company?.id ?? null,
+      p_date: selectedDate,
+    });
+    if (error) console.error('get_attendance_today_smart', error);
+    setSmart((data as SmartData) ?? null);
+    setSmartLoading(false);
+  };
+
+  useEffect(() => { loadSmart(); /* eslint-disable-next-line */ }, [selectedDate, company?.id]);
+
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
