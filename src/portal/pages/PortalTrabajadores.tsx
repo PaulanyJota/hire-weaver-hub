@@ -41,6 +41,7 @@ export default function PortalTrabajadores() {
   const [expandedSucursales, setExpandedSucursales] = useState<Record<string, boolean>>({});
   const [sort, setSort] = useState<SortState>({ columna: 'name', direccion: 'asc' });
   const sucursalesCount = useSucursalesCount();
+  const navigate = useNavigate();
 
   const toggleSort = (key: SortKey) => {
     setSort(current => {
