@@ -1266,7 +1266,7 @@ export type Database = {
         }[]
       }
       get_attendance_today_smart: {
-        Args: { p_company_id: string; p_date?: string }
+        Args: { p_company_id: string; p_date: string }
         Returns: Json
       }
       get_attendance_trend: {
@@ -1470,13 +1470,18 @@ export type Database = {
       portal_current_user_company_id: { Args: never; Returns: string }
       portal_is_admin: { Args: never; Returns: boolean }
       portal_is_nodo_admin: { Args: never; Returns: boolean }
-      refresh_all_inferred_schedules: {
-        Args: { p_company_id?: string }
-        Returns: {
-          status: string
-          worker_id: string
-        }[]
-      }
+      refresh_all_inferred_schedules:
+        | {
+            Args: { p_company_id?: string }
+            Returns: {
+              status: string
+              worker_id: string
+            }[]
+          }
+        | {
+            Args: { p_company_id?: string; p_lookback_days?: number }
+            Returns: number
+          }
       refresh_attendance_mirror: { Args: never; Returns: undefined }
     }
     Enums: {

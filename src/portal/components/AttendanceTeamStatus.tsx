@@ -21,7 +21,9 @@ type StatusRow = {
 const DEFAULT_MSG =
   'Hola {nombre}! 👋 Te escribimos desde Nodo Talentos. Notamos que no has marcado asistencia hoy. ¿Pudiste marcar? Si tienes algún problema, avísanos. ¡Gracias!';
 
-export default function AttendanceTeamStatus() {
+export type PresenteRow = { worker_id: string; nombre: string; branch_name: string | null; cost_center?: string | null; hora_entrada: string | null };
+
+export default function AttendanceTeamStatus({ presentesOverride }: { presentesOverride?: PresenteRow[] } = {}) {
   const [rows, setRows] = useState<StatusRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalWorker, setModalWorker] = useState<StatusRow | null>(null);
@@ -98,23 +100,37 @@ export default function AttendanceTeamStatus() {
         {/* Marcaron hoy */}
         <Column
           title="Marcaron hoy"
-          count={marcaron.length}
+          count={presentesOverride ? presentesOverride.length : marcaron.length}
           tone="teal"
           icon={<CheckCircle2 className="w-3.5 h-3.5" />}
           loading={loading}
           empty="Aún no hay marcas registradas hoy."
         >
-          {marcaron.map(w => (
-            <li key={w.worker_id} className="px-3 py-2.5 rounded-lg border border-slate-200 bg-white flex items-start gap-2">
-              <div className="min-w-0 flex-1">
-                <WorkerNameLink workerId={w.worker_id} name={w.nombre} sucursal={w.sucursal} className="text-sm" />
-                <p className="text-[11px] truncate mt-0.5" style={{ color: 'hsl(var(--p-muted))' }}>
-                  {w.cargo ?? 'Sin cargo'}
-                </p>
-              </div>
-              <span className="shrink-0 mt-0.5 w-2 h-2 rounded-full" style={{ background: '#1D9E75' }} />
-            </li>
-          ))}
+          {presentesOverride
+            ? presentesOverride.map(p => (
+                <li key={p.worker_id} className="px-3 py-2.5 rounded-lg border border-slate-200 bg-white flex items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <WorkerNameLink workerId={p.worker_id} name={p.nombre} sucursal={p.branch_name ?? p.cost_center ?? null} className="text-sm" />
+                    <p className="text-[11px] truncate mt-0.5" style={{ color: 'hsl(var(--p-muted))' }}>
+                      {p.branch_name ?? '—'}
+                    </p>
+                  </div>
+                  <span className="shrink-0 px-2 py-0.5 rounded-md text-[11px] font-bold tabular-nums bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    {p.hora_entrada ?? '—'}
+                  </span>
+                </li>
+              ))
+            : marcaron.map(w => (
+                <li key={w.worker_id} className="px-3 py-2.5 rounded-lg border border-slate-200 bg-white flex items-start gap-2">
+                  <div className="min-w-0 flex-1">
+                    <WorkerNameLink workerId={w.worker_id} name={w.nombre} sucursal={w.sucursal} className="text-sm" />
+                    <p className="text-[11px] truncate mt-0.5" style={{ color: 'hsl(var(--p-muted))' }}>
+                      {w.cargo ?? 'Sin cargo'}
+                    </p>
+                  </div>
+                  <span className="shrink-0 mt-0.5 w-2 h-2 rounded-full" style={{ background: '#1D9E75' }} />
+                </li>
+              ))}
         </Column>
 
         {/* Recordar */}
