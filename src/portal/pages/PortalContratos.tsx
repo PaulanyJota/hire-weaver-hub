@@ -267,7 +267,7 @@ export default function PortalContratos() {
               ) : (kpis!.masa_por_sucursal).map(r => (
                 <tr
                   key={r.cost_center}
-                  className="cursor-pointer hover:bg-blue-50/50"
+                  className="cursor-pointer hover:bg-orange-50/50"
                   onClick={() => navigate(`/portal/sucursal/${encodeURIComponent(r.cost_center)}`)}
                 >
                   <td className="font-semibold" style={{ color: '#1B3A5C' }}>{r.branch_name}</td>

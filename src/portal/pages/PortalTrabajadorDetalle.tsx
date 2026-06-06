@@ -306,7 +306,7 @@ export default function PortalTrabajadorDetalle() {
           <span className="ml-auto text-xs text-muted-foreground tabular-nums">{payHistory.length} período{payHistory.length === 1 ? '' : 's'}</span>
         </div>
         {salaryHist.length >= 2 && (
-          <div className="px-6 py-4 border-b border-slate-200 bg-gradient-to-br from-blue-50/40 to-slate-50/40">
+          <div className="px-6 py-4 border-b border-slate-200 bg-gradient-to-br from-orange-50/40 to-slate-50/40">
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Evolución sueldo líquido</p>
             <div className="h-32">
               <ResponsiveContainer width="100%" height="100%">
