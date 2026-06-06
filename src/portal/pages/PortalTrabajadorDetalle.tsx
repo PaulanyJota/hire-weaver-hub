@@ -239,7 +239,7 @@ export default function PortalTrabajadorDetalle() {
       {/* Contrato */}
       <section
         className="rounded-2xl p-6 text-white shadow-lg"
-        style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #F97316 0%, #FB923C 50%, #EA580C 100%)' }}
       >
         <p className="text-[11px] uppercase tracking-wider font-semibold opacity-80">Contrato</p>
         <h2 className="text-xl font-bold mt-1">Información contractual</h2>
@@ -254,7 +254,7 @@ export default function PortalTrabajadorDetalle() {
       {/* Horario inferido */}
       <section className="p-card p-6">
         <div className="flex items-center gap-2 mb-4">
-          <Clock className="w-4 h-4" style={{ color: '#2563eb' }} />
+          <Clock className="w-4 h-4" style={{ color: '#FB923C' }} />
           <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Horario inferido</h2>
           <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">según marcaciones últimos 60 días</span>
         </div>
@@ -271,7 +271,7 @@ export default function PortalTrabajadorDetalle() {
                     <span key={i}
                       className="px-2.5 py-1 rounded-lg text-xs font-bold"
                       style={active
-                        ? { background: 'linear-gradient(135deg, #1d4ed8, #1e40af)', color: 'white' }
+                        ? { background: 'linear-gradient(135deg, #F97316, #EA580C)', color: 'white' }
                         : { background: '#f1f5f9', color: '#94a3b8' }}>
                       {d}
                     </span>
@@ -301,7 +301,7 @@ export default function PortalTrabajadorDetalle() {
       {/* Remuneraciones */}
       <section className="p-card overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-2">
-          <DollarSign className="w-4 h-4" style={{ color: '#2563eb' }} />
+          <DollarSign className="w-4 h-4" style={{ color: '#FB923C' }} />
           <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Remuneraciones</h2>
           <span className="ml-auto text-xs text-muted-foreground tabular-nums">{payHistory.length} período{payHistory.length === 1 ? '' : 's'}</span>
         </div>
@@ -316,8 +316,8 @@ export default function PortalTrabajadorDetalle() {
                 }))} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
                   <defs>
                     <linearGradient id="gSalLine" x1="0" y1="0" x2="1" y2="0">
-                      <stop offset="0%" stopColor="#1d4ed8" />
-                      <stop offset="100%" stopColor="#1e40af" />
+                      <stop offset="0%" stopColor="#F97316" />
+                      <stop offset="100%" stopColor="#EA580C" />
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
@@ -328,7 +328,7 @@ export default function PortalTrabajadorDetalle() {
                     formatter={(v: any) => ['$' + Math.round(Number(v)).toLocaleString('es-CL'), 'Líquido']}
                     contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }}
                   />
-                  <Line type="monotone" dataKey="liquido" stroke="url(#gSalLine)" strokeWidth={3} dot={{ r: 3, fill: '#2563eb' }} activeDot={{ r: 5 }} />
+                  <Line type="monotone" dataKey="liquido" stroke="url(#gSalLine)" strokeWidth={3} dot={{ r: 3, fill: '#FB923C' }} activeDot={{ r: 5 }} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -354,7 +354,7 @@ export default function PortalTrabajadorDetalle() {
                     {Number(r.sueldo_liquido) > 0 ? '$' + Math.round(Number(r.sueldo_liquido)).toLocaleString('es-CL') : <span className="text-muted-foreground">—</span>}
                   </td>
                   <td className="text-right font-mono tabular-nums">{'$' + Math.round(Number(r.comisiones) || 0).toLocaleString('es-CL')}</td>
-                  <td className="text-right font-mono tabular-nums font-bold" style={{ color: '#2563eb' }}>{'$' + Math.round(Number(r.total) || 0).toLocaleString('es-CL')}</td>
+                  <td className="text-right font-mono tabular-nums font-bold" style={{ color: '#FB923C' }}>{'$' + Math.round(Number(r.total) || 0).toLocaleString('es-CL')}</td>
                 </tr>
               ))}
             </tbody>

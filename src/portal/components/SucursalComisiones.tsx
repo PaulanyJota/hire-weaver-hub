@@ -150,7 +150,7 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
       {/* Header con selector y KPIs */}
       <div
         className="rounded-2xl p-5 text-white shadow-lg"
-        style={{ background: 'linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #1e40af 100%)' }}
+        style={{ background: 'linear-gradient(135deg, #F97316 0%, #FB923C 50%, #EA580C 100%)' }}
       >
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
@@ -219,7 +219,7 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
       {/* Gráfico evolución */}
       <div className="p-card p-5">
         <div className="flex items-center gap-2 mb-4">
-          <TrendingUp className="w-4 h-4" style={{ color: '#2563eb' }} />
+          <TrendingUp className="w-4 h-4" style={{ color: '#FB923C' }} />
           <h3 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>
             Evolución por período
           </h3>
@@ -229,8 +229,8 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
             <BarChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="gradComm" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#2563eb" />
-                  <stop offset="100%" stopColor="#1e40af" />
+                  <stop offset="0%" stopColor="#FB923C" />
+                  <stop offset="100%" stopColor="#EA580C" />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
@@ -291,7 +291,7 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
                       </div>
                     </div>
                     <div className="text-right shrink-0">
-                      <p className="font-bold tabular-nums text-sm" style={{ color: '#2563eb' }}>{fmtCLP(g.total)}</p>
+                      <p className="font-bold tabular-nums text-sm" style={{ color: '#FB923C' }}>{fmtCLP(g.total)}</p>
                       <p className="text-[10px] text-muted-foreground">{g.items.length} concepto{g.items.length === 1 ? '' : 's'}</p>
                     </div>
                   </div>
