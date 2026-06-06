@@ -248,6 +248,7 @@ export default function PortalTrabajadorDetalle() {
           <ContractTile label="Vencimiento" value={profileExt?.contract_end ? new Date(profileExt.contract_end + 'T00:00:00').toLocaleDateString('es-CL') : '—'} />
           <ContractTile label="Modalidad" value={profileExt?.modality ?? '—'} />
           <ContractTile label="Horas semanales" value={profileExt?.weekly_hours != null ? `${profileExt.weekly_hours} h` : '—'} />
+        </div>
       </section>
 
       {/* Horario inferido */}
