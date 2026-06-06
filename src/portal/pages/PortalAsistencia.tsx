@@ -72,10 +72,11 @@ export default function PortalAsistencia() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company?.id]);
 
+  const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
   const loadSmart = async () => {
     setSmartLoading(true);
     const { data, error } = await supabase.rpc('get_attendance_today_smart' as any, {
-      p_company_id: company?.id ?? null,
+      p_company_id: company?.id ?? LUCANO_COMPANY_ID,
       p_date: selectedDate,
     });
     if (error) console.error('get_attendance_today_smart', error);
@@ -209,18 +210,28 @@ export default function PortalAsistencia() {
           onClick={() => smart && smart.esperados_hoy > 0 && setModalOpen(true)}
           className="text-left p-card p-5 hover:shadow-md transition-shadow disabled:cursor-default"
           disabled={!smart || smart.esperados_hoy === 0}
+          title={smart && smart.esperados_hoy === 0 ? 'Ningún trabajador tiene turno programado para hoy' : undefined}
         >
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'hsl(var(--p-muted))' }}>Asistencia hoy</span>
             <span className="w-7 h-7 rounded-lg flex items-center justify-center bg-blue-50 text-blue-700"><Clock className="w-4 h-4" /></span>
           </div>
-          <div className="mt-3 text-2xl font-bold tabular-nums tracking-tight" style={{ color: 'hsl(var(--p-text))' }}>
-            {smartLoading || !smart ? <Skeleton className="h-7 w-24" /> : `${smart.marcaron_hoy}/${smart.esperados_hoy}`}
-          </div>
-          {smart && !smartLoading && (
-            <p className="text-[11px] mt-1" style={{ color: 'hsl(var(--p-muted))' }}>
-              {Number(smart.pct_asistencia_real ?? 0)}% · Basado en horario de cada trabajador
-            </p>
+          {smartLoading || !smart ? (
+            <div className="mt-3"><Skeleton className="h-7 w-24" /></div>
+          ) : smart.esperados_hoy === 0 ? (
+            <>
+              <div className="mt-3 text-2xl font-bold tabular-nums tracking-tight text-slate-400">0 esperados hoy</div>
+              <p className="text-[11px] mt-1" style={{ color: 'hsl(var(--p-muted))' }}>Sin turnos programados</p>
+            </>
+          ) : (
+            <>
+              <div className="mt-3 text-2xl font-bold tabular-nums tracking-tight" style={{ color: 'hsl(var(--p-text))' }}>
+                {smart.marcaron_hoy}/{smart.esperados_hoy}
+              </div>
+              <p className="text-[11px] mt-1" style={{ color: 'hsl(var(--p-muted))' }}>
+                {Number(smart.pct_asistencia_real ?? 0)}% · Basado en horario de cada trabajador
+              </p>
+            </>
           )}
         </button>
         <MetricCard
