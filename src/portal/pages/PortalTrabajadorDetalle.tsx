@@ -248,8 +248,54 @@ export default function PortalTrabajadorDetalle() {
           <ContractTile label="Vencimiento" value={profileExt?.contract_end ? new Date(profileExt.contract_end + 'T00:00:00').toLocaleDateString('es-CL') : '—'} />
           <ContractTile label="Modalidad" value={profileExt?.modality ?? '—'} />
           <ContractTile label="Horas semanales" value={profileExt?.weekly_hours != null ? `${profileExt.weekly_hours} h` : '—'} />
-        </div>
       </section>
+
+      {/* Horario inferido */}
+      <section className="p-card p-6">
+        <div className="flex items-center gap-2 mb-4">
+          <Clock className="w-4 h-4" style={{ color: '#a855f7' }} />
+          <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Horario inferido</h2>
+          <span className="ml-auto text-[10px] uppercase tracking-wider text-muted-foreground">según marcaciones últimos 60 días</span>
+        </div>
+        {!inferred ? (
+          <p className="text-sm text-muted-foreground">Sin datos suficientes para inferir horario.</p>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Días activos</p>
+              <div className="flex flex-wrap gap-1.5">
+                {['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].map((d, i) => {
+                  const active = inferred.dias_activos.includes(i);
+                  return (
+                    <span key={i}
+                      className="px-2.5 py-1 rounded-lg text-xs font-bold"
+                      style={active
+                        ? { background: 'linear-gradient(135deg, #7c3aed, #ec4899)', color: 'white' }
+                        : { background: '#f1f5f9', color: '#94a3b8' }}>
+                      {d}
+                    </span>
+                  );
+                })}
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Horario típico</p>
+              <p className="text-lg font-bold tabular-nums" style={{ color: '#1B3A5C' }}>
+                {inferred.hora_entrada ? inferred.hora_entrada.slice(0,5) : '—'}
+                <span className="text-muted-foreground mx-2">→</span>
+                {inferred.hora_salida ? inferred.hora_salida.slice(0,5) : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Jornada promedio</p>
+              <p className="text-lg font-bold tabular-nums" style={{ color: '#1B3A5C' }}>
+                {inferred.jornada_horas != null ? `${inferred.jornada_horas.toFixed(1)} h` : '—'}
+              </p>
+            </div>
+          </div>
+        )}
+      </section>
+
 
       {/* Remuneraciones */}
       <section className="p-card overflow-hidden">
