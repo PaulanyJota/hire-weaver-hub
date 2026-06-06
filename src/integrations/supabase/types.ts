@@ -665,6 +665,7 @@ export type Database = {
           end_date: string | null
           id: string
           is_current: boolean
+          liquid_salary: number | null
           modality: string | null
           position: string | null
           start_date: string | null
@@ -679,6 +680,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           is_current?: boolean
+          liquid_salary?: number | null
           modality?: string | null
           position?: string | null
           start_date?: string | null
@@ -693,6 +695,7 @@ export type Database = {
           end_date?: string | null
           id?: string
           is_current?: boolean
+          liquid_salary?: number | null
           modality?: string | null
           position?: string | null
           start_date?: string | null
@@ -1321,6 +1324,7 @@ export type Database = {
           worker_id: string
         }[]
       }
+      get_contracts_kpis: { Args: { p_company_id?: string }; Returns: Json }
       get_marcaje_control: {
         Args: never
         Returns: {
@@ -1399,6 +1403,14 @@ export type Database = {
           termination_date: string
           weekly_hours: number
           worker_id: string
+        }[]
+      }
+      get_worker_salary_history: {
+        Args: { p_worker_id: string }
+        Returns: {
+          delta_pct: number
+          liquid_salary: number
+          period: string
         }[]
       }
       has_role: {

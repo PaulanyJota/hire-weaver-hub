@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  LineChart, Line,
 } from 'recharts';
 
 interface Worker {
@@ -81,6 +82,7 @@ export default function PortalTrabajadorDetalle() {
   const [absences30, setAbsences30] = useState(0);
   const [profileExt, setProfileExt] = useState<any | null>(null);
   const [payHistory, setPayHistory] = useState<Array<{ period: string; sueldo_liquido: number; comisiones: number; total: number }>>([]);
+  const [salaryHist, setSalaryHist] = useState<Array<{ period: string; liquid_salary: number; delta_pct: number | null }>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -91,7 +93,7 @@ export default function PortalTrabajadorDetalle() {
       const since = new Date(); since.setDate(since.getDate() - 30);
       const sinceStr = since.toISOString().slice(0, 10);
 
-      const [w, c, a, ab, prof, pay] = await Promise.all([
+      const [w, c, a, ab, prof, pay, sal] = await Promise.all([
         supabase.from('portal_workers')
           .select('id, first_name, last_name, rut, rut_display, position, area, sub_area, division, cost_center, hire_date, termination_date, active, photo_url, email, phone')
           .eq('id', id).maybeSingle(),
@@ -106,6 +108,7 @@ export default function PortalTrabajadorDetalle() {
           .eq('worker_id', id).gte('start_date', sinceStr),
         supabase.rpc('get_worker_profile' as any, { p_worker_id: id }),
         supabase.rpc('get_worker_pay_history' as any, { p_worker_id: id }),
+        supabase.rpc('get_worker_salary_history' as any, { p_worker_id: id }),
       ]);
       if (cancelled) return;
       setWorker((w.data as Worker) ?? null);
@@ -116,6 +119,9 @@ export default function PortalTrabajadorDetalle() {
       setProfileExt(profArr[0] ?? null);
       const payArr = ((pay.data ?? []) as any[]).slice().sort((x, y) => (x.period < y.period ? 1 : -1));
       setPayHistory(payArr);
+      setSalaryHist(((sal.data ?? []) as any[]).map((r: any) => ({
+        period: r.period, liquid_salary: Number(r.liquid_salary ?? 0), delta_pct: r.delta_pct == null ? null : Number(r.delta_pct),
+      })));
       setLoading(false);
     };
     load();
@@ -230,6 +236,35 @@ export default function PortalTrabajadorDetalle() {
           <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Remuneraciones</h2>
           <span className="ml-auto text-xs text-muted-foreground tabular-nums">{payHistory.length} período{payHistory.length === 1 ? '' : 's'}</span>
         </div>
+        {salaryHist.length >= 2 && (
+          <div className="px-6 py-4 border-b border-slate-200 bg-gradient-to-br from-purple-50/40 to-pink-50/40">
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Evolución sueldo líquido</p>
+            <div className="h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={salaryHist.map(s => ({
+                  period: fmtPeriodSafe(s.period),
+                  liquido: s.liquid_salary,
+                }))} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gSalLine" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#7c3aed" />
+                      <stop offset="100%" stopColor="#ec4899" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="period" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false}
+                    tickFormatter={(v) => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${Math.round(v / 1000)}k` : v} />
+                  <Tooltip
+                    formatter={(v: any) => ['$' + Math.round(Number(v)).toLocaleString('es-CL'), 'Líquido']}
+                    contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }}
+                  />
+                  <Line type="monotone" dataKey="liquido" stroke="url(#gSalLine)" strokeWidth={3} dot={{ r: 3, fill: '#a855f7' }} activeDot={{ r: 5 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="p-table">
             <thead>
