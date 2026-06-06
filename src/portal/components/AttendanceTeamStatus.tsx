@@ -21,7 +21,9 @@ type StatusRow = {
 const DEFAULT_MSG =
   'Hola {nombre}! 👋 Te escribimos desde Nodo Talentos. Notamos que no has marcado asistencia hoy. ¿Pudiste marcar? Si tienes algún problema, avísanos. ¡Gracias!';
 
-export default function AttendanceTeamStatus() {
+export type PresenteRow = { worker_id: string; nombre: string; branch_name: string | null; cost_center?: string | null; hora_entrada: string | null };
+
+export default function AttendanceTeamStatus({ presentesOverride }: { presentesOverride?: PresenteRow[] } = {}) {
   const [rows, setRows] = useState<StatusRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalWorker, setModalWorker] = useState<StatusRow | null>(null);
