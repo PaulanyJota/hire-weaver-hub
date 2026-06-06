@@ -24,6 +24,7 @@ import PortalSucursalDetalle from "@/portal/pages/PortalSucursalDetalle";
 import PortalControlMarcaje from "@/portal/pages/PortalControlMarcaje";
 import PortalAsistenciasHoy from "@/portal/pages/PortalAsistenciasHoy";
 import PortalHorasSemana from "@/portal/pages/PortalHorasSemana";
+import PortalContratos from "@/portal/pages/PortalContratos";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
                     <Route path="asistencias-hoy" element={<PortalAsistenciasHoy />} />
                     <Route path="horas-semana" element={<PortalHorasSemana />} />
                     <Route path="control-marcaje" element={<PortalControlMarcaje />} />
+                    <Route path="contratos" element={<PortalContratos />} />
                     <Route path="sucursal/:cost_center" element={<PortalSucursalDetalle />} />
                     <Route
                       path="aprobaciones"
