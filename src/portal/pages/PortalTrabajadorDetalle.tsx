@@ -236,6 +236,35 @@ export default function PortalTrabajadorDetalle() {
           <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Remuneraciones</h2>
           <span className="ml-auto text-xs text-muted-foreground tabular-nums">{payHistory.length} período{payHistory.length === 1 ? '' : 's'}</span>
         </div>
+        {salaryHist.length >= 2 && (
+          <div className="px-6 py-4 border-b border-slate-200 bg-gradient-to-br from-purple-50/40 to-pink-50/40">
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Evolución sueldo líquido</p>
+            <div className="h-32">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={salaryHist.map(s => ({
+                  period: fmtPeriodSafe(s.period),
+                  liquido: s.liquid_salary,
+                }))} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gSalLine" x1="0" y1="0" x2="1" y2="0">
+                      <stop offset="0%" stopColor="#7c3aed" />
+                      <stop offset="100%" stopColor="#ec4899" />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                  <XAxis dataKey="period" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                  <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false}
+                    tickFormatter={(v) => v >= 1000000 ? `${(v / 1000000).toFixed(1)}M` : v >= 1000 ? `${Math.round(v / 1000)}k` : v} />
+                  <Tooltip
+                    formatter={(v: any) => ['$' + Math.round(Number(v)).toLocaleString('es-CL'), 'Líquido']}
+                    contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }}
+                  />
+                  <Line type="monotone" dataKey="liquido" stroke="url(#gSalLine)" strokeWidth={3} dot={{ r: 3, fill: '#a855f7' }} activeDot={{ r: 5 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
         <div className="overflow-x-auto">
           <table className="p-table">
             <thead>
