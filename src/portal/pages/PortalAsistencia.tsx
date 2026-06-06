@@ -72,10 +72,11 @@ export default function PortalAsistencia() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [company?.id]);
 
+  const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
   const loadSmart = async () => {
     setSmartLoading(true);
     const { data, error } = await supabase.rpc('get_attendance_today_smart' as any, {
-      p_company_id: company?.id ?? null,
+      p_company_id: company?.id ?? LUCANO_COMPANY_ID,
       p_date: selectedDate,
     });
     if (error) console.error('get_attendance_today_smart', error);
