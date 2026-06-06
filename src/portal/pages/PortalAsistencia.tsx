@@ -181,26 +181,48 @@ export default function PortalAsistencia() {
         title="Asistencia"
         subtitle={`Últimos ${days} días · ${empresaLabel} · ${sucursalesCount ?? sucursales.length} ${(sucursalesCount ?? sucursales.length) === 1 ? 'sucursal' : 'sucursales'}`}
         right={
-          <select
-            className="px-3 py-2 rounded-xl bg-white/10 backdrop-blur border border-white/15 text-white text-xs font-medium focus:outline-none [&>option]:text-foreground"
-            value={days}
-            onChange={e => setDays(Number(e.target.value))}
-          >
-            <option value={7}>Últimos 7 días</option>
-            <option value={30}>Últimos 30 días</option>
-            <option value={90}>Últimos 90 días</option>
-          </select>
+          <div className="flex items-center gap-2">
+            <input
+              type="date"
+              className="px-3 py-2 rounded-xl bg-white/10 backdrop-blur border border-white/15 text-white text-xs font-medium focus:outline-none [color-scheme:dark]"
+              value={selectedDate}
+              max={new Date().toISOString().slice(0, 10)}
+              onChange={e => setSelectedDate(e.target.value)}
+            />
+            <select
+              className="px-3 py-2 rounded-xl bg-white/10 backdrop-blur border border-white/15 text-white text-xs font-medium focus:outline-none [&>option]:text-foreground"
+              value={days}
+              onChange={e => setDays(Number(e.target.value))}
+            >
+              <option value={7}>Últimos 7 días</option>
+              <option value={30}>Últimos 30 días</option>
+              <option value={90}>Últimos 90 días</option>
+            </select>
+          </div>
         }
       />
 
       {/* Metric cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <MetricCard
-          icon={<Clock className="w-4 h-4" />}
-          label="Marcas hoy"
-          value={loading ? null : `${metrics.marcasHoy}/${metrics.total}`}
-          tone="brand"
-        />
+        <button
+          type="button"
+          onClick={() => smart && smart.esperados_hoy > 0 && setModalOpen(true)}
+          className="text-left p-card p-5 hover:shadow-md transition-shadow disabled:cursor-default"
+          disabled={!smart || smart.esperados_hoy === 0}
+        >
+          <div className="flex items-center justify-between">
+            <span className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: 'hsl(var(--p-muted))' }}>Asistencia hoy</span>
+            <span className="w-7 h-7 rounded-lg flex items-center justify-center bg-blue-50 text-blue-700"><Clock className="w-4 h-4" /></span>
+          </div>
+          <div className="mt-3 text-2xl font-bold tabular-nums tracking-tight" style={{ color: 'hsl(var(--p-text))' }}>
+            {smartLoading || !smart ? <Skeleton className="h-7 w-24" /> : `${smart.marcaron_hoy}/${smart.esperados_hoy}`}
+          </div>
+          {smart && !smartLoading && (
+            <p className="text-[11px] mt-1" style={{ color: 'hsl(var(--p-muted))' }}>
+              {Number(smart.pct_asistencia_real ?? 0)}% · Basado en horario de cada trabajador
+            </p>
+          )}
+        </button>
         <MetricCard
           icon={<CheckCircle2 className="w-4 h-4" />}
           label="Puntualidad"
@@ -222,7 +244,88 @@ export default function PortalAsistencia() {
       </div>
 
       {/* Estado de marcaje del equipo */}
-      <AttendanceTeamStatus />
+      <AttendanceTeamStatus presentesOverride={smart?.presentes} />
+
+      {/* Modal Presentes / Ausentes */}
+      {modalOpen && smart && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(15,36,64,0.55)', backdropFilter: 'blur(4px)' }}
+          onClick={() => setModalOpen(false)}
+        >
+          <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-lg overflow-hidden" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start justify-between px-5 py-4 border-b border-slate-200">
+              <div>
+                <h3 className="text-sm font-bold tracking-tight" style={{ color: 'hsl(var(--p-text))' }}>
+                  Asistencia · {new Date(selectedDate + 'T00:00:00').toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long' })}
+                </h3>
+                <p className="text-[11px] mt-0.5 tabular-nums" style={{ color: 'hsl(var(--p-muted))' }}>
+                  {smart.marcaron_hoy} de {smart.esperados_hoy} esperados · {Number(smart.pct_asistencia_real ?? 0)}%
+                </p>
+              </div>
+              <button onClick={() => setModalOpen(false)} className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <div className="flex gap-1 px-5 pt-3 border-b border-slate-200">
+              {(['presentes','ausentes'] as const).map(t => (
+                <button
+                  key={t}
+                  onClick={() => setModalTab(t)}
+                  className={`px-3 py-2 text-xs font-bold border-b-2 transition-colors ${
+                    modalTab === t ? 'border-[#7c3aed] text-[#7c3aed]' : 'border-transparent text-slate-500 hover:text-slate-700'
+                  }`}
+                >
+                  {t === 'presentes' ? `Presentes (${smart.presentes.length})` : `Ausentes esperados (${smart.ausentes.length})`}
+                </button>
+              ))}
+            </div>
+            <div className="max-h-[60vh] overflow-y-auto p-3">
+              {modalTab === 'presentes' ? (
+                smart.presentes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-8 text-center">Nadie ha marcado este día.</p>
+                ) : (
+                  <ul className="space-y-1.5">
+                    {smart.presentes.map(p => (
+                      <li key={p.worker_id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-slate-50">
+                        <div className="min-w-0 flex-1">
+                          <Link to={`/portal/trabajadores/${p.worker_id}`} className="text-sm font-semibold hover:underline" style={{ color: '#1B3A5C' }}>
+                            {p.nombre}
+                          </Link>
+                          <p className="text-[11px] text-muted-foreground truncate">{p.branch_name ?? '—'}</p>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-md text-[11px] font-bold tabular-nums bg-emerald-50 text-emerald-700 border border-emerald-200">
+                          {p.hora_entrada ?? '—'}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              ) : (
+                smart.ausentes.length === 0 ? (
+                  <p className="text-sm text-muted-foreground py-8 text-center">Sin ausentes esperados.</p>
+                ) : (
+                  <ul className="space-y-1.5">
+                    {smart.ausentes.map(a => (
+                      <li key={a.worker_id} className="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-slate-50">
+                        <div className="min-w-0 flex-1">
+                          <Link to={`/portal/trabajadores/${a.worker_id}`} className="text-sm font-semibold hover:underline" style={{ color: '#1B3A5C' }}>
+                            {a.nombre}
+                          </Link>
+                          <p className="text-[11px] text-muted-foreground truncate">{a.branch_name ?? '—'}</p>
+                        </div>
+                        <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-red-50 text-red-700 border border-red-200">
+                          Ausente
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Two column lists */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
