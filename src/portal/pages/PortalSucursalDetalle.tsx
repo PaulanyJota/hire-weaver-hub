@@ -109,7 +109,7 @@ export default function PortalSucursalDetalle() {
               onClick={() => setTab(t.id)}
               className={`inline-flex items-center gap-1.5 px-4 py-2.5 text-sm font-semibold border-b-2 -mb-px transition-colors ${
                 active
-                  ? 'border-purple-500 text-purple-600'
+                  ? 'border-[#1B3A5C] text-[#1B3A5C]'
                   : 'border-transparent text-muted-foreground hover:text-foreground'
               }`}
             >
