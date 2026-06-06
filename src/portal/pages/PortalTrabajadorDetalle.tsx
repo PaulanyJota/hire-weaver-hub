@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
+  LineChart, Line,
 } from 'recharts';
 
 interface Worker {
@@ -81,6 +82,7 @@ export default function PortalTrabajadorDetalle() {
   const [absences30, setAbsences30] = useState(0);
   const [profileExt, setProfileExt] = useState<any | null>(null);
   const [payHistory, setPayHistory] = useState<Array<{ period: string; sueldo_liquido: number; comisiones: number; total: number }>>([]);
+  const [salaryHist, setSalaryHist] = useState<Array<{ period: string; liquid_salary: number; delta_pct: number | null }>>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -91,7 +93,7 @@ export default function PortalTrabajadorDetalle() {
       const since = new Date(); since.setDate(since.getDate() - 30);
       const sinceStr = since.toISOString().slice(0, 10);
 
-      const [w, c, a, ab, prof, pay] = await Promise.all([
+      const [w, c, a, ab, prof, pay, sal] = await Promise.all([
         supabase.from('portal_workers')
           .select('id, first_name, last_name, rut, rut_display, position, area, sub_area, division, cost_center, hire_date, termination_date, active, photo_url, email, phone')
           .eq('id', id).maybeSingle(),
@@ -106,6 +108,7 @@ export default function PortalTrabajadorDetalle() {
           .eq('worker_id', id).gte('start_date', sinceStr),
         supabase.rpc('get_worker_profile' as any, { p_worker_id: id }),
         supabase.rpc('get_worker_pay_history' as any, { p_worker_id: id }),
+        supabase.rpc('get_worker_salary_history' as any, { p_worker_id: id }),
       ]);
       if (cancelled) return;
       setWorker((w.data as Worker) ?? null);
@@ -116,6 +119,9 @@ export default function PortalTrabajadorDetalle() {
       setProfileExt(profArr[0] ?? null);
       const payArr = ((pay.data ?? []) as any[]).slice().sort((x, y) => (x.period < y.period ? 1 : -1));
       setPayHistory(payArr);
+      setSalaryHist(((sal.data ?? []) as any[]).map((r: any) => ({
+        period: r.period, liquid_salary: Number(r.liquid_salary ?? 0), delta_pct: r.delta_pct == null ? null : Number(r.delta_pct),
+      })));
       setLoading(false);
     };
     load();
