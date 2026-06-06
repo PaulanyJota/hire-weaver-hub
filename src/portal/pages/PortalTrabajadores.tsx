@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
@@ -7,8 +7,9 @@ import PortalPageHeader from '../components/PortalPageHeader';
 import { formatRut } from '../lib/formatRut';
 import { sucursalName, sucursalGeoIndex } from '../lib/sucursales';
 import WorkerNameLink from '../components/WorkerNameLink';
+import SearchAutocomplete, { type AutocompleteItem } from '../components/SearchAutocomplete';
 import { useSucursalesCount } from '../hooks/useSucursalesCount';
-import { Search, ArrowRight, ChevronDown, MapPin, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
+import { ArrowRight, ChevronDown, MapPin, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 
 interface Worker {
   id: string;
@@ -40,6 +41,7 @@ export default function PortalTrabajadores() {
   const [expandedSucursales, setExpandedSucursales] = useState<Record<string, boolean>>({});
   const [sort, setSort] = useState<SortState>({ columna: 'name', direccion: 'asc' });
   const sucursalesCount = useSucursalesCount();
+  const navigate = useNavigate();
 
   const toggleSort = (key: SortKey) => {
     setSort(current => {
@@ -133,14 +135,20 @@ export default function PortalTrabajadores() {
 
 
       <div className="p-card p-4 flex flex-wrap gap-3 items-center">
-        <div className="relative flex-1 min-w-[260px]">
-          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <input
-            value={search} onChange={e => setSearch(e.target.value)}
-            placeholder="Buscar por nombre o cargo..."
-            className="p-input pl-9"
-          />
-        </div>
+        <SearchAutocomplete
+          value={search}
+          onChange={setSearch}
+          className="flex-1 min-w-[260px]"
+          placeholder="Buscar por nombre, RUT o cargo..."
+          items={workers.map<AutocompleteItem>(w => ({
+            key: w.id,
+            label: `${w.first_name} ${w.last_name}`,
+            subtitle: [w.position, w.cost_center ? sucursalName(w.cost_center) : null].filter(Boolean).join(' · ') || null,
+            match: [w.rut, w.rut_display, formatRut(w.rut ?? w.rut_display), w.position, w.area, w.cost_center ? sucursalName(w.cost_center) : null],
+            data: w,
+          }))}
+          onSelect={(it) => navigate(`/portal/trabajadores/${it.key}`)}
+        />
         <select value={estadoFilter} onChange={e => setEstadoFilter(e.target.value as any)} className="p-select w-auto min-w-[160px]">
           <option value="all">Todos los estados</option>
           <option value="active">Activos</option>
