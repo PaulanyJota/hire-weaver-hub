@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
-import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity, Menu, Flame, Zap, BarChart3 } from 'lucide-react';
+import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity, Menu, Flame, BarChart3 } from 'lucide-react';
 import { usePortalSidebar } from '../hooks/usePortalSidebar';
 
 import {
