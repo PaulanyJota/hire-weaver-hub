@@ -393,7 +393,21 @@ export default function PortalComisiones() {
             </tbody>
           </table>
         )}
+        {(() => {
+          const presentes = new Set(porSucursalSorted.map(s => s.sucursal));
+          const allKnown = Object.keys(BRANCH_ORDER).filter(k => k !== 'LC_NU' && k !== 'LC_VI');
+          const sinCom = allKnown
+            .filter(c => !presentes.has(c) && !presentes.has(c.replace('Ñ', 'N')))
+            .sort((a, b) => (BRANCH_ORDER[a] ?? 99) - (BRANCH_ORDER[b] ?? 99));
+          if (!sinCom.length || loading) return null;
+          return (
+            <div className="px-5 py-3 border-t border-slate-100 text-[11px] text-slate-500">
+              ⚪ Sin comisiones este mes: {sinCom.map(c => branchNameFn(c)).join(' · ')}
+            </div>
+          );
+        })()}
       </section>
+
 
       {/* Por concepto */}
       <section className="p-card overflow-hidden">
