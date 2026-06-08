@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PortalAvatar } from '../components/Avatar';
 import PortalDashboardExtras from '../components/PortalDashboardExtras';
+import UpcomingBirthdaysWidget from '../components/UpcomingBirthdaysWidget';
 import WorkerNameLink from '../components/WorkerNameLink';
 import { useBranchRankingKpis, usePunctualityKpis, useOvertimeKpis, useSalaryKpis } from '../hooks/useBranchRankingKpis';
 import { branchName } from '../constants/branches';
@@ -224,68 +225,71 @@ export default function PortalDashboard() {
       </header>
 
 
-      {/* KPIs */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-stagger">
-        {cards.map(c => {
-          const isOvertime = c.kind === 'overtime';
-          const deltaNode = isOvertime && overtime && (otTotal > 0 || (overtime.total_mes_anterior ?? 0) > 0) ? (
-            <p className={`text-[11px] mt-1 font-medium ${otDelta < 0 ? 'text-emerald-600' : otDelta > 0 ? 'text-slate-500' : 'text-muted-foreground'}`}>
-              {otDelta < 0
-                ? `↓${Math.abs(otDelta).toFixed(1)}% vs mes anterior · buena noticia`
-                : otDelta > 0
-                ? `↑${otDelta.toFixed(1)}% vs mes anterior`
-                : 'igual que mes anterior'}
-            </p>
-          ) : null;
-          const inner = (
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{c.label}</p>
-                {loading ? <Skeleton className="h-9 w-20 mt-2" /> : (
-                  <p className="text-3xl font-bold mt-2 tracking-tight" style={{ color: c.accent }}>{c.value}</p>
-                )}
-                {c.sub && !loading && (
-                  <p className="text-xs mt-1" style={{ color: c.subColor ?? 'hsl(var(--muted-foreground))' }}>{c.sub}</p>
-                )}
-                {deltaNode}
+      {/* KPIs + Cumpleaños */}
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-4 p-stagger">
+        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {cards.map(c => {
+            const isOvertime = c.kind === 'overtime';
+            const deltaNode = isOvertime && overtime && (otTotal > 0 || (overtime.total_mes_anterior ?? 0) > 0) ? (
+              <p className={`text-[11px] mt-1 font-medium ${otDelta < 0 ? 'text-emerald-600' : otDelta > 0 ? 'text-slate-500' : 'text-muted-foreground'}`}>
+                {otDelta < 0
+                  ? `↓${Math.abs(otDelta).toFixed(1)}% vs mes anterior · buena noticia`
+                  : otDelta > 0
+                  ? `↑${otDelta.toFixed(1)}% vs mes anterior`
+                  : 'igual que mes anterior'}
+              </p>
+            ) : null;
+            const inner = (
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{c.label}</p>
+                  {loading ? <Skeleton className="h-9 w-20 mt-2" /> : (
+                    <p className="text-3xl font-bold mt-2 tracking-tight" style={{ color: c.accent }}>{c.value}</p>
+                  )}
+                  {c.sub && !loading && (
+                    <p className="text-xs mt-1" style={{ color: c.subColor ?? 'hsl(var(--muted-foreground))' }}>{c.sub}</p>
+                  )}
+                  {deltaNode}
+                </div>
+                <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                  style={{ background: `${c.accent}15`, color: c.accent }}>
+                  <c.icon className="w-5 h-5" />
+                </div>
               </div>
-              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                style={{ background: `${c.accent}15`, color: c.accent }}>
-                <c.icon className="w-5 h-5" />
+            );
+            if (c.to) {
+              return (
+                <Link
+                  key={c.label}
+                  to={c.to}
+                  className="p-kpi cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all"
+                  style={{ ['--p-kpi-glow' as any]: c.glow }}
+                >
+                  {inner}
+                </Link>
+              );
+            }
+            if (c.onClick) {
+              return (
+                <button
+                  key={c.label}
+                  type="button"
+                  onClick={c.onClick}
+                  className="p-kpi cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all text-left"
+                  style={{ ['--p-kpi-glow' as any]: c.glow }}
+                >
+                  {inner}
+                </button>
+              );
+            }
+            return (
+              <div key={c.label} className="p-kpi" style={{ ['--p-kpi-glow' as any]: c.glow }}>
+                {inner}
               </div>
-            </div>
-          );
-          if (c.to) {
-            return (
-              <Link
-                key={c.label}
-                to={c.to}
-                className="p-kpi cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all"
-                style={{ ['--p-kpi-glow' as any]: c.glow }}
-              >
-                {inner}
-              </Link>
             );
-          }
-          if (c.onClick) {
-            return (
-              <button
-                key={c.label}
-                type="button"
-                onClick={c.onClick}
-                className="p-kpi cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all text-left"
-                style={{ ['--p-kpi-glow' as any]: c.glow }}
-              >
-                {inner}
-              </button>
-            );
-          }
-          return (
-            <div key={c.label} className="p-kpi" style={{ ['--p-kpi-glow' as any]: c.glow }}>
-              {inner}
-            </div>
-          );
-        })}
+          })}
+        </div>
+        <UpcomingBirthdaysWidget companyId={company?.id} />
       </section>
 
       {/* Modal — detalle trabajadores con horas extra */}

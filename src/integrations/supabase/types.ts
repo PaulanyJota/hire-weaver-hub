@@ -908,6 +908,7 @@ export type Database = {
         Row: {
           active: boolean
           area: string | null
+          birth_date: string | null
           buk_company_id: number | null
           buk_contract_type: string | null
           buk_days: Json | null
@@ -934,6 +935,7 @@ export type Database = {
         Insert: {
           active?: boolean
           area?: string | null
+          birth_date?: string | null
           buk_company_id?: number | null
           buk_contract_type?: string | null
           buk_days?: Json | null
@@ -960,6 +962,7 @@ export type Database = {
         Update: {
           active?: boolean
           area?: string | null
+          birth_date?: string | null
           buk_company_id?: number | null
           buk_contract_type?: string | null
           buk_days?: Json | null
@@ -1452,6 +1455,18 @@ export type Database = {
         }[]
       }
       get_salary_kpis: { Args: { p_company_id: string }; Returns: Json }
+      get_upcoming_birthdays: {
+        Args: { p_company_id: string; p_days_ahead?: number }
+        Returns: {
+          age_turning: number
+          birth_date: string
+          birthday_this_year: string
+          cost_center: string
+          days_until: number
+          worker_id: string
+          worker_name: string
+        }[]
+      }
       get_week_hours: {
         Args: { p_company_id?: string }
         Returns: {
