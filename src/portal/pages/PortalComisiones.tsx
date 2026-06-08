@@ -187,12 +187,17 @@ export default function PortalComisiones() {
   // Branch comparative (current period, all branches)
   const branchComparative = useMemo(() => {
     if (!summary?.por_sucursal) return [];
-    return summary.por_sucursal.slice().sort((a, b) => b.total - a.total)
+    return sortByBranch(summary.por_sucursal)
       .map(b => ({ sucursal: sucursalName(b.sucursal), code: b.sucursal, total: b.total }));
   }, [summary]);
 
+  const porSucursalSorted = useMemo(
+    () => sortByBranch(summary?.por_sucursal ?? []),
+    [summary]
+  );
+
   const conceptList = summary?.por_concepto?.map(c => c.concept) ?? [];
-  const branchList = summary?.por_sucursal?.map(b => b.sucursal) ?? [];
+  const branchList = porSucursalSorted.map(b => b.sucursal);
   const enrichedWorkers = useMemo(() => {
     return (summary?.top_workers ?? []).slice().sort((a, b) => b.total - a.total).map(w => ({
       ...w,
