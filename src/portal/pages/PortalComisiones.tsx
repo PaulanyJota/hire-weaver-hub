@@ -45,6 +45,16 @@ export default function PortalComisiones() {
     [branchKpis]
   );
 
+  // Modals
+  const [modal, setModal] = useState<null | 'total' | 'concept' | 'branch' | 'workers'>(null);
+  const [expandedBranch, setExpandedBranch] = useState<string | null>(null);
+  const [branchDetails, setBranchDetails] = useState<Record<string, Array<{ worker_id: string; nombre: string; concept: string; amount: number }>>>({});
+  const [allPeriodSummaries, setAllPeriodSummaries] = useState<Summary[]>([]);
+  const [trendLoading, setTrendLoading] = useState(false);
+  const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
+  const [workerConcepts, setWorkerConcepts] = useState<Record<string, string[]>>({});
+
   useEffect(() => {
     let cancel = false;
     (async () => {
