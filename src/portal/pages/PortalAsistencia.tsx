@@ -44,6 +44,7 @@ export default function PortalAsistencia() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [sucursalFilter, setSucursalFilter] = useState<string>('');
+  const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('pct_puntualidad');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
