@@ -91,10 +91,23 @@ export default function PortalComisiones() {
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
   const { data: branchKpis } = useBranchRankingKpis(companyId);
+  const { data: salary } = useSalaryKpis(companyId);
   const perCapita = useMemo(
     () => sortByBranch(branchKpis?.comision_per_capita ?? []),
     [branchKpis]
   );
+
+  // Lookup helpers for top trabajadores: % sobre sueldo (por nombre) y constantes (por nombre)
+  const pctByName = useMemo(() => {
+    const m: Record<string, number> = {};
+    (salary?.comision_sobre_sueldo ?? []).forEach(r => { m[r.nombre.trim().toLowerCase()] = Number(r.pct_comision) || 0; });
+    return m;
+  }, [salary]);
+  const constantSet = useMemo(() => {
+    const s = new Set<string>();
+    (salary?.constantes ?? []).forEach(r => s.add(r.nombre.trim().toLowerCase()));
+    return s;
+  }, [salary]);
 
   // Modals
   const [modal, setModal] = useState<null | 'total' | 'concept' | 'branch' | 'workers'>(null);
