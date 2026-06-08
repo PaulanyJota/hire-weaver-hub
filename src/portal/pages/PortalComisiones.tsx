@@ -91,6 +91,7 @@ export default function PortalComisiones() {
   const [period, setPeriod] = useState<string | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const { data: branchKpis } = useBranchRankingKpis(companyId);
   const { data: salary } = useSalaryKpis(companyId);
   const perCapita = useMemo(
