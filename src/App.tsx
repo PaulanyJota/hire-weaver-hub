@@ -62,6 +62,14 @@ const App = () => (
                     <Route path="comisiones" element={<PortalComisiones />} />
                     <Route path="sucursal/:cost_center" element={<PortalSucursalDetalle />} />
                     <Route
+                      path="solicitudes"
+                      element={
+                        <PortalProtectedRoute adminOnly>
+                          <PortalSolicitudes />
+                        </PortalProtectedRoute>
+                      }
+                    />
+                    <Route
                       path="aprobaciones"
                       element={
                         <PortalProtectedRoute adminOnly>
