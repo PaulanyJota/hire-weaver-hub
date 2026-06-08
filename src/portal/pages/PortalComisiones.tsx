@@ -421,7 +421,7 @@ export default function PortalComisiones() {
           {/* MODAL TOTAL */}
           {modal === 'total' && summary && (
             <div className="space-y-2">
-              {summary.por_sucursal.map(s => {
+              {porSucursalSorted.map(s => {
                 const isOpen = expandedBranch === s.sucursal;
                 const rows = branchDetails[s.sucursal];
                 const total = rows ? rows.reduce((a, b) => a + b.amount, 0) : s.total;
