@@ -75,6 +75,14 @@ export default function PortalHorasSemana() {
         subtitle={`${totalGeneral.toFixed(1)} h totales · ${groups.length} sucursales`}
       />
 
+      <PortalSearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder="Buscar por nombre o sucursal…"
+        total={rows.length}
+        results={groups.reduce((s, g) => s + g.workers.length, 0)}
+      />
+
       {loading ? (
         <div className="space-y-3">{[0,1,2].map(i => <Skeleton key={i} className="h-24 w-full" />)}</div>
       ) : groups.length === 0 ? (
