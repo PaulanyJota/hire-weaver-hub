@@ -49,6 +49,18 @@ export default function PortalDashboard() {
   const [monthAtt, setMonthAtt] = useState<Att[]>([]);
   const [workersById, setWorkersById] = useState<Record<string, Worker>>({});
   const [incidents, setIncidents] = useState<IncidentRow[]>([]);
+  const [commTotal, setCommTotal] = useState<{ total: number; delta_pct: number | null } | null>(null);
+
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      const { data } = await supabase.rpc('get_commissions_historical' as any, { p_company_id: company?.id ?? '11111111-1111-1111-1111-111111111111' });
+      if (cancel) return;
+      const first = (data as any)?.by_period?.[0];
+      if (first) setCommTotal({ total: Number(first.total) || 0, delta_pct: first.delta_mes_pct == null ? null : Number(first.delta_mes_pct) });
+    })();
+    return () => { cancel = true; };
+  }, [company?.id]);
 
   useEffect(() => {
     let cancelled = false;
