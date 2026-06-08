@@ -58,6 +58,7 @@ const App = () => (
                     <Route path="horas-semana" element={<PortalHorasSemana />} />
                     <Route path="control-marcaje" element={<PortalControlMarcaje />} />
                     <Route path="contratos" element={<PortalContratos />} />
+                    <Route path="comisiones" element={<PortalComisiones />} />
                     <Route path="sucursal/:cost_center" element={<PortalSucursalDetalle />} />
                     <Route
                       path="aprobaciones"
