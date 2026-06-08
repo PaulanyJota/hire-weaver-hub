@@ -96,6 +96,11 @@ export default function PortalComisiones() {
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [workerConcepts, setWorkerConcepts] = useState<Record<string, string[]>>({});
 
+  // Histórico (modal Total → 3 tabs)
+  const [historical, setHistorical] = useState<Historical | null>(null);
+  const [historicalLoading, setHistoricalLoading] = useState(false);
+  const [totalTab, setTotalTab] = useState<'evolucion' | 'sucursal' | 'concepto'>('evolucion');
+
   useEffect(() => {
     let cancel = false;
     (async () => {
