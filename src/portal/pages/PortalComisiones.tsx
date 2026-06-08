@@ -1,12 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '@/portal/hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { sucursalName } from '../lib/sucursales';
-import { sortByBranch } from '../constants/branches';
-import { DollarSign, Users, TrendingUp, Building2, Trophy, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { sortByBranch, branchOrder } from '../constants/branches';
+import { shiftedPeriodEs, shiftedPeriodEsShort } from '../lib/periodLabel';
+import { DollarSign, Users, TrendingUp, Building2, Trophy, X, ChevronDown, ChevronRight, AlertTriangle, ArrowDownRight, ArrowUpRight, Sparkles, XCircle } from 'lucide-react';
 import { useBranchRankingKpis } from '../hooks/useBranchRankingKpis';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
@@ -23,14 +24,53 @@ interface Summary {
   top_workers: { worker_id: string; nombre: string; sucursal: string; total: number; conceptos: number }[];
 }
 
+interface HistoricalByPeriod {
+  period: string;
+  periodo_label: string;
+  total: number;
+  trabajadores: number;
+  total_mes_anterior: number;
+  delta_mes_abs: number | null;
+  delta_mes_pct: number | null;
+  total_anio_anterior: number;
+  delta_anio_abs: number | null;
+  delta_anio_pct: number | null;
+}
+interface HistoricalByBranch {
+  period: string;
+  periodo_label: string;
+  sucursal: string;
+  total: number;
+  trabajadores: number;
+  delta_mes_abs: number | null;
+  delta_mes_pct: number | null;
+  tendencia: 'up' | 'down' | 'new' | 'lost' | 'flat' | null;
+}
+interface HistoricalByConcept {
+  period: string;
+  concept: string;
+  total: number;
+  ocurrencias: number;
+  delta_mes_pct: number | null;
+}
+interface HistoricalAlert {
+  tipo: string;
+  sucursal?: string;
+  delta_pct?: number;
+  total_actual?: number;
+  total_anterior?: number;
+}
+interface Historical {
+  by_period: HistoricalByPeriod[];
+  by_branch: HistoricalByBranch[];
+  by_concept: HistoricalByConcept[];
+  alerts: HistoricalAlert[];
+}
+
 const fmtCLP = (n: number) => '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
-const fmtPeriod = (p: string) => {
-  if (!p) return '';
-  const [y, m] = p.slice(0, 10).split('-');
-  const d = new Date(Date.UTC(Number(y), Number(m) - 1, 1));
-  const s = d.toLocaleDateString('es-CL', { month: 'long', year: 'numeric', timeZone: 'UTC' });
-  return s.charAt(0).toUpperCase() + s.slice(1);
-};
+// En Chile el período de pago = mes siguiente al trabajado. Mostramos siempre el mes TRABAJADO.
+const fmtPeriod = (p: string) => shiftedPeriodEs(p);
+const fmtPeriodShort = (p: string) => shiftedPeriodEsShort(p);
 
 export default function PortalComisiones() {
   const { company } = usePortalAuth();
@@ -55,6 +95,11 @@ export default function PortalComisiones() {
   const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
   const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
   const [workerConcepts, setWorkerConcepts] = useState<Record<string, string[]>>({});
+
+  // Histórico (modal Total → 3 tabs)
+  const [historical, setHistorical] = useState<Historical | null>(null);
+  const [historicalLoading, setHistoricalLoading] = useState(false);
+  const [totalTab, setTotalTab] = useState<'evolucion' | 'sucursal' | 'concepto'>('evolucion');
 
   useEffect(() => {
     let cancel = false;
@@ -170,10 +215,20 @@ export default function PortalComisiones() {
     setWorkerConcepts(map);
   };
 
+  const loadHistorical = async () => {
+    if (historical || historicalLoading) return;
+    setHistoricalLoading(true);
+    const { data, error } = await supabase.rpc('get_commissions_historical' as any, { p_company_id: companyId });
+    if (error) console.error('[commissions-historical]', error);
+    setHistorical((data as Historical) ?? null);
+    setHistoricalLoading(false);
+  };
+
   const openModal = (m: 'total' | 'concept' | 'branch' | 'workers') => {
     setModal(m);
     if (m === 'concept' || m === 'branch') loadTrend();
     if (m === 'workers') loadWorkerConcepts();
+    if (m === 'total') loadHistorical();
   };
 
   // Concept trend data: amount per period for selectedConcept
@@ -423,84 +478,25 @@ export default function PortalComisiones() {
       {/* ============ MODALES ============ */}
       {modal && (
         <Modal onClose={() => setModal(null)} title={
-          modal === 'total' ? `Total comisiones · ${period ? fmtPeriod(period) : ''}` :
+          modal === 'total' ? 'Análisis histórico de comisiones' :
           modal === 'concept' ? 'Evolución por concepto' :
           modal === 'branch' ? 'Evolución por sucursal' :
           'Trabajadores con comisión'
         }>
-          {/* MODAL TOTAL */}
-          {modal === 'total' && summary && (
-            <div className="space-y-2">
-              {porSucursalSorted.map(s => {
-                const isOpen = expandedBranch === s.sucursal;
-                const rows = branchDetails[s.sucursal];
-                const total = rows ? rows.reduce((a, b) => a + b.amount, 0) : s.total;
-                return (
-                  <div key={s.sucursal} className="rounded-xl border border-slate-200 overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = isOpen ? null : s.sucursal;
-                        setExpandedBranch(next);
-                        if (next) loadBranchDetail(next);
-                      }}
-                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-orange-50/40 text-left"
-                    >
-                      {isOpen ? <ChevronDown className="w-4 h-4 text-slate-500" /> : <ChevronRight className="w-4 h-4 text-slate-500" />}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-sm" style={{ color: '#1B3A5C' }}>{sucursalName(s.sucursal)}</p>
-                        <p className="text-[11px] text-muted-foreground">{s.trabajadores} trabajador{s.trabajadores === 1 ? '' : 'es'}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-mono tabular-nums font-bold text-sm" style={{ color: '#F97316' }}>{fmtCLP(s.total)}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${Math.min(100, Number(s.pct))}%`, background: 'linear-gradient(90deg,#F97316,#EA580C)' }} />
-                          </div>
-                          <span className="text-[10px] font-bold tabular-nums" style={{ color: '#EA580C' }}>{s.pct}%</span>
-                        </div>
-                      </div>
-                    </button>
-                    {isOpen && (
-                      <div className="border-t border-slate-200 bg-slate-50/50">
-                        {!rows ? (
-                          <div className="p-4 space-y-2">{[1,2].map(i => <Skeleton key={i} className="h-8 w-full" />)}</div>
-                        ) : rows.length === 0 ? (
-                          <p className="p-4 text-xs text-muted-foreground text-center">Sin detalle.</p>
-                        ) : (
-                          <>
-                            <table className="w-full text-xs">
-                              <thead>
-                                <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                                  <th className="text-left px-4 py-2 font-semibold">Trabajador</th>
-                                  <th className="text-left px-3 py-2 font-semibold">Concepto</th>
-                                  <th className="text-right px-4 py-2 font-semibold">Monto</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {rows.map((r, i) => (
-                                  <tr key={i} className="border-t border-slate-200">
-                                    <td className="px-4 py-2">
-                                      <Link to={`/portal/trabajadores/${r.worker_id}`} className="font-semibold hover:text-[#F97316]" style={{ color: '#1B3A5C' }}>{r.nombre}</Link>
-                                    </td>
-                                    <td className="px-3 py-2 text-muted-foreground">{r.concept}</td>
-                                    <td className="px-4 py-2 text-right font-mono tabular-nums" style={{ color: '#F97316' }}>{fmtCLP(r.amount)}</td>
-                                  </tr>
-                                ))}
-                                <tr className="border-t-2 border-orange-300 bg-orange-50/50">
-                                  <td colSpan={2} className="px-4 py-2 text-[11px] uppercase tracking-wider font-bold" style={{ color: '#EA580C' }}>Total sucursal</td>
-                                  <td className="px-4 py-2 text-right font-mono tabular-nums font-bold" style={{ color: '#EA580C' }}>{fmtCLP(total)}</td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+          {/* MODAL TOTAL — Análisis histórico con 3 tabs */}
+          {modal === 'total' && (
+            <TotalHistoricalView
+              historical={historical}
+              loading={historicalLoading}
+              activeTab={totalTab}
+              setActiveTab={setTotalTab}
+              porSucursalSorted={porSucursalSorted}
+              expandedBranch={expandedBranch}
+              setExpandedBranch={setExpandedBranch}
+              branchDetails={branchDetails}
+              loadBranchDetail={loadBranchDetail}
+              summary={summary}
+            />
           )}
 
           {/* MODAL CONCEPT TREND */}
@@ -649,6 +645,323 @@ function Modal({ children, onClose, title }: { children: React.ReactNode; onClos
         </div>
         <div className="overflow-y-auto p-5">{children}</div>
       </div>
+    </div>
+  );
+}
+
+// ═════════════════════════════════════════════════════════════
+// TotalHistoricalView — 3 tabs: Evolución total / Por sucursal / Por concepto
+// Powered por RPC get_commissions_historical (períodos en mes-de-pago,
+// pero TODOS los labels visibles se muestran como mes TRABAJADO = paid - 1).
+// ═════════════════════════════════════════════════════════════
+interface THProps {
+  historical: Historical | null;
+  loading: boolean;
+  activeTab: 'evolucion' | 'sucursal' | 'concepto';
+  setActiveTab: (t: 'evolucion' | 'sucursal' | 'concepto') => void;
+  porSucursalSorted: Summary['por_sucursal'];
+  expandedBranch: string | null;
+  setExpandedBranch: (s: string | null) => void;
+  branchDetails: Record<string, Array<{ worker_id: string; nombre: string; concept: string; amount: number }>>;
+  loadBranchDetail: (sucursal: string) => void;
+  summary: Summary | null;
+}
+
+function DeltaPill({ pct }: { pct: number | null | undefined }) {
+  if (pct === null || pct === undefined || Number.isNaN(Number(pct))) {
+    return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-400">—</span>;
+  }
+  const n = Number(pct);
+  const positive = n >= 0;
+  const bg = positive ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700';
+  const arrow = positive ? '↑' : '↓';
+  return (
+    <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-md text-[11px] font-bold tabular-nums ${bg}`}>
+      {arrow}{Math.abs(n).toFixed(1)}%
+    </span>
+  );
+}
+
+function TendenciaIcon({ t }: { t: HistoricalByBranch['tendencia'] }) {
+  switch (t) {
+    case 'up': return <ArrowUpRight className="w-4 h-4 text-emerald-600" />;
+    case 'down': return <ArrowDownRight className="w-4 h-4 text-red-600" />;
+    case 'new': return <Sparkles className="w-4 h-4" style={{ color: '#F97316' }} />;
+    case 'lost': return <XCircle className="w-4 h-4 text-red-600" />;
+    default: return <span className="text-slate-400 text-xs">—</span>;
+  }
+}
+
+function TotalHistoricalView({
+  historical, loading, activeTab, setActiveTab,
+  porSucursalSorted, expandedBranch, setExpandedBranch, branchDetails, loadBranchDetail, summary,
+}: THProps) {
+  if (loading || !historical) {
+    return <div className="space-y-3">{[1,2,3,4].map(i => <Skeleton key={i} className="h-12 w-full" />)}</div>;
+  }
+
+  const tabs: { id: 'evolucion' | 'sucursal' | 'concepto'; label: string }[] = [
+    { id: 'evolucion', label: 'Evolución total' },
+    { id: 'sucursal', label: 'Por sucursal' },
+    { id: 'concepto', label: 'Por concepto' },
+  ];
+
+  // by_period ordenado cronológicamente ascendente
+  const periodsAsc = [...(historical.by_period ?? [])].sort((a, b) => (a.period < b.period ? -1 : 1));
+  const chartData = periodsAsc.map(p => ({
+    period: shiftedPeriodEsShort(p.period),
+    total: Number(p.total) || 0,
+    trabajadores: p.trabajadores,
+    delta_mes_pct: p.delta_mes_pct,
+  }));
+
+  // Nota automática sobre el período más reciente
+  const latest = periodsAsc[periodsAsc.length - 1];
+  const prev = periodsAsc[periodsAsc.length - 2];
+  const autoNote = latest && latest.delta_mes_pct !== null && latest.delta_mes_pct < 0
+    ? `⚠️ ${shiftedPeriodEs(latest.period)} bajó ${fmtCLP(Math.abs(Number(latest.delta_mes_abs ?? 0)))} respecto a ${prev ? shiftedPeriodEs(prev.period) : 'mes anterior'} (${Number(latest.delta_mes_pct).toFixed(1)}%)`
+    : null;
+
+  // Pivot por sucursal con los últimos 2 períodos
+  const lastTwo = periodsAsc.slice(-2).map(p => p.period);
+  const branchPivot = new Map<string, { sucursal: string; prev?: HistoricalByBranch; curr?: HistoricalByBranch }>();
+  (historical.by_branch ?? []).forEach(b => {
+    const entry = branchPivot.get(b.sucursal) ?? { sucursal: b.sucursal };
+    if (b.period === lastTwo[0]) entry.prev = b;
+    if (b.period === lastTwo[1]) entry.curr = b;
+    branchPivot.set(b.sucursal, entry);
+  });
+  const branchRows = Array.from(branchPivot.values())
+    .sort((a, b) => (branchOrder(a.sucursal) - branchOrder(b.sucursal)));
+
+  const branchAlerts = (historical.by_branch ?? []).filter(
+    b => b.period === lastTwo[1] && b.tendencia === 'down' && b.delta_mes_pct !== null && Math.abs(Number(b.delta_mes_pct)) > 50
+  );
+
+  // Por concepto: pivot último período
+  const conceptPivot = new Map<string, { concept: string; prev?: HistoricalByConcept; curr?: HistoricalByConcept }>();
+  (historical.by_concept ?? []).forEach(c => {
+    const e = conceptPivot.get(c.concept) ?? { concept: c.concept };
+    if (c.period === lastTwo[0]) e.prev = c;
+    if (c.period === lastTwo[1]) e.curr = c;
+    conceptPivot.set(c.concept, e);
+  });
+  const conceptRows = Array.from(conceptPivot.values())
+    .sort((a, b) => (Number(b.curr?.total ?? 0) - Number(a.curr?.total ?? 0)));
+  const conceptChart = conceptRows.map(r => ({
+    concept: r.concept,
+    total: Number(r.curr?.total ?? 0),
+    prev: Number(r.prev?.total ?? 0),
+  }));
+
+  return (
+    <div className="space-y-4">
+      {/* Tabs */}
+      <div className="flex gap-1 border-b border-slate-200">
+        {tabs.map(t => (
+          <button
+            key={t.id}
+            type="button"
+            onClick={() => setActiveTab(t.id)}
+            className={`px-4 py-2 text-sm font-semibold border-b-2 -mb-px transition-colors ${
+              activeTab === t.id
+                ? 'border-orange-500 text-orange-600'
+                : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+
+      {/* TAB 1 — Evolución total */}
+      {activeTab === 'evolucion' && (
+        <div className="space-y-4">
+          {autoNote && (
+            <div className="flex items-start gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-800 text-xs">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>{autoNote}</span>
+            </div>
+          )}
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={chartData}>
+                <defs>
+                  <linearGradient id="gHistTotal" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#FB923C" />
+                    <stop offset="100%" stopColor="#EA580C" />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                <XAxis dataKey="period" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false}
+                  tickFormatter={(v) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`} />
+                <Tooltip
+                  contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }}
+                  formatter={(v: any, _name, p: any) => {
+                    const pct = p?.payload?.delta_mes_pct;
+                    const arrow = pct == null ? '' : (pct >= 0 ? ' ↑' : ' ↓');
+                    const pctStr = pct == null ? '' : ` (${arrow}${Math.abs(Number(pct)).toFixed(1)}%)`;
+                    return [`${fmtCLP(Number(v))}${pctStr} · ${p?.payload?.trabajadores ?? 0} trab.`, 'Total'];
+                  }}
+                />
+                <Bar dataKey="total" fill="url(#gHistTotal)" radius={[6, 6, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-muted-foreground border-b border-slate-200">
+                <th className="text-left py-2 font-semibold">Período</th>
+                <th className="text-right py-2 font-semibold">Total</th>
+                <th className="text-right py-2 font-semibold">Trab.</th>
+                <th className="text-right py-2 font-semibold">vs mes ant.</th>
+                <th className="text-right py-2 font-semibold">vs año ant.</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...periodsAsc].reverse().map(p => (
+                <tr key={p.period} className="border-b border-slate-100">
+                  <td className="py-2 font-semibold" style={{ color: '#1B3A5C' }}>{shiftedPeriodEs(p.period)}</td>
+                  <td className="py-2 text-right font-mono tabular-nums" style={{ color: '#F97316' }}>{fmtCLP(p.total)}</td>
+                  <td className="py-2 text-right tabular-nums">{p.trabajadores}</td>
+                  <td className="py-2 text-right"><DeltaPill pct={p.delta_mes_pct} /></td>
+                  <td className="py-2 text-right"><DeltaPill pct={p.delta_anio_pct} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* TAB 2 — Por sucursal */}
+      {activeTab === 'sucursal' && (
+        <div className="space-y-3">
+          {branchAlerts.map((a, idx) => (
+            <div key={idx} className="flex items-start gap-2 px-3 py-2 rounded-lg bg-red-50 border border-red-200 text-red-800 text-xs">
+              <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+              <span>⚠️ {sucursalName(a.sucursal)} cayó {Math.abs(Number(a.delta_mes_pct)).toFixed(1)}% vs mes anterior</span>
+            </div>
+          ))}
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-[10px] uppercase tracking-wider text-muted-foreground border-b border-slate-200">
+                  <th className="text-left px-2 py-2 font-semibold">Sucursal</th>
+                  <th className="text-right px-2 py-2 font-semibold">{lastTwo[0] ? shiftedPeriodEsShort(lastTwo[0]) : '—'}</th>
+                  <th className="text-right px-2 py-2 font-semibold">{lastTwo[1] ? shiftedPeriodEsShort(lastTwo[1]) : '—'}</th>
+                  <th className="text-right px-2 py-2 font-semibold">Variación</th>
+                  <th className="text-center px-2 py-2 font-semibold">Tend.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {branchRows.map(r => {
+                  const code = r.sucursal;
+                  const isOpen = expandedBranch === code;
+                  const detailRows = branchDetails[code];
+                  // Solo permitir expandir si la sucursal tiene comisiones en el período actual del summary
+                  const hasCurrent = porSucursalSorted?.some(s => s.sucursal === code);
+                  return (
+                    <Fragment key={code}>
+                      <tr
+                        className={`border-b border-slate-100 ${hasCurrent ? 'cursor-pointer hover:bg-orange-50/40' : ''}`}
+                        onClick={() => {
+                          if (!hasCurrent) return;
+                          const next = isOpen ? null : code;
+                          setExpandedBranch(next);
+                          if (next) loadBranchDetail(next);
+                        }}
+                      >
+                        <td className="px-2 py-2 font-semibold flex items-center gap-2" style={{ color: '#1B3A5C' }}>
+                          {hasCurrent && (isOpen ? <ChevronDown className="w-3.5 h-3.5 text-slate-500" /> : <ChevronRight className="w-3.5 h-3.5 text-slate-500" />)}
+                          {sucursalName(code)}
+                        </td>
+                        <td className="px-2 py-2 text-right font-mono tabular-nums text-slate-700">{fmtCLP(Number(r.prev?.total ?? 0))}</td>
+                        <td className="px-2 py-2 text-right font-mono tabular-nums font-semibold" style={{ color: '#F97316' }}>{fmtCLP(Number(r.curr?.total ?? 0))}</td>
+                        <td className="px-2 py-2 text-right"><DeltaPill pct={r.curr?.delta_mes_pct ?? null} /></td>
+                        <td className="px-2 py-2 text-center"><TendenciaIcon t={r.curr?.tendencia ?? null} /></td>
+                      </tr>
+                      {isOpen && hasCurrent && (
+                        <tr className="bg-slate-50/60">
+                          <td colSpan={5} className="px-2 py-3">
+                            {!detailRows ? (
+                              <div className="space-y-2">{[1,2].map(i => <Skeleton key={i} className="h-8 w-full" />)}</div>
+                            ) : detailRows.length === 0 ? (
+                              <p className="text-xs text-muted-foreground text-center">Sin detalle.</p>
+                            ) : (
+                              <table className="w-full text-xs">
+                                <thead>
+                                  <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                    <th className="text-left px-2 py-1 font-semibold">Trabajador</th>
+                                    <th className="text-left px-2 py-1 font-semibold">Concepto</th>
+                                    <th className="text-right px-2 py-1 font-semibold">Monto</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  {detailRows.map((dr, i) => (
+                                    <tr key={i} className="border-t border-slate-200">
+                                      <td className="px-2 py-1">
+                                        <Link to={`/portal/trabajadores/${dr.worker_id}`} className="font-semibold hover:text-[#F97316]" style={{ color: '#1B3A5C' }}>{dr.nombre}</Link>
+                                      </td>
+                                      <td className="px-2 py-1 text-muted-foreground">{dr.concept}</td>
+                                      <td className="px-2 py-1 text-right font-mono tabular-nums" style={{ color: '#F97316' }}>{fmtCLP(dr.amount)}</td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
+                            )}
+                          </td>
+                        </tr>
+                      )}
+                    </Fragment>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 3 — Por concepto */}
+      {activeTab === 'concepto' && (
+        <div className="space-y-4">
+          <div className="h-56">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={conceptChart} layout="vertical" margin={{ left: 8, right: 16 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                <XAxis type="number" tick={{ fontSize: 10 }} axisLine={false} tickLine={false}
+                  tickFormatter={(v) => v >= 1_000_000 ? `${(v / 1_000_000).toFixed(1)}M` : v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`} />
+                <YAxis dataKey="concept" type="category" tick={{ fontSize: 11 }} width={160} axisLine={false} tickLine={false} />
+                <Tooltip formatter={(v: any) => [fmtCLP(Number(v)), 'Total']}
+                  contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }} />
+                <Bar dataKey="total" radius={[0, 6, 6, 0]}>
+                  {conceptChart.map((_, idx) => <Cell key={idx} fill={`rgba(249,115,22,${Math.max(0.4, 1 - idx * 0.12)})`} />)}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-muted-foreground border-b border-slate-200">
+                <th className="text-left py-2 font-semibold">Concepto</th>
+                <th className="text-right py-2 font-semibold">{lastTwo[0] ? shiftedPeriodEsShort(lastTwo[0]) : '—'}</th>
+                <th className="text-right py-2 font-semibold">{lastTwo[1] ? shiftedPeriodEsShort(lastTwo[1]) : '—'}</th>
+                <th className="text-right py-2 font-semibold">Variación</th>
+              </tr>
+            </thead>
+            <tbody>
+              {conceptRows.map(r => (
+                <tr key={r.concept} className="border-b border-slate-100">
+                  <td className="py-2 font-semibold" style={{ color: '#1B3A5C' }}>{r.concept}</td>
+                  <td className="py-2 text-right font-mono tabular-nums text-slate-700">{fmtCLP(Number(r.prev?.total ?? 0))}</td>
+                  <td className="py-2 text-right font-mono tabular-nums font-semibold" style={{ color: '#F97316' }}>{fmtCLP(Number(r.curr?.total ?? 0))}</td>
+                  <td className="py-2 text-right"><DeltaPill pct={r.curr?.delta_mes_pct ?? null} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 }

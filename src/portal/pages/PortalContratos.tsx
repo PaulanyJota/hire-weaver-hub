@@ -259,7 +259,10 @@ export default function PortalContratos() {
                 <th className="px-4 py-3 font-semibold">Tipo</th>
                 <th className="px-4 py-3 font-semibold">Modalidad</th>
                 <th className="px-4 py-3 font-semibold">Vencimiento</th>
-                <th className="px-6 py-3 font-semibold text-right">Sueldo líquido</th>
+                <th className="px-6 py-3 font-semibold text-right" title="Corresponde a la última liquidación. En Chile el pago de un mes refleja el trabajo del mes anterior.">
+                  Sueldo líquido
+                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">mes trabajado</span>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -286,7 +289,8 @@ export default function PortalContratos() {
                       ? <span className="text-slate-700">{fmtDate(r.end_date)}</span>
                       : <span className="text-slate-400 italic">Sin vencimiento</span>}
                   </td>
-                  <td className="px-6 py-3 text-right font-mono tabular-nums font-semibold" style={{ color: '#1B3A5C' }}>
+                  <td className="px-6 py-3 text-right font-mono tabular-nums font-semibold" style={{ color: '#1B3A5C' }}
+                    title="Sueldo líquido del último mes trabajado (la liquidación se paga al mes siguiente)">
                     {r.liquid_salary > 0 ? fmtCLP(r.liquid_salary) : <span className="text-slate-400 font-normal">—</span>}
                   </td>
                 </tr>

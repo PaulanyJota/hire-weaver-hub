@@ -5,6 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
 import { formatRut } from '../lib/formatRut';
 import { fmtPeriodSafe } from '../components/SucursalPayroll';
+import { shiftedPeriodEs } from '../lib/periodLabel';
 import {
   ArrowLeft, Mail, Phone, MapPin, Building2, Calendar, BadgeCheck,
   Briefcase, FileText, CalendarX, Clock, CalendarCheck, Timer, DollarSign,
@@ -120,10 +121,21 @@ export default function PortalTrabajadorDetalle() {
       setAbsences30(ab.count ?? 0);
       const profArr = (prof.data ?? []) as any[];
       setProfileExt(profArr[0] ?? null);
-      const payArr = ((pay.data ?? []) as any[]).slice().sort((x, y) => (x.period < y.period ? 1 : -1));
+      // Los RPCs de payroll devuelven payment_period (mes de pago) y worked_period (mes trabajado).
+      // En Chile mostramos al usuario el mes TRABAJADO.
+      const payArr = ((pay.data ?? []) as any[])
+        .map((r: any) => ({
+          period: r.worked_period ?? r.period,
+          sueldo_liquido: Number(r.net_salary ?? r.liquid_salary ?? r.sueldo_liquido ?? 0),
+          comisiones: Number(r.comisiones ?? 0),
+          total: Number(r.total ?? r.net_salary ?? r.liquid_salary ?? 0),
+        }))
+        .sort((x, y) => (x.period < y.period ? 1 : -1));
       setPayHistory(payArr);
       setSalaryHist(((sal.data ?? []) as any[]).map((r: any) => ({
-        period: r.period, liquid_salary: Number(r.liquid_salary ?? 0), delta_pct: r.delta_pct == null ? null : Number(r.delta_pct),
+        period: r.worked_period ?? r.period,
+        liquid_salary: Number(r.liquid_salary ?? 0),
+        delta_pct: r.delta_pct == null ? null : Number(r.delta_pct),
       })));
       setCommissions((com.data as any) ?? null);
 
@@ -381,7 +393,7 @@ export default function PortalTrabajadorDetalle() {
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={[...commissions.history].sort((a, b) => (a.period < b.period ? -1 : 1)).map(h => ({
-                    period: fmtPeriodSafe(h.period),
+                    period: shiftedPeriodEs(h.period),
                     total: Number(h.total) || 0,
                   }))} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
                     <defs>
