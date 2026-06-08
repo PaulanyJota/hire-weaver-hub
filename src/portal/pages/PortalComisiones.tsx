@@ -403,6 +403,236 @@ export default function PortalComisiones() {
           </table>
         )}
       </section>
+
+      {/* ============ MODALES ============ */}
+      {modal && (
+        <Modal onClose={() => setModal(null)} title={
+          modal === 'total' ? `Total comisiones · ${period ? fmtPeriod(period) : ''}` :
+          modal === 'concept' ? 'Evolución por concepto' :
+          modal === 'branch' ? 'Evolución por sucursal' :
+          'Trabajadores con comisión'
+        }>
+          {/* MODAL TOTAL */}
+          {modal === 'total' && summary && (
+            <div className="space-y-2">
+              {summary.por_sucursal.map(s => {
+                const isOpen = expandedBranch === s.sucursal;
+                const rows = branchDetails[s.sucursal];
+                const total = rows ? rows.reduce((a, b) => a + b.amount, 0) : s.total;
+                return (
+                  <div key={s.sucursal} className="rounded-xl border border-slate-200 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = isOpen ? null : s.sucursal;
+                        setExpandedBranch(next);
+                        if (next) loadBranchDetail(next);
+                      }}
+                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-orange-50/40 text-left"
+                    >
+                      {isOpen ? <ChevronDown className="w-4 h-4 text-slate-500" /> : <ChevronRight className="w-4 h-4 text-slate-500" />}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm" style={{ color: '#1B3A5C' }}>{sucursalName(s.sucursal)}</p>
+                        <p className="text-[11px] text-muted-foreground">{s.trabajadores} trabajador{s.trabajadores === 1 ? '' : 'es'}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-mono tabular-nums font-bold text-sm" style={{ color: '#F97316' }}>{fmtCLP(s.total)}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${Math.min(100, Number(s.pct))}%`, background: 'linear-gradient(90deg,#F97316,#EA580C)' }} />
+                          </div>
+                          <span className="text-[10px] font-bold tabular-nums" style={{ color: '#EA580C' }}>{s.pct}%</span>
+                        </div>
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className="border-t border-slate-200 bg-slate-50/50">
+                        {!rows ? (
+                          <div className="p-4 space-y-2">{[1,2].map(i => <Skeleton key={i} className="h-8 w-full" />)}</div>
+                        ) : rows.length === 0 ? (
+                          <p className="p-4 text-xs text-muted-foreground text-center">Sin detalle.</p>
+                        ) : (
+                          <>
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                  <th className="text-left px-4 py-2 font-semibold">Trabajador</th>
+                                  <th className="text-left px-3 py-2 font-semibold">Concepto</th>
+                                  <th className="text-right px-4 py-2 font-semibold">Monto</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {rows.map((r, i) => (
+                                  <tr key={i} className="border-t border-slate-200">
+                                    <td className="px-4 py-2">
+                                      <Link to={`/portal/trabajadores/${r.worker_id}`} className="font-semibold hover:text-[#F97316]" style={{ color: '#1B3A5C' }}>{r.nombre}</Link>
+                                    </td>
+                                    <td className="px-3 py-2 text-muted-foreground">{r.concept}</td>
+                                    <td className="px-4 py-2 text-right font-mono tabular-nums" style={{ color: '#F97316' }}>{fmtCLP(r.amount)}</td>
+                                  </tr>
+                                ))}
+                                <tr className="border-t-2 border-orange-300 bg-orange-50/50">
+                                  <td colSpan={2} className="px-4 py-2 text-[11px] uppercase tracking-wider font-bold" style={{ color: '#EA580C' }}>Total sucursal</td>
+                                  <td className="px-4 py-2 text-right font-mono tabular-nums font-bold" style={{ color: '#EA580C' }}>{fmtCLP(total)}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* MODAL CONCEPT TREND */}
+          {modal === 'concept' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Concepto:</label>
+                <select
+                  value={selectedConcept ?? ''}
+                  onChange={e => setSelectedConcept(e.target.value)}
+                  className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  style={{ color: '#1B3A5C' }}
+                >
+                  {conceptList.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Evolución mes a mes</p>
+                <div className="h-64">
+                  {trendLoading ? <Skeleton className="h-full w-full" /> : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={conceptTrendData}>
+                        <defs>
+                          <linearGradient id="gConceptTrend" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#FB923C" />
+                            <stop offset="100%" stopColor="#EA580C" />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                        <XAxis dataKey="period" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`} />
+                        <Tooltip
+                          formatter={(v: any) => [fmtCLP(Number(v)), selectedConcept ?? '']}
+                          contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }}
+                        />
+                        <Bar dataKey="total" fill="url(#gConceptTrend)" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL BRANCH TREND + COMPARATIVE */}
+          {modal === 'branch' && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 flex-wrap">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sucursal:</label>
+                <select
+                  value={selectedBranch ?? ''}
+                  onChange={e => setSelectedBranch(e.target.value)}
+                  className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  style={{ color: '#1B3A5C' }}
+                >
+                  {branchList.map(b => <option key={b} value={b}>{sucursalName(b)}</option>)}
+                </select>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+                  Evolución {selectedBranch ? sucursalName(selectedBranch) : ''} · últimos {allPeriodSummaries.length} períodos
+                </p>
+                <div className="h-56">
+                  {trendLoading ? <Skeleton className="h-full w-full" /> : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={branchTrendData}>
+                        <defs>
+                          <linearGradient id="gBranchTrend" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#FB923C" />
+                            <stop offset="100%" stopColor="#EA580C" />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                        <XAxis dataKey="period" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`} />
+                        <Tooltip formatter={(v: any) => [fmtCLP(Number(v)), 'Total']} contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }} />
+                        <Bar dataKey="total" fill="url(#gBranchTrend)" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Comparativa entre sucursales · {period ? fmtPeriod(period) : ''}</p>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={branchComparative} layout="vertical" margin={{ left: 8, right: 16 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                      <XAxis type="number" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`} />
+                      <YAxis dataKey="sucursal" type="category" tick={{ fontSize: 11 }} width={110} axisLine={false} tickLine={false} />
+                      <Tooltip formatter={(v: any) => [fmtCLP(Number(v)), 'Total']} contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }} />
+                      <Bar dataKey="total" radius={[0, 6, 6, 0]}>
+                        {branchComparative.map((entry, idx) => {
+                          const isTop = entry.code === topBranch?.sucursal;
+                          const shade = isTop ? '#EA580C' : `rgba(249,115,22,${Math.max(0.35, 1 - idx * 0.1)})`;
+                          return <Cell key={idx} fill={shade} />;
+                        })}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL WORKERS */}
+          {modal === 'workers' && summary && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-3">{enrichedWorkers.length} trabajador{enrichedWorkers.length === 1 ? '' : 'es'} recibieron comisión este mes</p>
+              <ul className="divide-y divide-slate-100">
+                {enrichedWorkers.map((w, idx) => (
+                  <li key={w.worker_id} className="flex items-start gap-3 py-3">
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 bg-orange-50 text-orange-600">{idx + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <Link to={`/portal/trabajadores/${w.worker_id}`} className="font-semibold text-sm hover:text-[#F97316]" style={{ color: '#1B3A5C' }}>{w.nombre}</Link>
+                      <p className="text-[11px] text-muted-foreground">{sucursalName(w.sucursal)}</p>
+                      {w.conceptos_list.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {w.conceptos_list.map(c => (
+                            <span key={c} className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-orange-50 text-orange-700 border border-orange-100">{c}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <p className="font-bold tabular-nums text-sm shrink-0" style={{ color: '#F97316' }}>{fmtCLP(w.total)}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function Modal({ children, onClose, title }: { children: React.ReactNode; onClose: () => void; title: string }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(15,36,64,0.55)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
+      <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-start justify-between px-5 py-4 border-b border-slate-200">
+          <h3 className="text-base font-bold tracking-tight" style={{ color: '#1B3A5C' }}>{title}</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="overflow-y-auto p-5">{children}</div>
+      </div>
     </div>
   );
 }
