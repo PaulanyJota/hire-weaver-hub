@@ -91,7 +91,10 @@ export default function PortalDashboard() {
   }, []);
 
   const kpiAttendanceToday = useMemo(() => new Set(attendanceToday.map(r => r.worker_id)).size, [attendanceToday]);
-  const kpiHoursWeek = useMemo(() => weekAtt.reduce((s, r) => s + Number(r.worked_hours ?? 0), 0), [weekAtt]);
+  const kpiHoursWeek = useMemo(() => {
+    const total = weekAtt.reduce((s, r) => s + Math.max(0, Number(r.worked_hours ?? 0)), 0);
+    return total > 0 ? total : 0;
+  }, [weekAtt]);
   const kpiLateWeek = useMemo(() => weekAtt.reduce((s, r) => s + Number(r.late_minutes ?? 0), 0), [weekAtt]);
   const attendanceRate = activeWorkers > 0 ? Math.round((kpiAttendanceToday / activeWorkers) * 100) : 0;
 
