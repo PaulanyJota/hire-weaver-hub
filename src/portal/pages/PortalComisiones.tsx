@@ -457,7 +457,7 @@ export default function PortalComisiones() {
               </tr>
             </thead>
             <tbody>
-              {summary.por_concepto.map(c => (
+              {filteredConceptos.map(c => (
                 <tr key={c.concept} className="border-b border-slate-100 hover:bg-orange-50/30">
                   <td className="px-5 py-3 font-semibold" style={{ color: '#1B3A5C' }}>{c.concept}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{c.ocurrencias}</td>
