@@ -401,7 +401,7 @@ export default function PortalComisiones() {
               </tr>
             </thead>
             <tbody>
-              {porSucursalSorted.map(s => (
+              {filteredSucursal.map(s => (
                 <tr key={s.sucursal} className="border-b border-slate-100 hover:bg-orange-50/30">
                   <td className="px-5 py-3 font-semibold" style={{ color: '#1B3A5C' }}>{sucursalName(s.sucursal)}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{s.trabajadores}</td>
