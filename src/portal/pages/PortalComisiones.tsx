@@ -36,6 +36,11 @@ export default function PortalComisiones() {
   const [period, setPeriod] = useState<string | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
+  const { data: branchKpis } = useBranchRankingKpis(companyId);
+  const perCapita = useMemo(
+    () => (branchKpis?.comision_per_capita ?? []).slice().sort((a, b) => b.comision_per_capita - a.comision_per_capita),
+    [branchKpis]
+  );
 
   useEffect(() => {
     let cancel = false;
