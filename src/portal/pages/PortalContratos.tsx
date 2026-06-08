@@ -47,6 +47,31 @@ export default function PortalContratos() {
   const [showVenc, setShowVenc] = useState(false);
   const [commissionByWorker, setCommissionByWorker] = useState<Record<string, number>>({});
   const { data: salary } = useSalaryKpis(company?.id ?? LUCANO_COMPANY_ID);
+  const { data: breakdown = [] } = useSalaryBreakdown(company?.id ?? LUCANO_COMPANY_ID, null);
+  const breakdownByWorker = useMemo(() => {
+    const m: Record<string, SalaryBreakdownRow> = {};
+    breakdown.forEach(r => { m[r.worker_id] = r; });
+    return m;
+  }, [breakdown]);
+  const [sortKey, setSortKey] = useState<'worker_name' | 'cost_center' | 'base_liquid' | 'commissions' | 'other_bonuses' | 'total_liquid' | 'pct_commissions'>('total_liquid');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const handleSort = (k: typeof sortKey) => {
+    if (k === sortKey) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(k); setSortDir('asc'); }
+  };
+  const sortedBreakdown = useMemo(() => {
+    const arr = [...breakdown];
+    arr.sort((a, b) => {
+      if (sortKey === 'worker_name') return a.worker_name.localeCompare(b.worker_name);
+      if (sortKey === 'cost_center') return branchOrder(a.cost_center) - branchOrder(b.cost_center);
+      const av = Number((a as any)[sortKey] ?? 0);
+      const bv = Number((b as any)[sortKey] ?? 0);
+      return av - bv;
+    });
+    if (sortDir === 'desc') arr.reverse();
+    return arr;
+  }, [breakdown, sortKey, sortDir]);
+
 
   useEffect(() => {
     let cancelled = false;
