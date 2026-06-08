@@ -5,6 +5,7 @@ import { CheckCircle2, AlertTriangle, ChevronRight, ArrowUp, ArrowDown, ArrowUpD
 import PortalPageHeader from '../components/PortalPageHeader';
 import WorkerNameLink from '../components/WorkerNameLink';
 import { sucursalGeoIndexByName } from '../lib/sucursales';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 type Estado = 'marca_ok' | 'registrado_sin_marcar';
 
@@ -58,6 +59,7 @@ export default function PortalControlMarcaje() {
   const [loading, setLoading] = useState(true);
   const [estadoFilter, setEstadoFilter] = useState<'' | Estado>('');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -82,10 +84,20 @@ export default function PortalControlMarcaje() {
   }), [rows]);
 
   // Agrupar por sucursal en orden norte-sur
+  const filteredRows = useMemo(() => {
+    let list = estadoFilter ? rows.filter(r => r.estado === estadoFilter) : rows;
+    if (search.trim()) {
+      list = list.filter(r => matchesSearch([
+        r.nombre, r.rut, r.cargo, r.sucursal_codigo, r.sucursal_nombre, r.estado_label,
+      ], search));
+    }
+    return list;
+  }, [rows, estadoFilter, search]);
+
+  // Agrupar por sucursal en orden norte-sur
   const grupos = useMemo(() => {
-    const filtered = estadoFilter ? rows.filter(r => r.estado === estadoFilter) : rows;
     const map = new Map<string, Row[]>();
-    for (const r of filtered) {
+    for (const r of filteredRows) {
       const key = r.sucursal_nombre ?? 'Sin sucursal';
       const arr = map.get(key) ?? [];
       arr.push(r);
@@ -104,7 +116,7 @@ export default function PortalControlMarcaje() {
         ok: items.filter(i => i.estado === 'marca_ok').length,
         sin: items.filter(i => i.estado === 'registrado_sin_marcar').length,
       }));
-  }, [rows, estadoFilter]);
+  }, [filteredRows]);
 
   const toggle = (s: string) => {
     setExpanded(prev => {
@@ -138,6 +150,14 @@ export default function PortalControlMarcaje() {
         />
       </div>
 
+      <PortalSearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder="Buscar por nombre, RUT, cargo o sucursal…"
+        total={rows.length}
+        results={filteredRows.length}
+      />
+
       {/* Tabla agrupada por sucursal */}
       <div className="p-card overflow-hidden rounded-xl border border-slate-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-5 pb-3">
@@ -170,7 +190,7 @@ export default function PortalControlMarcaje() {
         ) : (
           <div className="divide-y divide-slate-100">
             {grupos.map(g => {
-              const isOpen = expanded.has(g.sucursal);
+              const isOpen = expanded.has(g.sucursal) || !!search.trim();
               return (
                 <div key={g.sucursal}>
                   <button

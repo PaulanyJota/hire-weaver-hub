@@ -17,6 +17,8 @@ import WorkerNameLink from '../components/WorkerNameLink';
 import { useBranchRankingKpis, usePunctualityKpis, useOvertimeKpis, useSalaryKpis } from '../hooks/useBranchRankingKpis';
 import { branchName } from '../constants/branches';
 import lucanoLogo from '@/assets/lucano-logo.png.asset.json';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
+import { sucursalName } from '../lib/sucursales';
 
 interface Worker { id: string; first_name: string; last_name: string; photo_url: string | null; active: boolean; cost_center: string | null }
 interface Att { worker_id: string; date: string; check_in: string | null; worked_hours: number | null; late_minutes: number | null }
@@ -223,6 +225,10 @@ export default function PortalDashboard() {
           </div>
         </div>
       </header>
+
+      <DashboardQuickSearch workersById={workersById} />
+
+
 
 
       {/* KPIs + Cumpleaños */}
@@ -603,4 +609,47 @@ function HamburgerBtn() {
     </button>
   );
 }
+
+function DashboardQuickSearch({ workersById }: { workersById: Record<string, Worker> }) {
+  const [search, setSearch] = useState('');
+  const list = useMemo(() => Object.values(workersById), [workersById]);
+  const results = useMemo(() => {
+    if (!search.trim()) return [];
+    return list
+      .filter(w => matchesSearch([
+        `${w.first_name} ${w.last_name}`,
+        w.cost_center, w.cost_center ? sucursalName(w.cost_center) : null,
+      ], search))
+      .slice(0, 8);
+  }, [list, search]);
+  return (
+    <div className="space-y-2">
+      <PortalSearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder="Buscar trabajador por nombre o sucursal…"
+        total={list.length}
+        results={search.trim() ? results.length : undefined}
+      />
+      {search.trim() && results.length > 0 && (
+        <div className="p-card divide-y divide-slate-100 overflow-hidden">
+          {results.map(w => (
+            <Link
+              key={w.id}
+              to={`/portal/trabajadores/${w.id}`}
+              className="flex items-center justify-between px-4 py-2.5 hover:bg-orange-50/40"
+            >
+              <span className="text-sm font-semibold" style={{ color: '#1B3A5C' }}>{w.first_name} {w.last_name}</span>
+              <span className="text-[11px] text-muted-foreground">{w.cost_center ? sucursalName(w.cost_center) : '—'}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+      {search.trim() && results.length === 0 && (
+        <div className="p-card px-4 py-3 text-xs text-muted-foreground">Sin trabajadores que coincidan.</div>
+      )}
+    </div>
+  );
+}
+
 

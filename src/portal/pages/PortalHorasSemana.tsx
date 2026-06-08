@@ -6,6 +6,7 @@ import { usePortalAuth } from '../hooks/usePortalAuth';
 import { sucursalGeoIndexByName } from '../lib/sucursales';
 import { ChevronDown, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 type Row = {
   cost_center: string | null;
@@ -27,6 +28,7 @@ export default function PortalHorasSemana() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -43,8 +45,11 @@ export default function PortalHorasSemana() {
   }, [profile, isNodoAdmin]);
 
   const groups: Grupo[] = useMemo(() => {
+    const filteredRows = search.trim()
+      ? rows.filter(r => matchesSearch([r.nombre, r.cost_center, r.sucursal], search))
+      : rows;
     const map = new Map<string, Grupo>();
-    rows.forEach(r => {
+    filteredRows.forEach(r => {
       const key = r.cost_center ?? '__none__';
       const sucursal = r.sucursal ?? 'Sin sucursal';
       if (!map.has(key)) map.set(key, { cost_center: key, sucursal, total: 0, workers: [] });
@@ -55,7 +60,7 @@ export default function PortalHorasSemana() {
     const list = Array.from(map.values());
     list.forEach(g => g.workers.sort((a, b) => Number(b.horas ?? 0) - Number(a.horas ?? 0)));
     return list.sort((a, b) => sucursalGeoIndexByName(a.sucursal) - sucursalGeoIndexByName(b.sucursal));
-  }, [rows]);
+  }, [rows, search]);
 
   const totalGeneral = useMemo(
     () => groups.reduce((s, g) => s + g.total, 0),
@@ -68,6 +73,14 @@ export default function PortalHorasSemana() {
         eyebrow="Horas"
         title="Horas semana"
         subtitle={`${totalGeneral.toFixed(1)} h totales · ${groups.length} sucursales`}
+      />
+
+      <PortalSearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder="Buscar por nombre o sucursal…"
+        total={rows.length}
+        results={groups.reduce((s, g) => s + g.workers.length, 0)}
       />
 
       {loading ? (

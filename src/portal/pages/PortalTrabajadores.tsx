@@ -8,6 +8,7 @@ import { formatRut } from '../lib/formatRut';
 import { sucursalName, sucursalGeoIndex } from '../lib/sucursales';
 import WorkerNameLink from '../components/WorkerNameLink';
 import SearchAutocomplete, { type AutocompleteItem } from '../components/SearchAutocomplete';
+import { matchesSearch } from '../components/PortalSearchBar';
 import { useSucursalesCount } from '../hooks/useSucursalesCount';
 import { ArrowRight, ChevronDown, MapPin, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 
@@ -92,11 +93,15 @@ export default function PortalTrabajadores() {
   }, []);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
     return workers.filter(w => {
       if (estadoFilter === 'active' && !w.active) return false;
       if (estadoFilter === 'inactive' && w.active) return false;
-      if (q && !`${w.first_name} ${w.last_name} ${w.position ?? ''}`.toLowerCase().includes(q)) return false;
+      if (!matchesSearch([
+        `${w.first_name} ${w.last_name}`,
+        w.rut, w.rut_display, formatRut(w.rut ?? w.rut_display),
+        w.position, w.area,
+        w.cost_center, w.cost_center ? sucursalName(w.cost_center) : null,
+      ], search)) return false;
       return true;
     });
   }, [workers, search, estadoFilter]);

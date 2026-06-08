@@ -12,6 +12,7 @@ import { useSucursalesCount } from '../hooks/useSucursalesCount';
 import { sucursalGeoIndexByName, sucursalName } from '../lib/sucursales';
 import { sortByBranch } from '../constants/branches';
 import { useBranchRankingKpis, usePerfectAttendance } from '../hooks/useBranchRankingKpis';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 type Row = {
   worker_id: string;
@@ -43,6 +44,7 @@ export default function PortalAsistencia() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [sucursalFilter, setSucursalFilter] = useState<string>('');
+  const [search, setSearch] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('pct_puntualidad');
   const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
 
@@ -153,6 +155,11 @@ export default function PortalAsistencia() {
   const tabla = useMemo(() => {
     let list = rows.slice();
     if (sucursalFilter) list = list.filter(r => r.sucursal === sucursalFilter);
+    if (search.trim()) {
+      list = list.filter(r => matchesSearch([
+        r.nombre, r.worker_position, r.cost_center, r.sucursal,
+      ], search));
+    }
     list.sort((a, b) => {
       const dir = sortDir === 'asc' ? 1 : -1;
       const av = (a as any)[sortKey];
@@ -164,7 +171,7 @@ export default function PortalAsistencia() {
       return String(av).localeCompare(String(bv)) * dir;
     });
     return list;
-  }, [rows, sucursalFilter, sortKey, sortDir]);
+  }, [rows, sucursalFilter, sortKey, sortDir, search]);
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
@@ -507,15 +514,25 @@ export default function PortalAsistencia() {
       <div className="p-card overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-5 pb-3">
           <h3 className="text-sm font-bold tracking-tight" style={{ color: 'hsl(var(--p-text))' }}>Detalle por trabajador</h3>
-          <select
-            className="p-select"
-            style={{ width: 200 }}
-            value={sucursalFilter}
-            onChange={e => setSucursalFilter(e.target.value)}
-          >
-            <option value="">Todas las sucursales</option>
-            {sucursales.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center w-full sm:w-auto">
+            <PortalSearchBar
+              value={search}
+              onChange={setSearch}
+              placeholder="Buscar por nombre, cargo o sucursal…"
+              total={rows.length}
+              results={tabla.length}
+              className="sm:w-80"
+            />
+            <select
+              className="p-select"
+              style={{ width: 200 }}
+              value={sucursalFilter}
+              onChange={e => setSucursalFilter(e.target.value)}
+            >
+              <option value="">Todas las sucursales</option>
+              {sucursales.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
         </div>
 
         {loading ? (

@@ -13,6 +13,7 @@ import { BRANCH_ORDER, branchName as branchNameFn } from '../constants/branches'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
 } from 'recharts';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
 
@@ -90,6 +91,7 @@ export default function PortalComisiones() {
   const [period, setPeriod] = useState<string | null>(null);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const { data: branchKpis } = useBranchRankingKpis(companyId);
   const { data: salary } = useSalaryKpis(companyId);
   const perCapita = useMemo(
@@ -287,6 +289,11 @@ export default function PortalComisiones() {
     [summary]
   );
 
+  const filteredSucursal = useMemo(() => {
+    if (!search.trim()) return porSucursalSorted;
+    return porSucursalSorted.filter(s => matchesSearch([s.sucursal, sucursalName(s.sucursal)], search));
+  }, [porSucursalSorted, search]);
+
   const conceptList = summary?.por_concepto?.map(c => c.concept) ?? [];
   const branchList = porSucursalSorted.map(b => b.sucursal);
   const enrichedWorkers = useMemo(() => {
@@ -295,6 +302,18 @@ export default function PortalComisiones() {
       conceptos_list: workerConcepts[w.worker_id] ?? [],
     }));
   }, [summary, workerConcepts]);
+
+  const filteredWorkers = useMemo(() => {
+    if (!search.trim()) return enrichedWorkers;
+    return enrichedWorkers.filter(w => matchesSearch([
+      w.nombre, w.sucursal, sucursalName(w.sucursal), ...(w.conceptos_list ?? []),
+    ], search));
+  }, [enrichedWorkers, search]);
+
+  const filteredConceptos = useMemo(() => {
+    if (!search.trim() || !summary?.por_concepto) return summary?.por_concepto ?? [];
+    return summary.por_concepto.filter(c => matchesSearch([c.concept], search));
+  }, [summary, search]);
 
 
   return (
@@ -319,6 +338,14 @@ export default function PortalComisiones() {
           ))}
         </select>
       </div>
+
+      <PortalSearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder="Buscar por trabajador, sucursal o concepto…"
+        total={enrichedWorkers.length}
+        results={filteredWorkers.length}
+      />
 
       {/* KPIs */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -374,7 +401,7 @@ export default function PortalComisiones() {
               </tr>
             </thead>
             <tbody>
-              {porSucursalSorted.map(s => (
+              {filteredSucursal.map(s => (
                 <tr key={s.sucursal} className="border-b border-slate-100 hover:bg-orange-50/30">
                   <td className="px-5 py-3 font-semibold" style={{ color: '#1B3A5C' }}>{sucursalName(s.sucursal)}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{s.trabajadores}</td>
@@ -430,7 +457,7 @@ export default function PortalComisiones() {
               </tr>
             </thead>
             <tbody>
-              {summary.por_concepto.map(c => (
+              {filteredConceptos.map(c => (
                 <tr key={c.concept} className="border-b border-slate-100 hover:bg-orange-50/30">
                   <td className="px-5 py-3 font-semibold" style={{ color: '#1B3A5C' }}>{c.concept}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{c.ocurrencias}</td>
@@ -455,7 +482,7 @@ export default function PortalComisiones() {
           <div className="p-10 text-center text-sm text-muted-foreground">Sin trabajadores con comisión.</div>
         ) : (
           <ul className="divide-y divide-slate-100">
-            {summary.top_workers.slice(0, 10).map((w, idx) => {
+            {(search.trim() ? filteredWorkers : summary.top_workers.slice(0, 10)).map((w, idx) => {
               const key = w.nombre.trim().toLowerCase();
               const pct = pctByName[key];
               const constante = constantSet.has(key);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -6,6 +6,7 @@ import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Plus, X, AlertTriangle } from 'lucide-react';
 import PortalPageHeader from '../components/PortalPageHeader';
 import WorkerNameLink from '../components/WorkerNameLink';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 interface Incident {
   id: string;
@@ -28,7 +29,16 @@ export default function PortalIncidencias() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [search, setSearch] = useState('');
   const [form, setForm] = useState({ worker_id: '', incident_type: 'observacion', date: new Date().toISOString().slice(0,10), description: '', severity: 2 });
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return items;
+    return items.filter(i => matchesSearch([
+      i.worker ? `${i.worker.first_name} ${i.worker.last_name}` : null,
+      i.incident_type, i.description,
+    ], search));
+  }, [items, search]);
 
   const load = async () => {
     setLoading(true);
@@ -92,6 +102,16 @@ export default function PortalIncidencias() {
         }
       />
 
+      {items.length > 0 && (
+        <PortalSearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Buscar por trabajador, tipo o descripción…"
+          total={items.length}
+          results={filtered.length}
+        />
+      )}
+
       {loading ? (
         <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}</div>
       ) : items.length === 0 ? (
@@ -116,7 +136,7 @@ export default function PortalIncidencias() {
                 </tr>
               </thead>
               <tbody>
-                {items.map(i => (
+                {filtered.map(i => (
                   <tr key={i.id}>
                     <td className="text-xs text-muted-foreground">{new Date(i.date).toLocaleDateString('es-CL')}</td>
                     <td>{i.worker?.id ? <WorkerNameLink workerId={i.worker.id} name={`${i.worker.first_name} ${i.worker.last_name}`} /> : <span className="font-semibold">{i.worker?.first_name} {i.worker?.last_name}</span>}</td>

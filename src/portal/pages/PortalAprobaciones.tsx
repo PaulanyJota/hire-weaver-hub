@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -6,6 +6,7 @@ import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Check, X, ClipboardCheck, CalendarRange } from 'lucide-react';
 import PortalPageHeader from '../components/PortalPageHeader';
 import WorkerNameLink from '../components/WorkerNameLink';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 interface Approval {
   id: string;
@@ -24,6 +25,15 @@ export default function PortalAprobaciones() {
   const [loading, setLoading] = useState(true);
   const [decisionNotes, setDecisionNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return items;
+    return items.filter(a => matchesSearch([
+      a.worker ? `${a.worker.first_name} ${a.worker.last_name}` : null,
+      a.request_type, a.reason,
+    ], search));
+  }, [items, search]);
 
   const load = async () => {
     setLoading(true);
@@ -73,6 +83,16 @@ export default function PortalAprobaciones() {
         notifications={items.length}
       />
 
+      {items.length > 0 && (
+        <PortalSearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Buscar por trabajador, tipo o motivo…"
+          total={items.length}
+          results={filtered.length}
+        />
+      )}
+
       {loading ? (
         <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-32 w-full rounded-2xl" />)}</div>
       ) : items.length === 0 ? (
@@ -85,7 +105,7 @@ export default function PortalAprobaciones() {
         </div>
       ) : (
         <div className="space-y-3 p-stagger">
-          {items.map(a => (
+          {filtered.map(a => (
             <div key={a.id} className="p-card p-card-hover p-5">
               <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                 <div className="flex items-start gap-3">
