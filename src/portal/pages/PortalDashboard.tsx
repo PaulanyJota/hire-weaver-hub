@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
-import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity, Menu, Flame, BarChart3, AlertTriangle, DollarSign } from 'lucide-react';
+import { Users, CheckCircle2, Clock, TrendingUp, Activity, Menu, Flame, BarChart3, DollarSign } from 'lucide-react';
 import { usePortalSidebar } from '../hooks/usePortalSidebar';
 
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PortalAvatar } from '../components/Avatar';
 import PortalDashboardExtras from '../components/PortalDashboardExtras';
 import WorkerNameLink from '../components/WorkerNameLink';
@@ -144,13 +145,19 @@ export default function PortalDashboard() {
   const today = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const firstName = profile?.full_name.split(' ')[0] ?? '';
 
-  // KPI Horas extra (invertido: pocas = bueno)
+  // KPI Horas extra — métrica informativa, sin tono de alarma
   const otTotal = overtime?.total_horas_extra ?? 0;
-  const otNivel = overtime?.nivel_alerta ?? 'ok';
   const otDelta = overtime?.delta_pct ?? 0;
-  const otAccent = otNivel === 'critical' ? '#DC2626' : otNivel === 'warning' ? '#F97316' : '#64748B';
-  const otGlow = otNivel === 'critical' ? 'hsl(0 80% 55% / 0.18)' : otNivel === 'warning' ? 'hsl(25 95% 53% / 0.18)' : 'hsl(215 16% 47% / 0.12)';
-  const otSub = otNivel === 'critical' ? 'Requiere atención inmediata' : otNivel === 'warning' ? 'Requiere seguimiento' : 'Sin horas extra relevantes ✓';
+  const otCount = overtime?.trabajadores_afectados ?? 0;
+  const otAccent = '#64748B';
+  const otGlow = 'hsl(215 16% 47% / 0.12)';
+  const otSub = overtime
+    ? (otTotal === 0
+        ? 'Sin horas extra este mes'
+        : `${otCount} trabajador${otCount === 1 ? '' : 'es'} · ${overtime.dias_con_extra} día${overtime.dias_con_extra === 1 ? '' : 's'}`)
+    : '';
+
+  const [otOpen, setOtOpen] = useState(false);
 
   const commValue = commTotal ? `$${Math.round(commTotal.total).toLocaleString('es-CL')}` : '—';
   const commDelta = commTotal?.delta_pct ?? null;
@@ -163,12 +170,12 @@ export default function PortalDashboard() {
       label: 'Horas extra',
       value: overtime ? `${otTotal.toFixed(1)}h` : '—',
       sub: otSub,
-      icon: otNivel === 'ok' ? Clock : AlertTriangle,
+      icon: Clock,
       glow: otGlow,
       accent: otAccent,
       delta: otDelta,
-      pulse: otNivel === 'critical',
       kind: 'overtime',
+      onClick: () => setOtOpen(true),
     },
     {
       label: periodoLabel ? `Comisiones ${periodoLabel}` : 'Comisiones',
@@ -180,7 +187,6 @@ export default function PortalDashboard() {
       accent: '#F97316',
       to: '/portal/comisiones',
     },
-    { label: 'Atrasos semana', value: kpiLateWeek, sub: 'minutos acumulados', icon: Timer, glow: 'hsl(25 95% 53% / 0.18)', accent: 'hsl(25 90% 45%)' },
   ];
 
   return (
@@ -211,12 +217,16 @@ export default function PortalDashboard() {
 
 
       {/* KPIs */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 p-stagger">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-stagger">
         {cards.map(c => {
           const isOvertime = c.kind === 'overtime';
-          const deltaNode = isOvertime && overtime && otTotal > 0 ? (
-            <p className={`text-[11px] mt-1 font-bold ${otDelta > 0 ? 'text-red-600' : otDelta < 0 ? 'text-emerald-600' : 'text-muted-foreground'}`}>
-              {otDelta > 0 ? `↑${otDelta.toFixed(1)}% vs mes anterior` : otDelta < 0 ? `↓${Math.abs(otDelta).toFixed(1)}% vs mes anterior` : 'igual que mes anterior'}
+          const deltaNode = isOvertime && overtime && (otTotal > 0 || (overtime.total_mes_anterior ?? 0) > 0) ? (
+            <p className={`text-[11px] mt-1 font-medium ${otDelta < 0 ? 'text-emerald-600' : otDelta > 0 ? 'text-slate-500' : 'text-muted-foreground'}`}>
+              {otDelta < 0
+                ? `↓${Math.abs(otDelta).toFixed(1)}% vs mes anterior · buena noticia`
+                : otDelta > 0
+                ? `↑${otDelta.toFixed(1)}% vs mes anterior`
+                : 'igual que mes anterior'}
             </p>
           ) : null;
           const inner = (
@@ -237,59 +247,82 @@ export default function PortalDashboard() {
               </div>
             </div>
           );
-          const extraClass = c.pulse ? ' ring-2 ring-red-400/60 animate-pulse' : '';
           if (c.to) {
             return (
               <Link
                 key={c.label}
                 to={c.to}
-                className={`p-kpi cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all${extraClass}`}
+                className="p-kpi cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all"
                 style={{ ['--p-kpi-glow' as any]: c.glow }}
               >
                 {inner}
               </Link>
             );
           }
+          if (c.onClick) {
+            return (
+              <button
+                key={c.label}
+                type="button"
+                onClick={c.onClick}
+                className="p-kpi cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all text-left"
+                style={{ ['--p-kpi-glow' as any]: c.glow }}
+              >
+                {inner}
+              </button>
+            );
+          }
           return (
-            <div key={c.label} className={`p-kpi${extraClass}`} style={{ ['--p-kpi-glow' as any]: c.glow }}>
+            <div key={c.label} className="p-kpi" style={{ ['--p-kpi-glow' as any]: c.glow }}>
               {inner}
             </div>
           );
         })}
       </section>
 
-      {/* Horas extra del mes — alerta sutil, solo si hay datos */}
-      {overtime && overtime.total_horas_extra > 0 && overtime.top_trabajadores?.length > 0 && (
-        <section className="rounded-2xl border border-red-100 bg-red-50/60 overflow-hidden">
-          <div className="px-5 py-3 border-b border-red-100 flex items-center gap-2">
-            <AlertTriangle className="w-4 h-4 text-red-500" />
-            <h3 className="text-sm font-bold tracking-tight text-red-700">
-              Horas extra este mes — {overtime.trabajadores_afectados} trabajador{overtime.trabajadores_afectados === 1 ? '' : 'es'} afectado{overtime.trabajadores_afectados === 1 ? '' : 's'}
-            </h3>
-            <span className="ml-auto text-[11px] font-mono text-red-700 tabular-nums">{overtime.total_horas_extra.toFixed(1)}h · {overtime.dias_con_extra} días</span>
-          </div>
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="text-[10px] uppercase tracking-wider text-red-700/70 border-b border-red-100">
-                <th className="text-left px-5 py-2 font-semibold">Trabajador</th>
-                <th className="text-left px-3 py-2 font-semibold">Sucursal</th>
-                <th className="text-right px-3 py-2 font-semibold">Horas extra</th>
-                <th className="text-right px-5 py-2 font-semibold">Días</th>
-              </tr>
-            </thead>
-            <tbody>
-              {overtime.top_trabajadores.map((t, i) => (
-                <tr key={i} className="border-b border-red-100/60 last:border-0 hover:bg-red-100/40">
-                  <td className="px-5 py-2 font-semibold text-slate-800">{t.nombre}</td>
-                  <td className="px-3 py-2 text-slate-700">{branchName(t.sucursal)}</td>
-                  <td className="px-3 py-2 text-right font-mono tabular-nums font-bold text-red-700">{t.horas_extra.toFixed(1)}h</td>
-                  <td className="px-5 py-2 text-right tabular-nums text-slate-700">{t.dias}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </section>
-      )}
+      {/* Modal — detalle trabajadores con horas extra */}
+      <Dialog open={otOpen} onOpenChange={setOtOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-slate-500" />
+              Trabajadores con horas extra este mes
+            </DialogTitle>
+          </DialogHeader>
+          {!overtime ? (
+            <div className="space-y-2 py-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
+          ) : (overtime.top_trabajadores?.length ?? 0) === 0 ? (
+            <p className="text-sm text-muted-foreground py-8 text-center">Sin trabajadores con horas extra este mes.</p>
+          ) : (
+            <div className="max-h-[60vh] overflow-y-auto">
+              <p className="text-xs text-muted-foreground mb-3">
+                {overtime.trabajadores_afectados} trabajador{overtime.trabajadores_afectados === 1 ? '' : 'es'} · {overtime.total_horas_extra.toFixed(1)}h en total
+              </p>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-[10px] uppercase tracking-wider text-muted-foreground border-b">
+                    <th className="text-left py-2 font-semibold">Trabajador</th>
+                    <th className="text-left px-2 py-2 font-semibold">Sucursal</th>
+                    <th className="text-right px-2 py-2 font-semibold">Horas extra</th>
+                    <th className="text-right py-2 font-semibold">Días</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {overtime.top_trabajadores.map((t, i) => (
+                    <tr key={i} className="border-b last:border-0 hover:bg-muted/40">
+                      <td className="py-2 font-medium text-slate-800">{t.nombre}</td>
+                      <td className="px-2 py-2 text-slate-600">{branchName(t.sucursal)}</td>
+                      <td className="px-2 py-2 text-right font-mono tabular-nums font-semibold text-slate-800">{t.horas_extra.toFixed(1)}h</td>
+                      <td className="py-2 text-right tabular-nums text-slate-600">{t.dias}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
 
 
       {/* KPIs sorpresa — puntualidad / actividad / racha */}
