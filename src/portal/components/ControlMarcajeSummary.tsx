@@ -8,7 +8,7 @@ interface Row { estado: 'marca_ok' | 'registrado_sin_marcar' | 'no_en_geovictori
 
 export default function ControlMarcajeSummary() {
   const [loading, setLoading] = useState(true);
-  const [counts, setCounts] = useState({ ok: 0, sin: 0, no: 0 });
+  const [counts, setCounts] = useState({ ok: 0, sin: 0 });
 
   useEffect(() => {
     let cancelled = false;
@@ -20,7 +20,6 @@ export default function ControlMarcajeSummary() {
       setCounts({
         ok: rows.filter(r => r.estado === 'marca_ok').length,
         sin: rows.filter(r => r.estado === 'registrado_sin_marcar').length,
-        no: rows.filter(r => r.estado === 'no_en_geovictoria').length,
       });
       setLoading(false);
     })();
@@ -30,7 +29,6 @@ export default function ControlMarcajeSummary() {
   const items = [
     { label: 'Marca OK', value: counts.ok, color: '#1D9E75', bg: '#1D9E7515' },
     { label: 'Registrado sin marcar', value: counts.sin, color: '#F97316', bg: '#F9731615' },
-    { label: 'No en Geovictoria', value: counts.no, color: '#dc2626', bg: '#dc262615' },
   ];
 
   return (
@@ -53,7 +51,7 @@ export default function ControlMarcajeSummary() {
           Ver detalle completo <ArrowRight className="w-3.5 h-3.5" />
         </Link>
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {items.map(it => (
           <div key={it.label} className="rounded-xl border border-slate-200 p-4" style={{ background: it.bg }}>
             <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-600">{it.label}</p>
