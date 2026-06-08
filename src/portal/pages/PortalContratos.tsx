@@ -289,7 +289,8 @@ export default function PortalContratos() {
                       ? <span className="text-slate-700">{fmtDate(r.end_date)}</span>
                       : <span className="text-slate-400 italic">Sin vencimiento</span>}
                   </td>
-                  <td className="px-6 py-3 text-right font-mono tabular-nums font-semibold" style={{ color: '#1B3A5C' }}>
+                  <td className="px-6 py-3 text-right font-mono tabular-nums font-semibold" style={{ color: '#1B3A5C' }}
+                    title="Sueldo líquido del último mes trabajado (la liquidación se paga al mes siguiente)">
                     {r.liquid_salary > 0 ? fmtCLP(r.liquid_salary) : <span className="text-slate-400 font-normal">—</span>}
                   </td>
                 </tr>
