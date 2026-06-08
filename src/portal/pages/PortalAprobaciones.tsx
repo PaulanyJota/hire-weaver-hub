@@ -83,6 +83,16 @@ export default function PortalAprobaciones() {
         notifications={items.length}
       />
 
+      {items.length > 0 && (
+        <PortalSearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Buscar por trabajador, tipo o motivo…"
+          total={items.length}
+          results={filtered.length}
+        />
+      )}
+
       {loading ? (
         <div className="space-y-3">{[1,2,3].map(i => <Skeleton key={i} className="h-32 w-full rounded-2xl" />)}</div>
       ) : items.length === 0 ? (
@@ -95,7 +105,7 @@ export default function PortalAprobaciones() {
         </div>
       ) : (
         <div className="space-y-3 p-stagger">
-          {items.map(a => (
+          {filtered.map(a => (
             <div key={a.id} className="p-card p-card-hover p-5">
               <div className="flex flex-wrap items-start justify-between gap-3 mb-3">
                 <div className="flex items-start gap-3">
