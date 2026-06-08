@@ -202,7 +202,14 @@ export default function PortalDashboard() {
             <HamburgerBtn />
             <div className="min-w-0">
               <p className="text-[10px] sm:text-xs uppercase tracking-widest text-white/65 font-semibold">Panel general</p>
-              <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight mt-1 break-words">Hola, {firstName} 👋</h1>
+              <div className="flex items-center gap-3 flex-wrap mt-1">
+                <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight break-words">Hola, {firstName} 👋</h1>
+                <img
+                  src={lucanoLogo.url}
+                  alt="Lucano Rent a Car"
+                  className="h-8 object-contain shrink-0"
+                />
+              </div>
               <p className="text-xs sm:text-sm text-white/75 capitalize mt-1.5">
                 {today}{isNodoAdmin && ' · Vista global Nodo'}{company && !isNodoAdmin && ` · ${company.name}`}
               </p>
