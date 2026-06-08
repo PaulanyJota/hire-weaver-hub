@@ -18,6 +18,7 @@ import PortalTrabajadores from "@/portal/pages/PortalTrabajadores";
 import PortalTrabajadorDetalle from "@/portal/pages/PortalTrabajadorDetalle";
 import PortalAsistencia from "@/portal/pages/PortalAsistencia";
 import PortalAprobaciones from "@/portal/pages/PortalAprobaciones";
+import PortalSolicitudes from "@/portal/pages/PortalSolicitudes";
 import PortalIncidencias from "@/portal/pages/PortalIncidencias";
 import PortalConfiguracion from "@/portal/pages/PortalConfiguracion";
 import PortalSucursalDetalle from "@/portal/pages/PortalSucursalDetalle";
@@ -60,6 +61,14 @@ const App = () => (
                     <Route path="contratos" element={<PortalContratos />} />
                     <Route path="comisiones" element={<PortalComisiones />} />
                     <Route path="sucursal/:cost_center" element={<PortalSucursalDetalle />} />
+                    <Route
+                      path="solicitudes"
+                      element={
+                        <PortalProtectedRoute adminOnly>
+                          <PortalSolicitudes />
+                        </PortalProtectedRoute>
+                      }
+                    />
                     <Route
                       path="aprobaciones"
                       element={

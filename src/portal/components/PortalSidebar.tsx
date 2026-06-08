@@ -1,6 +1,8 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Users, ClipboardCheck, AlertTriangle, Settings, LogOut, Clock, ShieldCheck, X, FileText, DollarSign } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Home, Users, AlertTriangle, Settings, LogOut, Clock, ShieldCheck, X, FileText, DollarSign, ClipboardList } from 'lucide-react';
 import { NodoWillLogo } from '@/components/NodoWillLogo';
+import { supabase } from '@/integrations/supabase/client';
 
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { usePortalSidebar } from '../hooks/usePortalSidebar';
@@ -13,7 +15,7 @@ const items = [
   { to: '/portal/control-marcaje', label: 'Control de marcaje', icon: ShieldCheck },
   { to: '/portal/contratos', label: 'Contratos', icon: FileText },
   { to: '/portal/comisiones', label: 'Comisiones', icon: DollarSign },
-  { to: '/portal/aprobaciones', label: 'Aprobaciones', icon: ClipboardCheck, adminOnly: true },
+  { to: '/portal/solicitudes', label: 'Solicitudes', icon: ClipboardList, adminOnly: true, badge: 'pending' as const },
   { to: '/portal/incidencias', label: 'Incidencias', icon: AlertTriangle },
   { to: '/portal/configuracion', label: 'Configuración', icon: Settings, adminOnly: true },
 ];
@@ -22,6 +24,24 @@ export function PortalSidebar() {
   const { profile, company, isAdmin, signOut } = usePortalAuth();
   const { isOpen, close } = usePortalSidebar();
   const navigate = useNavigate();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    let active = true;
+    const load = async () => {
+      const { count } = await supabase
+        .from('portal_approval_requests')
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['pendiente', 'en_proceso']);
+      if (active) setPendingCount(count ?? 0);
+    };
+    load();
+    const ch = supabase.channel('sidebar-solicitudes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'portal_approval_requests' }, load)
+      .subscribe();
+    return () => { active = false; supabase.removeChannel(ch); };
+  }, [isAdmin]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -86,7 +106,15 @@ export function PortalSidebar() {
               )}
             >
               <item.icon className="w-4 h-4" />
-              <span>{item.label}</span>
+              <span className="flex-1">{item.label}</span>
+              {item.badge === 'pending' && pendingCount > 0 && (
+                <span
+                  className="min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center text-white animate-pulse"
+                  style={{ background: '#F97316' }}
+                >
+                  {pendingCount > 99 ? '99+' : pendingCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
