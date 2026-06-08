@@ -1345,6 +1345,10 @@ export type Database = {
         }[]
       }
       get_commission_periods: { Args: { p_company_id: string }; Returns: Json }
+      get_commissions_historical: {
+        Args: { p_company_id: string }
+        Returns: Json
+      }
       get_commissions_metrics: {
         Args: { p_company_id: string; p_cost_center: string; p_period: string }
         Returns: {
@@ -1442,15 +1446,7 @@ export type Database = {
         Args: { p_periods?: number; p_worker_id: string }
         Returns: Json
       }
-      get_worker_pay_history: {
-        Args: { p_worker_id: string }
-        Returns: {
-          comisiones: number
-          period: string
-          sueldo_liquido: number
-          total: number
-        }[]
-      }
+      get_worker_pay_history: { Args: { p_worker_id: string }; Returns: Json }
       get_worker_profile: {
         Args: { p_worker_id: string }
         Returns: {
@@ -1475,11 +1471,7 @@ export type Database = {
       }
       get_worker_salary_history: {
         Args: { p_worker_id: string }
-        Returns: {
-          delta_pct: number
-          liquid_salary: number
-          period: string
-        }[]
+        Returns: Json
       }
       has_role: {
         Args: {
@@ -1493,6 +1485,14 @@ export type Database = {
         Returns: undefined
       }
       normalize_postulante_nombre: { Args: { n: string }; Returns: string }
+      payroll_period_label: {
+        Args: { p_payment_period: string }
+        Returns: string
+      }
+      payroll_worked_period: {
+        Args: { p_payment_period: string }
+        Returns: string
+      }
       portal_current_user_company_id: { Args: never; Returns: string }
       portal_is_admin: { Args: never; Returns: boolean }
       portal_is_nodo_admin: { Args: never; Returns: boolean }
