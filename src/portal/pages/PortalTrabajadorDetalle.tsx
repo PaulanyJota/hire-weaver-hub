@@ -95,6 +95,10 @@ export default function PortalTrabajadorDetalle() {
   const [inferred, setInferred] = useState<{ dias_activos: number[]; hora_entrada: string | null; hora_salida: string | null; jornada_horas: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const { data: breakdownAll = [] } = useSalaryBreakdown(null, null);
+  const breakdown = useMemo(() => breakdownAll.find(b => b.worker_id === id) ?? null, [breakdownAll, id]);
+
+
   useEffect(() => {
     if (!id) return;
     let cancelled = false;
