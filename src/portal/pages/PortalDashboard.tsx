@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PortalAvatar } from '../components/Avatar';
 import PortalDashboardExtras from '../components/PortalDashboardExtras';
+import UpcomingBirthdaysWidget from '../components/UpcomingBirthdaysWidget';
 import WorkerNameLink from '../components/WorkerNameLink';
 import { useBranchRankingKpis, usePunctualityKpis, useOvertimeKpis, useSalaryKpis } from '../hooks/useBranchRankingKpis';
 import { branchName } from '../constants/branches';
