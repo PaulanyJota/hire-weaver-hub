@@ -106,22 +106,32 @@ export default function PortalComisiones() {
       const next = new Date(Date.UTC(y, m, 1));
       return next.toISOString().slice(0, 10);
     })();
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('portal_commissions')
-      .select('worker_id, concept, amount, cost_center, portal_workers!inner(first_name, last_name)')
+      .select('worker_id, concept, amount, cost_center')
       .eq('portal_company_id', companyId)
       .eq('cost_center', sucursal)
       .gte('period', start)
       .lt('period', end);
-    const rows = (data ?? []).map((r: any) => {
-      const w = Array.isArray(r.portal_workers) ? r.portal_workers[0] : r.portal_workers;
-      return {
-        worker_id: r.worker_id,
-        nombre: w ? `${w.first_name} ${w.last_name}` : '—',
-        concept: r.concept,
-        amount: Number(r.amount) || 0,
-      };
-    }).sort((a, b) => b.amount - a.amount);
+    if (error) console.error('[branch-detail]', error);
+    const commissions = (data ?? []) as { worker_id: string; concept: string; amount: number }[];
+    const workerIds = Array.from(new Set(commissions.map(c => c.worker_id)));
+    const nameMap: Record<string, string> = {};
+    if (workerIds.length) {
+      const { data: workers } = await supabase
+        .from('portal_workers')
+        .select('id, first_name, last_name')
+        .in('id', workerIds);
+      (workers ?? []).forEach((w: any) => {
+        nameMap[w.id] = `${w.first_name ?? ''} ${w.last_name ?? ''}`.trim() || '—';
+      });
+    }
+    const rows = commissions.map(r => ({
+      worker_id: r.worker_id,
+      nombre: nameMap[r.worker_id] ?? '—',
+      concept: r.concept,
+      amount: Number(r.amount) || 0,
+    })).sort((a, b) => b.amount - a.amount);
     setBranchDetails(prev => ({ ...prev, [sucursal]: rows }));
   };
 
