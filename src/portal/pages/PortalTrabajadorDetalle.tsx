@@ -14,6 +14,8 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   LineChart, Line,
 } from 'recharts';
+import { useSalaryBreakdown } from '../hooks/useBranchRankingKpis';
+
 
 interface Worker {
   id: string;
