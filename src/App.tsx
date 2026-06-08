@@ -18,6 +18,7 @@ import PortalTrabajadores from "@/portal/pages/PortalTrabajadores";
 import PortalTrabajadorDetalle from "@/portal/pages/PortalTrabajadorDetalle";
 import PortalAsistencia from "@/portal/pages/PortalAsistencia";
 import PortalAprobaciones from "@/portal/pages/PortalAprobaciones";
+import PortalSolicitudes from "@/portal/pages/PortalSolicitudes";
 import PortalIncidencias from "@/portal/pages/PortalIncidencias";
 import PortalConfiguracion from "@/portal/pages/PortalConfiguracion";
 import PortalSucursalDetalle from "@/portal/pages/PortalSucursalDetalle";
