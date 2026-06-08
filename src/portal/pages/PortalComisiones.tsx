@@ -6,7 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { sucursalName } from '../lib/sucursales';
 import { sortByBranch, branchOrder } from '../constants/branches';
-import { shiftedPeriodEs, shiftedPeriodEsShort } from '../lib/periodLabel';
+import { fmtPeriodEs } from '../lib/periodLabel';
 import { DollarSign, Users, TrendingUp, Building2, Trophy, X, ChevronDown, ChevronRight, AlertTriangle, ArrowDownRight, ArrowUpRight, Sparkles, XCircle } from 'lucide-react';
 import { useBranchRankingKpis } from '../hooks/useBranchRankingKpis';
 import {
