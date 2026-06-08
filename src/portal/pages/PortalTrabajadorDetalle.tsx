@@ -257,12 +257,9 @@ export default function PortalTrabajadorDetalle() {
       </section>
 
       {/* Contrato */}
-      <section
-        className="rounded-2xl p-6 text-white shadow-lg"
-        style={{ background: 'linear-gradient(135deg, #F97316 0%, #FB923C 50%, #EA580C 100%)' }}
-      >
-        <p className="text-[11px] uppercase tracking-wider font-semibold opacity-80">Contrato</p>
-        <h2 className="text-xl font-bold mt-1">Información contractual</h2>
+      <section className="p-card p-6 border border-orange-200 bg-white">
+        <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: '#EA580C' }}>Contrato</p>
+        <h2 className="text-xl font-bold mt-1" style={{ color: '#1B3A5C' }}>Información contractual</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
           <ContractTile label="Tipo de contrato" value={profileExt?.contract_type ?? '—'} />
           <ContractTile label="Vencimiento" value={profileExt?.contract_end ? new Date(profileExt.contract_end + 'T00:00:00').toLocaleDateString('es-CL') : '—'} />
