@@ -102,6 +102,33 @@ export default function PortalContratos() {
     return () => { cancelled = true; };
   }, [company?.id]);
 
+  // Carga comisiones del último período (mes trabajado) para columna "Costo"
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const cid = company?.id ?? LUCANO_COMPANY_ID;
+      const { data: periodsData } = await supabase.rpc('get_commission_periods' as any, { p_company_id: cid });
+      const periods = (periodsData ?? []) as string[];
+      if (!periods.length) return;
+      const start = periods[0].slice(0, 10);
+      const [y, m] = start.split('-').map(Number);
+      const end = new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 10);
+      const { data } = await supabase
+        .from('portal_commissions')
+        .select('worker_id, amount')
+        .eq('portal_company_id', cid)
+        .gte('period', start)
+        .lt('period', end);
+      if (cancelled) return;
+      const map: Record<string, number> = {};
+      (data ?? []).forEach((r: any) => {
+        map[r.worker_id] = (map[r.worker_id] ?? 0) + (Number(r.amount) || 0);
+      });
+      setCommissionByWorker(map);
+    })();
+    return () => { cancelled = true; };
+  }, [company?.id]);
+
   const kpis = useMemo(() => {
     const total = rows.length;
     const indef = rows.filter(r => r.contract_type === 'indefinido').length;
