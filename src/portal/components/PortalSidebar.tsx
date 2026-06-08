@@ -98,7 +98,15 @@ export function PortalSidebar() {
               {initials}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-white truncate">{profile?.full_name}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold text-white truncate">{profile?.full_name}</p>
+                <img
+                  src={lucanoLogo.url}
+                  alt="Lucano Rent a Car"
+                  className="h-8 object-contain shrink-0"
+                  style={{ filter: 'brightness(0) invert(1)' }}
+                />
+              </div>
               <p className="text-[10px] text-white/55 capitalize">{profile?.role.replace('_', ' ')}</p>
             </div>
           </div>
