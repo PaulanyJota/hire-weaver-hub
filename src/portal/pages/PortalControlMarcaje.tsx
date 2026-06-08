@@ -190,7 +190,7 @@ export default function PortalControlMarcaje() {
         ) : (
           <div className="divide-y divide-slate-100">
             {grupos.map(g => {
-              const isOpen = expanded.has(g.sucursal);
+              const isOpen = expanded.has(g.sucursal) || !!search.trim();
               return (
                 <div key={g.sucursal}>
                   <button
