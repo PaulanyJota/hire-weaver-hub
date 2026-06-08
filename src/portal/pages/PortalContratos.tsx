@@ -583,3 +583,27 @@ function ModalityBadge({ modality }: { modality: string | null }) {
     </span>
   );
 }
+
+function SortHeader({
+  label, k, sortKey, sortDir, onClick, align = 'left', className = '',
+}: {
+  label: string;
+  k: any;
+  sortKey: any;
+  sortDir: 'asc' | 'desc';
+  onClick: (k: any) => void;
+  align?: 'left' | 'right';
+  className?: string;
+}) {
+  const active = sortKey === k;
+  const Icon = !active ? ArrowUpDown : sortDir === 'asc' ? ArrowUp : ArrowDown;
+  return (
+    <th className={`${className || 'px-4'} py-3 font-semibold cursor-pointer select-none ${align === 'right' ? 'text-right' : ''}`}
+      onClick={() => onClick(k)}>
+      <span className={`inline-flex items-center gap-1 ${align === 'right' ? 'justify-end' : ''}`}>
+        {label}
+        <Icon className={`w-3 h-3 ${active ? 'text-orange-500' : 'text-slate-300'}`} />
+      </span>
+    </th>
+  );
+}
