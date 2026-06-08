@@ -59,6 +59,7 @@ export default function PortalControlMarcaje() {
   const [loading, setLoading] = useState(true);
   const [estadoFilter, setEstadoFilter] = useState<'' | Estado>('');
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     let cancelled = false;
