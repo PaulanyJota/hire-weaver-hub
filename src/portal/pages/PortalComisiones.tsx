@@ -258,6 +258,42 @@ export default function PortalComisiones() {
           </ul>
         )}
       </section>
+
+      {/* Comisión per cápita por sucursal */}
+      <section className="p-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200 flex items-center gap-2">
+          <Users className="w-4 h-4" style={{ color: '#F97316' }} />
+          <h3 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Comisión per cápita por sucursal</h3>
+        </div>
+        {!branchKpis ? (
+          <div className="p-6 space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
+        ) : perCapita.length === 0 ? (
+          <div className="p-10 text-center text-sm text-muted-foreground">Sin datos de comisiones.</div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-muted-foreground border-b border-slate-200">
+                <th className="text-left px-5 py-2 font-semibold">Sucursal</th>
+                <th className="text-right px-3 py-2 font-semibold">Trabajadores totales</th>
+                <th className="text-right px-3 py-2 font-semibold">Con comisión</th>
+                <th className="text-right px-3 py-2 font-semibold">Total comisiones</th>
+                <th className="text-right px-5 py-2 font-semibold">Comisión por persona</th>
+              </tr>
+            </thead>
+            <tbody>
+              {perCapita.map(r => (
+                <tr key={r.sucursal} className="border-b border-slate-100 hover:bg-orange-50/30">
+                  <td className="px-5 py-3 font-semibold" style={{ color: '#1B3A5C' }}>{sucursalName(r.sucursal)}</td>
+                  <td className="px-3 py-3 text-right tabular-nums">{r.trabajadores_totales}</td>
+                  <td className="px-3 py-3 text-right tabular-nums">{r.con_comision}</td>
+                  <td className="px-3 py-3 text-right font-mono tabular-nums">{fmtCLP(r.total_comisiones)}</td>
+                  <td className="px-5 py-3 text-right font-mono tabular-nums font-bold" style={{ color: '#F97316' }}>{fmtCLP(r.comision_per_capita)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
     </div>
   );
 }
