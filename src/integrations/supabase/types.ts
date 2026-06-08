@@ -310,7 +310,7 @@ export type Database = {
           decision_notes: string | null
           details: Json | null
           doc_type: string | null
-          end_date: string
+          end_date: string | null
           format: string | null
           id: string
           notified_at: string | null
@@ -323,11 +323,11 @@ export type Database = {
           requestor_name: string | null
           scope: string | null
           scope_value: string | null
-          start_date: string
+          start_date: string | null
           status: Database["public"]["Enums"]["portal_approval_status"]
           submitted_at: string
           updated_at: string
-          worker_id: string
+          worker_id: string | null
           workers_affected: Json | null
         }
         Insert: {
@@ -337,7 +337,7 @@ export type Database = {
           decision_notes?: string | null
           details?: Json | null
           doc_type?: string | null
-          end_date: string
+          end_date?: string | null
           format?: string | null
           id?: string
           notified_at?: string | null
@@ -350,11 +350,11 @@ export type Database = {
           requestor_name?: string | null
           scope?: string | null
           scope_value?: string | null
-          start_date: string
+          start_date?: string | null
           status?: Database["public"]["Enums"]["portal_approval_status"]
           submitted_at?: string
           updated_at?: string
-          worker_id: string
+          worker_id?: string | null
           workers_affected?: Json | null
         }
         Update: {
@@ -364,7 +364,7 @@ export type Database = {
           decision_notes?: string | null
           details?: Json | null
           doc_type?: string | null
-          end_date?: string
+          end_date?: string | null
           format?: string | null
           id?: string
           notified_at?: string | null
@@ -377,11 +377,11 @@ export type Database = {
           requestor_name?: string | null
           scope?: string | null
           scope_value?: string | null
-          start_date?: string
+          start_date?: string | null
           status?: Database["public"]["Enums"]["portal_approval_status"]
           submitted_at?: string
           updated_at?: string
-          worker_id?: string
+          worker_id?: string | null
           workers_affected?: Json | null
         }
         Relationships: [
@@ -1695,11 +1695,22 @@ export type Database = {
         | "maternal"
         | "paternal"
         | "otro"
+        | "document"
+        | "f30"
+        | "liquidacion"
+        | "contrato"
+        | "remuneraciones"
+        | "accidente"
       portal_approval_status:
         | "pendiente"
         | "aprobada"
         | "rechazada"
         | "cancelada"
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "en_proceso"
+        | "completada"
       portal_attendance_source:
         | "buk"
         | "manual_client"
@@ -1851,12 +1862,23 @@ export const Constants = {
         "maternal",
         "paternal",
         "otro",
+        "document",
+        "f30",
+        "liquidacion",
+        "contrato",
+        "remuneraciones",
+        "accidente",
       ],
       portal_approval_status: [
         "pendiente",
         "aprobada",
         "rechazada",
         "cancelada",
+        "pending",
+        "in_progress",
+        "completed",
+        "en_proceso",
+        "completada",
       ],
       portal_attendance_source: [
         "buk",
