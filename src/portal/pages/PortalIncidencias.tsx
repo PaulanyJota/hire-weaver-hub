@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
@@ -6,6 +6,7 @@ import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Plus, X, AlertTriangle } from 'lucide-react';
 import PortalPageHeader from '../components/PortalPageHeader';
 import WorkerNameLink from '../components/WorkerNameLink';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 interface Incident {
   id: string;
