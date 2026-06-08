@@ -45,7 +45,6 @@ export default function PortalComisiones() {
     () => sortByBranch(branchKpis?.comision_per_capita ?? []),
     [branchKpis]
   );
-  );
 
   // Modals
   const [modal, setModal] = useState<null | 'total' | 'concept' | 'branch' | 'workers'>(null);
