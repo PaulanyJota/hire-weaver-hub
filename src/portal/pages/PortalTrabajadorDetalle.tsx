@@ -120,10 +120,21 @@ export default function PortalTrabajadorDetalle() {
       setAbsences30(ab.count ?? 0);
       const profArr = (prof.data ?? []) as any[];
       setProfileExt(profArr[0] ?? null);
-      const payArr = ((pay.data ?? []) as any[]).slice().sort((x, y) => (x.period < y.period ? 1 : -1));
+      // Los RPCs de payroll devuelven payment_period (mes de pago) y worked_period (mes trabajado).
+      // En Chile mostramos al usuario el mes TRABAJADO.
+      const payArr = ((pay.data ?? []) as any[])
+        .map((r: any) => ({
+          period: r.worked_period ?? r.period,
+          sueldo_liquido: Number(r.net_salary ?? r.liquid_salary ?? r.sueldo_liquido ?? 0),
+          comisiones: Number(r.comisiones ?? 0),
+          total: Number(r.total ?? r.net_salary ?? r.liquid_salary ?? 0),
+        }))
+        .sort((x, y) => (x.period < y.period ? 1 : -1));
       setPayHistory(payArr);
       setSalaryHist(((sal.data ?? []) as any[]).map((r: any) => ({
-        period: r.period, liquid_salary: Number(r.liquid_salary ?? 0), delta_pct: r.delta_pct == null ? null : Number(r.delta_pct),
+        period: r.worked_period ?? r.period,
+        liquid_salary: Number(r.liquid_salary ?? 0),
+        delta_pct: r.delta_pct == null ? null : Number(r.delta_pct),
       })));
       setCommissions((com.data as any) ?? null);
 
