@@ -8,6 +8,7 @@ import { formatRut } from '../lib/formatRut';
 import { sucursalName, sucursalGeoIndex } from '../lib/sucursales';
 import WorkerNameLink from '../components/WorkerNameLink';
 import SearchAutocomplete, { type AutocompleteItem } from '../components/SearchAutocomplete';
+import { matchesSearch } from '../components/PortalSearchBar';
 import { useSucursalesCount } from '../hooks/useSucursalesCount';
 import { ArrowRight, ChevronDown, MapPin, ArrowUp, ArrowDown, ArrowUpDown } from 'lucide-react';
 
