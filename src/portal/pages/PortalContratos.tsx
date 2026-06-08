@@ -82,7 +82,7 @@ export default function PortalContratos() {
         });
 
         mapped.sort((a, b) =>
-          (a.cost_center || '').localeCompare(b.cost_center || '') ||
+          (branchOrder(a.cost_center) - branchOrder(b.cost_center)) ||
           (a.last_name || '').localeCompare(b.last_name || '')
         );
 
