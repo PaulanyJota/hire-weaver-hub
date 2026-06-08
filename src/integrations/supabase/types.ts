@@ -819,8 +819,10 @@ export type Database = {
           buk_liquidacion_id: number | null
           cost_center: string | null
           created_at: string | null
+          gross_salary: number | null
           id: string
           net_salary: number | null
+          overtime_amount: number | null
           period: string
           portal_company_id: string | null
           rut: string
@@ -831,8 +833,10 @@ export type Database = {
           buk_liquidacion_id?: number | null
           cost_center?: string | null
           created_at?: string | null
+          gross_salary?: number | null
           id?: string
           net_salary?: number | null
+          overtime_amount?: number | null
           period: string
           portal_company_id?: string | null
           rut: string
@@ -843,8 +847,10 @@ export type Database = {
           buk_liquidacion_id?: number | null
           cost_center?: string | null
           created_at?: string | null
+          gross_salary?: number | null
           id?: string
           net_salary?: number | null
+          overtime_amount?: number | null
           period?: string
           portal_company_id?: string | null
           rut?: string
@@ -852,6 +858,50 @@ export type Database = {
           worker_id?: string | null
         }
         Relationships: []
+      }
+      portal_payroll_items: {
+        Row: {
+          amount: number
+          buk_liquidacion_id: number | null
+          concept: string
+          created_at: string | null
+          id: string
+          item_type: string | null
+          period: string | null
+          portal_company_id: string | null
+          worker_id: string | null
+        }
+        Insert: {
+          amount?: number
+          buk_liquidacion_id?: number | null
+          concept: string
+          created_at?: string | null
+          id?: string
+          item_type?: string | null
+          period?: string | null
+          portal_company_id?: string | null
+          worker_id?: string | null
+        }
+        Update: {
+          amount?: number
+          buk_liquidacion_id?: number | null
+          concept?: string
+          created_at?: string | null
+          id?: string
+          item_type?: string | null
+          period?: string | null
+          portal_company_id?: string | null
+          worker_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "portal_payroll_items_worker_id_fkey"
+            columns: ["worker_id"]
+            isOneToOne: false
+            referencedRelation: "portal_workers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       portal_user_profiles: {
         Row: {
@@ -1544,6 +1594,7 @@ export type Database = {
             Returns: number
           }
       refresh_attendance_mirror: { Args: never; Returns: undefined }
+      sync_birth_dates: { Args: { p_data: Json }; Returns: undefined }
       sync_contracts_from_workers: { Args: never; Returns: Json }
       update_contract_salary_by_rut: {
         Args: { p_liquid_salary: number; p_rut: string }
@@ -1557,6 +1608,7 @@ export type Database = {
         }
         Returns: Json
       }
+      upsert_overtime_batch: { Args: { p_records: string }; Returns: undefined }
       upsert_payroll_batch: { Args: { p_records: string }; Returns: Json }
       upsert_worker_contract: {
         Args: {
