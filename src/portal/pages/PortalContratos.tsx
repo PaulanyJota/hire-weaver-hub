@@ -7,7 +7,7 @@ import {
   FileText, Users, AlertTriangle, DollarSign, Search, X, Briefcase, FileSignature,
 } from 'lucide-react';
 import { BRANCH_NAMES, branchOrder } from '../constants/branches';
-import { useSalaryKpis } from '../hooks/useBranchRankingKpis';
+import { useSalaryKpis, useSalaryBreakdown, type SalaryBreakdownRow } from '../hooks/useBranchRankingKpis';
 import { PieChart, Pie, Cell, Legend, Tooltip as RTooltip, ResponsiveContainer } from 'recharts';
 
 const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
