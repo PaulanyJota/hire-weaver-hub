@@ -83,6 +83,7 @@ export default function PortalTrabajadorDetalle() {
   const [profileExt, setProfileExt] = useState<any | null>(null);
   const [payHistory, setPayHistory] = useState<Array<{ period: string; sueldo_liquido: number; comisiones: number; total: number }>>([]);
   const [salaryHist, setSalaryHist] = useState<Array<{ period: string; liquid_salary: number; delta_pct: number | null }>>([]);
+  const [commissions, setCommissions] = useState<{ history: Array<{ period: string; total: number; detalle: Array<{ concept: string; amount: number }> }>; by_concept: Array<{ concept: string; total: number; veces: number }>; total_all: number } | null>(null);
   const [inferred, setInferred] = useState<{ dias_activos: number[]; hora_entrada: string | null; hora_salida: string | null; jornada_horas: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -94,7 +95,7 @@ export default function PortalTrabajadorDetalle() {
       const since = new Date(); since.setDate(since.getDate() - 30);
       const sinceStr = since.toISOString().slice(0, 10);
 
-      const [w, c, a, ab, prof, pay, sal] = await Promise.all([
+      const [w, c, a, ab, prof, pay, sal, com] = await Promise.all([
         supabase.from('portal_workers')
           .select('id, first_name, last_name, rut, rut_display, position, area, sub_area, division, cost_center, hire_date, termination_date, active, photo_url, email, phone')
           .eq('id', id).maybeSingle(),
@@ -110,6 +111,7 @@ export default function PortalTrabajadorDetalle() {
         supabase.rpc('get_worker_profile' as any, { p_worker_id: id }),
         supabase.rpc('get_worker_pay_history' as any, { p_worker_id: id }),
         supabase.rpc('get_worker_salary_history' as any, { p_worker_id: id }),
+        supabase.rpc('get_worker_commissions' as any, { p_worker_id: id, p_periods: 6 }),
       ]);
       if (cancelled) return;
       setWorker((w.data as Worker) ?? null);
@@ -123,6 +125,7 @@ export default function PortalTrabajadorDetalle() {
       setSalaryHist(((sal.data ?? []) as any[]).map((r: any) => ({
         period: r.period, liquid_salary: Number(r.liquid_salary ?? 0), delta_pct: r.delta_pct == null ? null : Number(r.delta_pct),
       })));
+      setCommissions((com.data as any) ?? null);
 
       // Inferred schedule: try to fetch; if missing, infer then fetch again
       const fetchInferred = async () => {
@@ -361,6 +364,64 @@ export default function PortalTrabajadorDetalle() {
           </table>
         </div>
       </section>
+
+      {/* Comisiones */}
+      {commissions && commissions.history && commissions.history.length > 0 && (
+        <section className="p-card overflow-hidden">
+          <div className="px-6 py-4 border-b border-slate-200 flex items-center gap-2">
+            <DollarSign className="w-4 h-4" style={{ color: '#F97316' }} />
+            <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Comisiones · últimos 6 meses</h2>
+            <span className="ml-auto text-xs tabular-nums font-bold" style={{ color: '#F97316' }}>
+              Total: ${Math.round(commissions.total_all || 0).toLocaleString('es-CL')}
+            </span>
+          </div>
+          <div className="p-6 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-3">Total por mes</p>
+              <div className="h-48">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[...commissions.history].sort((a, b) => (a.period < b.period ? -1 : 1)).map(h => ({
+                    period: fmtPeriodSafe(h.period),
+                    total: Number(h.total) || 0,
+                  }))} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="gCom" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stopColor="#FB923C" />
+                        <stop offset="100%" stopColor="#EA580C" />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                    <XAxis dataKey="period" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false}
+                      tickFormatter={(v) => v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`} />
+                    <Tooltip
+                      formatter={(v: any) => ['$' + Math.round(Number(v)).toLocaleString('es-CL'), 'Comisión']}
+                      contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }}
+                    />
+                    <Bar dataKey="total" fill="url(#gCom)" radius={[6, 6, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-3">Desglose por concepto</p>
+              <ul className="divide-y divide-slate-100">
+                {(commissions.by_concept ?? []).map(c => (
+                  <li key={c.concept} className="flex items-center justify-between py-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold truncate" style={{ color: '#1B3A5C' }}>{c.concept}</p>
+                      <p className="text-[10px] text-muted-foreground">{c.veces} vez{c.veces === 1 ? '' : 'es'}</p>
+                    </div>
+                    <p className="font-mono tabular-nums text-sm font-bold shrink-0" style={{ color: '#F97316' }}>
+                      ${Math.round(Number(c.total) || 0).toLocaleString('es-CL')}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* Asistencia */}
       <section className="p-card p-6 space-y-6">

@@ -1,0 +1,257 @@
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { usePortalAuth } from '@/portal/hooks/usePortalAuth';
+import { Skeleton } from '@/components/ui/skeleton';
+import PortalPageHeader from '../components/PortalPageHeader';
+import { sucursalName } from '../lib/sucursales';
+import { DollarSign, Users, TrendingUp, Building2, Trophy } from 'lucide-react';
+
+const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
+
+interface Summary {
+  period: string;
+  total: number;
+  trabajadores: number;
+  por_sucursal: { sucursal: string; trabajadores: number; total: number; pct: number }[];
+  por_concepto: { concept: string; total: number; promedio: number; ocurrencias: number }[];
+  top_workers: { worker_id: string; nombre: string; sucursal: string; total: number; conceptos: number }[];
+}
+
+const fmtCLP = (n: number) => '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
+const fmtPeriod = (p: string) => {
+  if (!p) return '';
+  const [y, m] = p.slice(0, 10).split('-');
+  const d = new Date(Date.UTC(Number(y), Number(m) - 1, 1));
+  const s = d.toLocaleDateString('es-CL', { month: 'long', year: 'numeric', timeZone: 'UTC' });
+  return s.charAt(0).toUpperCase() + s.slice(1);
+};
+
+export default function PortalComisiones() {
+  const { company } = usePortalAuth();
+  const companyId = company?.id ?? LUCANO_COMPANY_ID;
+
+  const [periods, setPeriods] = useState<string[]>([]);
+  const [period, setPeriod] = useState<string | null>(null);
+  const [summary, setSummary] = useState<Summary | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      const { data, error } = await supabase.rpc('get_commission_periods' as any, { p_company_id: companyId });
+      if (cancel) return;
+      if (error) console.error('[commission-periods]', error);
+      const arr = (data ?? []) as string[];
+      setPeriods(arr);
+      if (arr.length && !period) setPeriod(arr[0]);
+    })();
+    return () => { cancel = true; };
+  }, [companyId]);
+
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      setLoading(true);
+      const { data, error } = await supabase.rpc('get_commissions_summary' as any, {
+        p_company_id: companyId,
+        p_period: period,
+      });
+      if (cancel) return;
+      if (error) console.error('[commissions-summary]', error);
+      setSummary((data as Summary) ?? null);
+      setLoading(false);
+    })();
+    return () => { cancel = true; };
+  }, [companyId, period]);
+
+  const topConcept = useMemo(
+    () => summary?.por_concepto?.slice().sort((a, b) => b.total - a.total)[0],
+    [summary]
+  );
+  const topBranch = summary?.por_sucursal?.[0];
+
+  return (
+    <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
+      <PortalPageHeader
+        eyebrow="Comisiones"
+        title="Comisiones del equipo"
+        subtitle={period ? fmtPeriod(period) : 'Cargando...'}
+      />
+
+      {/* Selector */}
+      <div className="flex items-center gap-3">
+        <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Período</label>
+        <select
+          value={period ?? ''}
+          onChange={e => setPeriod(e.target.value)}
+          className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-400"
+          style={{ color: '#1B3A5C' }}
+        >
+          {periods.map(p => (
+            <option key={p} value={p}>{fmtPeriod(p)}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* KPIs */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          {
+            label: 'Total comisiones',
+            value: loading ? null : fmtCLP(summary?.total ?? 0),
+            icon: DollarSign,
+            color: '#F97316',
+          },
+          {
+            label: 'Trabajadores con comisión',
+            value: loading ? null : `${summary?.trabajadores ?? 0}`,
+            icon: Users,
+            color: '#1B3A5C',
+          },
+          {
+            label: 'Top concepto',
+            value: loading ? null : (topConcept?.concept ?? '—'),
+            icon: TrendingUp,
+            color: '#1D9E75',
+          },
+          {
+            label: 'Top sucursal',
+            value: loading ? null : (topBranch ? `${sucursalName(topBranch.sucursal)} · ${topBranch.pct}%` : '—'),
+            icon: Building2,
+            color: '#EA580C',
+          },
+        ].map(c => (
+          <div key={c.label} className="p-card p-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{c.label}</p>
+                {c.value === null ? (
+                  <Skeleton className="h-8 w-24 mt-2" />
+                ) : (
+                  <p className="text-xl font-bold mt-2 tabular-nums truncate" style={{ color: c.color }}>{c.value}</p>
+                )}
+              </div>
+              <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
+                style={{ background: `${c.color}15`, color: c.color }}>
+                <c.icon className="w-5 h-5" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* Por sucursal */}
+      <section className="p-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200 flex items-center gap-2">
+          <Building2 className="w-4 h-4" style={{ color: '#F97316' }} />
+          <h3 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Por sucursal</h3>
+        </div>
+        {loading ? (
+          <div className="p-6 space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
+        ) : !summary?.por_sucursal?.length ? (
+          <div className="p-10 text-center text-sm text-muted-foreground">Sin comisiones en este período.</div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-muted-foreground border-b border-slate-200">
+                <th className="text-left px-5 py-2 font-semibold">Sucursal</th>
+                <th className="text-right px-3 py-2 font-semibold">N° trabajadores</th>
+                <th className="text-right px-3 py-2 font-semibold">Total</th>
+                <th className="text-left px-5 py-2 font-semibold w-[35%]">% del total</th>
+              </tr>
+            </thead>
+            <tbody>
+              {summary.por_sucursal.map(s => (
+                <tr key={s.sucursal} className="border-b border-slate-100 hover:bg-orange-50/30">
+                  <td className="px-5 py-3 font-semibold" style={{ color: '#1B3A5C' }}>{sucursalName(s.sucursal)}</td>
+                  <td className="px-3 py-3 text-right tabular-nums">{s.trabajadores}</td>
+                  <td className="px-3 py-3 text-right font-mono tabular-nums font-semibold" style={{ color: '#F97316' }}>{fmtCLP(s.total)}</td>
+                  <td className="px-5 py-3">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full"
+                          style={{ width: `${Math.min(100, Number(s.pct))}%`, background: 'linear-gradient(90deg, #F97316, #EA580C)' }} />
+                      </div>
+                      <span className="text-xs font-bold tabular-nums w-12 text-right" style={{ color: '#EA580C' }}>{s.pct}%</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      {/* Por concepto */}
+      <section className="p-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200 flex items-center gap-2">
+          <TrendingUp className="w-4 h-4" style={{ color: '#F97316' }} />
+          <h3 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Por concepto</h3>
+        </div>
+        {loading ? (
+          <div className="p-6 space-y-2">{[1,2].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
+        ) : !summary?.por_concepto?.length ? (
+          <div className="p-10 text-center text-sm text-muted-foreground">Sin conceptos.</div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-muted-foreground border-b border-slate-200">
+                <th className="text-left px-5 py-2 font-semibold">Concepto</th>
+                <th className="text-right px-3 py-2 font-semibold">Ocurrencias</th>
+                <th className="text-right px-3 py-2 font-semibold">Total</th>
+                <th className="text-right px-5 py-2 font-semibold">Promedio</th>
+              </tr>
+            </thead>
+            <tbody>
+              {summary.por_concepto.map(c => (
+                <tr key={c.concept} className="border-b border-slate-100 hover:bg-orange-50/30">
+                  <td className="px-5 py-3 font-semibold" style={{ color: '#1B3A5C' }}>{c.concept}</td>
+                  <td className="px-3 py-3 text-right tabular-nums">{c.ocurrencias}</td>
+                  <td className="px-3 py-3 text-right font-mono tabular-nums font-semibold" style={{ color: '#F97316' }}>{fmtCLP(c.total)}</td>
+                  <td className="px-5 py-3 text-right font-mono tabular-nums">{fmtCLP(c.promedio)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </section>
+
+      {/* Top trabajadores */}
+      <section className="p-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200 flex items-center gap-2">
+          <Trophy className="w-4 h-4" style={{ color: '#F97316' }} />
+          <h3 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Top trabajadores</h3>
+        </div>
+        {loading ? (
+          <div className="p-6 space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
+        ) : !summary?.top_workers?.length ? (
+          <div className="p-10 text-center text-sm text-muted-foreground">Sin trabajadores con comisión.</div>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {summary.top_workers.slice(0, 10).map((w, idx) => (
+              <li key={w.worker_id} className="flex items-center gap-4 px-5 py-3 hover:bg-orange-50/30">
+                <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
+                  style={{
+                    background: idx < 3 ? 'linear-gradient(135deg, #F97316, #EA580C)' : '#f1f5f9',
+                    color: idx < 3 ? 'white' : '#64748b',
+                  }}>
+                  {idx + 1}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <Link to={`/portal/trabajadores/${w.worker_id}`}
+                    className="font-semibold text-sm truncate block hover:text-[#F97316] transition-colors"
+                    style={{ color: '#1B3A5C' }}>
+                    {w.nombre}
+                  </Link>
+                  <p className="text-[11px] text-muted-foreground">{sucursalName(w.sucursal)} · {w.conceptos} concepto{w.conceptos === 1 ? '' : 's'}</p>
+                </div>
+                <p className="font-bold tabular-nums text-sm shrink-0" style={{ color: '#F97316' }}>{fmtCLP(w.total)}</p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
+}

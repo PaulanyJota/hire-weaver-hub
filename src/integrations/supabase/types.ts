@@ -1339,6 +1339,7 @@ export type Database = {
           workers_marcaron_hoy: number
         }[]
       }
+      get_commission_periods: { Args: { p_company_id: string }; Returns: Json }
       get_commissions_metrics: {
         Args: { p_company_id: string; p_cost_center: string; p_period: string }
         Returns: {
@@ -1353,17 +1354,19 @@ export type Database = {
           yoy_pct: number
         }[]
       }
-      get_commissions_summary: {
-        Args: { p_company_id?: string }
-        Returns: {
-          cost_center: string
-          orden: number
-          period: string
-          sucursal: string
-          total_amount: number
-          worker_count: number
-        }[]
-      }
+      get_commissions_summary:
+        | {
+            Args: { p_company_id?: string }
+            Returns: {
+              cost_center: string
+              orden: number
+              period: string
+              sucursal: string
+              total_amount: number
+              worker_count: number
+            }[]
+          }
+        | { Args: { p_company_id: string; p_period?: string }; Returns: Json }
       get_commissions_worker_detail: {
         Args: { p_company_id: string; p_cost_center: string; p_period: string }
         Returns: {
@@ -1424,6 +1427,10 @@ export type Database = {
           sucursal: string
           worker_id: string
         }[]
+      }
+      get_worker_commissions: {
+        Args: { p_periods?: number; p_worker_id: string }
+        Returns: Json
       }
       get_worker_pay_history: {
         Args: { p_worker_id: string }
@@ -1505,6 +1512,7 @@ export type Database = {
         }
         Returns: Json
       }
+      upsert_payroll_batch: { Args: { p_records: string }; Returns: Json }
       upsert_worker_contract: {
         Args: {
           p_buk_employee_id: string
