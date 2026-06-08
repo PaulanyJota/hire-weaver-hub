@@ -8,7 +8,8 @@ import { sucursalName } from '../lib/sucursales';
 import { sortByBranch, branchOrder } from '../constants/branches';
 import { fmtPeriodEs } from '../lib/periodLabel';
 import { DollarSign, Users, TrendingUp, Building2, Trophy, X, ChevronDown, ChevronRight, AlertTriangle, ArrowDownRight, ArrowUpRight, Sparkles, XCircle } from 'lucide-react';
-import { useBranchRankingKpis } from '../hooks/useBranchRankingKpis';
+import { useBranchRankingKpis, useSalaryKpis } from '../hooks/useBranchRankingKpis';
+import { BRANCH_ORDER, branchName as branchNameFn } from '../constants/branches';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
 } from 'recharts';
