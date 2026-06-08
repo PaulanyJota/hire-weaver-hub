@@ -441,7 +441,11 @@ export default function PortalComisiones() {
           <div className="p-10 text-center text-sm text-muted-foreground">Sin trabajadores con comisión.</div>
         ) : (
           <ul className="divide-y divide-slate-100">
-            {summary.top_workers.slice(0, 10).map((w, idx) => (
+            {summary.top_workers.slice(0, 10).map((w, idx) => {
+              const key = w.nombre.trim().toLowerCase();
+              const pct = pctByName[key];
+              const constante = constantSet.has(key);
+              return (
               <li key={w.worker_id} className="flex items-center gap-4 px-5 py-3 hover:bg-orange-50/30">
                 <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold shrink-0"
                   style={{
@@ -451,16 +455,29 @@ export default function PortalComisiones() {
                   {idx + 1}
                 </span>
                 <div className="flex-1 min-w-0">
-                  <Link to={`/portal/trabajadores/${w.worker_id}`}
-                    className="font-semibold text-sm truncate block hover:text-[#F97316] transition-colors"
-                    style={{ color: '#1B3A5C' }}>
-                    {w.nombre}
-                  </Link>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Link to={`/portal/trabajadores/${w.worker_id}`}
+                      className="font-semibold text-sm truncate hover:text-[#F97316] transition-colors"
+                      style={{ color: '#1B3A5C' }}>
+                      {w.nombre}
+                    </Link>
+                    {constante && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200">
+                        🔥 Constante
+                      </span>
+                    )}
+                  </div>
                   <p className="text-[11px] text-muted-foreground">{sucursalName(w.sucursal)} · {w.conceptos} concepto{w.conceptos === 1 ? '' : 's'}</p>
                 </div>
-                <p className="font-bold tabular-nums text-sm shrink-0" style={{ color: '#F97316' }}>{fmtCLP(w.total)}</p>
+                <div className="text-right shrink-0">
+                  <p className="font-bold tabular-nums text-sm" style={{ color: '#F97316' }}>{fmtCLP(w.total)}</p>
+                  {pct !== undefined && (
+                    <p className="text-[10px] text-slate-500 tabular-nums">= {pct.toFixed(1)}% de su sueldo</p>
+                  )}
+                </div>
               </li>
-            ))}
+              );
+            })}
           </ul>
         )}
       </section>
