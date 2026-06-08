@@ -339,6 +339,14 @@ export default function PortalComisiones() {
         </select>
       </div>
 
+      <PortalSearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder="Buscar por trabajador, sucursal o concepto…"
+        total={enrichedWorkers.length}
+        results={filteredWorkers.length}
+      />
+
       {/* KPIs */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {([
