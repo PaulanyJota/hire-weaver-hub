@@ -68,9 +68,14 @@ const isWeekend = (d: string) => {
 
 function ContractTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white/15 backdrop-blur rounded-xl p-4 border border-white/20">
-      <p className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">{label}</p>
-      <p className="text-lg font-bold mt-1 capitalize">{value}</p>
+    <div className="bg-white rounded-xl p-4 border border-orange-200">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
+      <span
+        className="inline-block mt-2 px-2.5 py-1 rounded-lg text-sm font-bold capitalize"
+        style={{ background: '#FFF7ED', color: '#EA580C', border: '1px solid #FED7AA' }}
+      >
+        {value}
+      </span>
     </div>
   );
 }
