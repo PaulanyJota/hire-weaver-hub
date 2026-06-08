@@ -182,13 +182,12 @@ export default function PortalContratos() {
   }, [rows]);
 
   const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return rows;
-    return rows.filter(r =>
-      r.nombre.toLowerCase().includes(q) ||
-      r.branch.toLowerCase().includes(q) ||
-      r.cost_center.toLowerCase().includes(q)
-    );
+    if (!search.trim()) return rows;
+    return rows.filter(r => matchesSearch([
+      r.nombre, r.first_name, r.last_name,
+      r.branch, r.cost_center, BRANCH_NAMES[r.cost_center],
+      r.position, r.contract_type, r.modality,
+    ], search));
   }, [rows, search]);
 
   if (loading) {
