@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Home, Users, ClipboardCheck, AlertTriangle, Settings, LogOut, Clock, ShieldCheck, X, FileText, DollarSign } from 'lucide-react';
 import { NodoWillLogo } from '@/components/NodoWillLogo';
+import lucanoLogo from '@/assets/lucano-logo.png.asset.json';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { usePortalSidebar } from '../hooks/usePortalSidebar';
 import { cn } from '@/lib/utils';
@@ -97,7 +98,15 @@ export function PortalSidebar() {
               {initials}
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold text-white truncate">{profile?.full_name}</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold text-white truncate">{profile?.full_name}</p>
+                <img
+                  src={lucanoLogo.url}
+                  alt="Lucano Rent a Car"
+                  className="h-8 object-contain shrink-0"
+                  style={{ filter: 'brightness(0) invert(1)' }}
+                />
+              </div>
               <p className="text-[10px] text-white/55 capitalize">{profile?.role.replace('_', ' ')}</p>
             </div>
           </div>
