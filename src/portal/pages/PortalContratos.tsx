@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   FileText, Users, AlertTriangle, DollarSign, Search, X, Briefcase,
 } from 'lucide-react';
+import { BRANCH_NAMES, branchOrder } from '../constants/branches';
 
 const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
 
@@ -18,11 +19,7 @@ const fmtDate = (d: string | null) => {
   return `${day}/${m}/${y}`;
 };
 
-const CC_NAME: Record<string, string> = {
-  LC_AE: 'Aeropuerto SCL', LC_CO: 'Concepción', LC_LS: 'La Serena', LC_ÑU: 'Ñuñoa',
-  LC_PA: 'Punta Arenas', LC_PM: 'Puerto Montt', LC_PN: 'Puerto Natales', LC_TE: 'Temuco',
-  LC_VM: 'Viña del Mar', LC_VI: 'Vitacura', AL_MF: 'Maipú', AL_PU: 'Pudahuel',
-};
+const CC_NAME = BRANCH_NAMES;
 
 interface Row {
   worker_id: string;
@@ -85,7 +82,7 @@ export default function PortalContratos() {
         });
 
         mapped.sort((a, b) =>
-          (a.cost_center || '').localeCompare(b.cost_center || '') ||
+          (branchOrder(a.cost_center) - branchOrder(b.cost_center)) ||
           (a.last_name || '').localeCompare(b.last_name || '')
         );
 

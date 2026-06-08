@@ -1226,6 +1226,10 @@ export type Database = {
       apply_commissions: { Args: { p: Json }; Returns: number }
       apply_payroll: { Args: { p: Json }; Returns: number }
       apply_raw_punches: { Args: { p: Json }; Returns: number }
+      branch_north_south_order: {
+        Args: { p_cost_center: string }
+        Returns: number
+      }
       get_attendance_ranking: {
         Args: { p_days?: number }
         Returns: {

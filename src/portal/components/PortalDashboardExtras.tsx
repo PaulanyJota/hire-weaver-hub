@@ -109,7 +109,8 @@ export default function PortalDashboardExtras() {
     return Array.from(map.entries()).map(([cc, value]) => ({
       name: cc === 'Sin sucursal' ? cc : sucursalName(cc),
       value,
-    })).sort((a, b) => b.value - a.value);
+      _order: cc === 'Sin sucursal' ? 99 : sucursalGeoIndex(cc),
+    })).sort((a, b) => a._order - b._order);
   }, [activeWorkers]);
 
   // Top 5 sucursales por horas semana

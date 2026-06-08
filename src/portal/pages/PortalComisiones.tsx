@@ -5,6 +5,7 @@ import { usePortalAuth } from '@/portal/hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { sucursalName } from '../lib/sucursales';
+import { sortByBranch } from '../constants/branches';
 import { DollarSign, Users, TrendingUp, Building2, Trophy, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { useBranchRankingKpis } from '../hooks/useBranchRankingKpis';
 import {
@@ -41,7 +42,7 @@ export default function PortalComisiones() {
   const [loading, setLoading] = useState(true);
   const { data: branchKpis } = useBranchRankingKpis(companyId);
   const perCapita = useMemo(
-    () => (branchKpis?.comision_per_capita ?? []).slice().sort((a, b) => b.comision_per_capita - a.comision_per_capita),
+    () => sortByBranch(branchKpis?.comision_per_capita ?? []),
     [branchKpis]
   );
 
@@ -186,12 +187,17 @@ export default function PortalComisiones() {
   // Branch comparative (current period, all branches)
   const branchComparative = useMemo(() => {
     if (!summary?.por_sucursal) return [];
-    return summary.por_sucursal.slice().sort((a, b) => b.total - a.total)
+    return sortByBranch(summary.por_sucursal)
       .map(b => ({ sucursal: sucursalName(b.sucursal), code: b.sucursal, total: b.total }));
   }, [summary]);
 
+  const porSucursalSorted = useMemo(
+    () => sortByBranch(summary?.por_sucursal ?? []),
+    [summary]
+  );
+
   const conceptList = summary?.por_concepto?.map(c => c.concept) ?? [];
-  const branchList = summary?.por_sucursal?.map(b => b.sucursal) ?? [];
+  const branchList = porSucursalSorted.map(b => b.sucursal);
   const enrichedWorkers = useMemo(() => {
     return (summary?.top_workers ?? []).slice().sort((a, b) => b.total - a.total).map(w => ({
       ...w,
@@ -277,7 +283,7 @@ export default function PortalComisiones() {
               </tr>
             </thead>
             <tbody>
-              {summary.por_sucursal.map(s => (
+              {porSucursalSorted.map(s => (
                 <tr key={s.sucursal} className="border-b border-slate-100 hover:bg-orange-50/30">
                   <td className="px-5 py-3 font-semibold" style={{ color: '#1B3A5C' }}>{sucursalName(s.sucursal)}</td>
                   <td className="px-3 py-3 text-right tabular-nums">{s.trabajadores}</td>
@@ -415,7 +421,7 @@ export default function PortalComisiones() {
           {/* MODAL TOTAL */}
           {modal === 'total' && summary && (
             <div className="space-y-2">
-              {summary.por_sucursal.map(s => {
+              {porSucursalSorted.map(s => {
                 const isOpen = expandedBranch === s.sucursal;
                 const rows = branchDetails[s.sucursal];
                 const total = rows ? rows.reduce((a, b) => a + b.amount, 0) : s.total;
