@@ -225,33 +225,18 @@ export default function PortalComisiones() {
 
       {/* KPIs */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          {
-            label: 'Total comisiones',
-            value: loading ? null : fmtCLP(summary?.total ?? 0),
-            icon: DollarSign,
-            color: '#F97316',
-          },
-          {
-            label: 'Trabajadores con comisión',
-            value: loading ? null : `${summary?.trabajadores ?? 0}`,
-            icon: Users,
-            color: '#1B3A5C',
-          },
-          {
-            label: 'Top concepto',
-            value: loading ? null : (topConcept?.concept ?? '—'),
-            icon: TrendingUp,
-            color: '#1D9E75',
-          },
-          {
-            label: 'Top sucursal',
-            value: loading ? null : (topBranch ? `${sucursalName(topBranch.sucursal)} · ${topBranch.pct}%` : '—'),
-            icon: Building2,
-            color: '#EA580C',
-          },
-        ].map(c => (
-          <div key={c.label} className="p-card p-5">
+        {([
+          { key: 'total', label: 'Total comisiones', value: loading ? null : fmtCLP(summary?.total ?? 0), icon: DollarSign, color: '#F97316' },
+          { key: 'workers', label: 'Trabajadores con comisión', value: loading ? null : `${summary?.trabajadores ?? 0}`, icon: Users, color: '#1B3A5C' },
+          { key: 'concept', label: 'Top concepto', value: loading ? null : (topConcept?.concept ?? '—'), icon: TrendingUp, color: '#1D9E75' },
+          { key: 'branch', label: 'Top sucursal', value: loading ? null : (topBranch ? `${sucursalName(topBranch.sucursal)} · ${topBranch.pct}%` : '—'), icon: Building2, color: '#EA580C' },
+        ] as const).map(c => (
+          <button
+            key={c.label}
+            type="button"
+            onClick={() => openModal(c.key)}
+            className="p-card p-5 text-left hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-400"
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{c.label}</p>
@@ -260,13 +245,14 @@ export default function PortalComisiones() {
                 ) : (
                   <p className="text-xl font-bold mt-2 tabular-nums truncate" style={{ color: c.color }}>{c.value}</p>
                 )}
+                <p className="text-[10px] text-muted-foreground mt-1">Click para ver detalle →</p>
               </div>
               <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
                 style={{ background: `${c.color}15`, color: c.color }}>
                 <c.icon className="w-5 h-5" />
               </div>
             </div>
-          </div>
+          </button>
         ))}
       </section>
 
