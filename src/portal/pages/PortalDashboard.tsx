@@ -152,7 +152,11 @@ export default function PortalDashboard() {
   const otGlow = otNivel === 'critical' ? 'hsl(0 80% 55% / 0.18)' : otNivel === 'warning' ? 'hsl(25 95% 53% / 0.18)' : 'hsl(215 16% 47% / 0.12)';
   const otSub = otNivel === 'critical' ? 'Requiere atención inmediata' : otNivel === 'warning' ? 'Requiere seguimiento' : 'Sin horas extra relevantes ✓';
 
-  const cards = [
+  const commValue = commTotal ? `$${Math.round(commTotal.total).toLocaleString('es-CL')}` : '—';
+  const commDelta = commTotal?.delta_pct ?? null;
+  const periodoLabel = salary?.periodo_label ?? '';
+
+  const cards: Array<any> = [
     { label: 'Trabajadores activos', value: activeWorkers, icon: Users, glow: 'hsl(213 78% 29% / 0.15)', accent: 'hsl(213 78% 29%)', to: '/portal/trabajadores' },
     { label: 'Asistencias hoy', value: kpiAttendanceToday, sub: `${attendanceRate}% del equipo`, icon: CheckCircle2, glow: 'hsl(152 60% 45% / 0.18)', accent: 'hsl(152 60% 38%)', to: '/portal/asistencias-hoy' },
     {
@@ -164,9 +168,18 @@ export default function PortalDashboard() {
       accent: otAccent,
       delta: otDelta,
       pulse: otNivel === 'critical',
-      kind: 'overtime' as const,
+      kind: 'overtime',
     },
-    { label: 'Comisiones ' + (salary?.periodo_label ?? ''), value: branchKpis ? `$${Math.round(((branchKpis.comision_per_capita ?? []).reduce((a, b) => a + Number(b.total_comisiones ?? 0), 0))).toLocaleString('es-CL')}` : '—', sub: 'total del equipo', icon: DollarSign, glow: 'hsl(25 95% 53% / 0.18)', accent: '#F97316', to: '/portal/comisiones' },
+    {
+      label: periodoLabel ? `Comisiones ${periodoLabel}` : 'Comisiones',
+      value: commValue,
+      sub: commDelta == null ? 'total del equipo' : (commDelta >= 0 ? `↑${commDelta.toFixed(1)}% vs mes anterior` : `↓${Math.abs(commDelta).toFixed(1)}% vs mes anterior`),
+      subColor: commDelta == null ? undefined : (commDelta >= 0 ? '#059669' : '#DC2626'),
+      icon: DollarSign,
+      glow: 'hsl(25 95% 53% / 0.18)',
+      accent: '#F97316',
+      to: '/portal/comisiones',
+    },
     { label: 'Atrasos semana', value: kpiLateWeek, sub: 'minutos acumulados', icon: Timer, glow: 'hsl(25 95% 53% / 0.18)', accent: 'hsl(25 90% 45%)' },
   ];
 
@@ -198,8 +211,14 @@ export default function PortalDashboard() {
 
 
       {/* KPIs */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-stagger">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 p-stagger">
         {cards.map(c => {
+          const isOvertime = c.kind === 'overtime';
+          const deltaNode = isOvertime && overtime && otTotal > 0 ? (
+            <p className={`text-[11px] mt-1 font-bold ${otDelta > 0 ? 'text-red-600' : otDelta < 0 ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+              {otDelta > 0 ? `↑${otDelta.toFixed(1)}% vs mes anterior` : otDelta < 0 ? `↓${Math.abs(otDelta).toFixed(1)}% vs mes anterior` : 'igual que mes anterior'}
+            </p>
+          ) : null;
           const inner = (
             <div className="flex items-start justify-between">
               <div>
@@ -207,7 +226,10 @@ export default function PortalDashboard() {
                 {loading ? <Skeleton className="h-9 w-20 mt-2" /> : (
                   <p className="text-3xl font-bold mt-2 tracking-tight" style={{ color: c.accent }}>{c.value}</p>
                 )}
-                {c.sub && !loading && <p className="text-xs text-muted-foreground mt-1">{c.sub}</p>}
+                {c.sub && !loading && (
+                  <p className="text-xs mt-1" style={{ color: c.subColor ?? 'hsl(var(--muted-foreground))' }}>{c.sub}</p>
+                )}
+                {deltaNode}
               </div>
               <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
                 style={{ background: `${c.accent}15`, color: c.accent }}>
@@ -215,12 +237,13 @@ export default function PortalDashboard() {
               </div>
             </div>
           );
+          const extraClass = c.pulse ? ' ring-2 ring-red-400/60 animate-pulse' : '';
           if (c.to) {
             return (
               <Link
                 key={c.label}
                 to={c.to}
-                className="p-kpi cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all"
+                className={`p-kpi cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all${extraClass}`}
                 style={{ ['--p-kpi-glow' as any]: c.glow }}
               >
                 {inner}
@@ -228,7 +251,7 @@ export default function PortalDashboard() {
             );
           }
           return (
-            <div key={c.label} className="p-kpi" style={{ ['--p-kpi-glow' as any]: c.glow }}>
+            <div key={c.label} className={`p-kpi${extraClass}`} style={{ ['--p-kpi-glow' as any]: c.glow }}>
               {inner}
             </div>
           );
