@@ -478,7 +478,7 @@ export default function PortalComisiones() {
       {/* ============ MODALES ============ */}
       {modal && (
         <Modal onClose={() => setModal(null)} title={
-          modal === 'total' ? `Total comisiones · ${period ? fmtPeriod(period) : ''}` :
+          modal === 'total' ? 'Análisis histórico de comisiones' :
           modal === 'concept' ? 'Evolución por concepto' :
           modal === 'branch' ? 'Evolución por sucursal' :
           'Trabajadores con comisión'
