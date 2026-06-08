@@ -5,6 +5,7 @@ import { CheckCircle2, AlertTriangle, ChevronRight, ArrowUp, ArrowDown, ArrowUpD
 import PortalPageHeader from '../components/PortalPageHeader';
 import WorkerNameLink from '../components/WorkerNameLink';
 import { sucursalGeoIndexByName } from '../lib/sucursales';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 type Estado = 'marca_ok' | 'registrado_sin_marcar';
 
