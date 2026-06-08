@@ -1,5 +1,5 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { Home, Users, ClipboardCheck, AlertTriangle, Settings, LogOut, Clock, ShieldCheck, X, FileText } from 'lucide-react';
+import { Home, Users, ClipboardCheck, AlertTriangle, Settings, LogOut, Clock, ShieldCheck, X, FileText, DollarSign } from 'lucide-react';
 import { NodoWillLogo } from '@/components/NodoWillLogo';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { usePortalSidebar } from '../hooks/usePortalSidebar';
