@@ -6,6 +6,7 @@ import { usePortalAuth } from '../hooks/usePortalAuth';
 import { sucursalGeoIndexByName } from '../lib/sucursales';
 import { ChevronDown, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 type Row = {
   cost_center: string | null;
