@@ -83,6 +83,7 @@ export default function PortalTrabajadorDetalle() {
   const [profileExt, setProfileExt] = useState<any | null>(null);
   const [payHistory, setPayHistory] = useState<Array<{ period: string; sueldo_liquido: number; comisiones: number; total: number }>>([]);
   const [salaryHist, setSalaryHist] = useState<Array<{ period: string; liquid_salary: number; delta_pct: number | null }>>([]);
+  const [commissions, setCommissions] = useState<{ history: Array<{ period: string; total: number; detalle: Array<{ concept: string; amount: number }> }>; by_concept: Array<{ concept: string; total: number; veces: number }>; total_all: number } | null>(null);
   const [inferred, setInferred] = useState<{ dias_activos: number[]; hora_entrada: string | null; hora_salida: string | null; jornada_horas: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
 
