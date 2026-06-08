@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
 import { formatRut } from '../lib/formatRut';
 import { fmtPeriodSafe } from '../components/SucursalPayroll';
-import { shiftedPeriodEs } from '../lib/periodLabel';
+import { shiftedPeriodEs, fmtPeriodEs } from '../lib/periodLabel';
 import {
   ArrowLeft, Mail, Phone, MapPin, Building2, Calendar, BadgeCheck,
   Briefcase, FileText, CalendarX, Clock, CalendarCheck, Timer, DollarSign,
