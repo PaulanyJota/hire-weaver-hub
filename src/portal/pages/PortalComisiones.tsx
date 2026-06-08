@@ -13,6 +13,7 @@ import { BRANCH_ORDER, branchName as branchNameFn } from '../constants/branches'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
 } from 'recharts';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
 
