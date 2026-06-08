@@ -388,24 +388,14 @@ export default function PortalContratos() {
             <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Trabajadores y contratos</h2>
             <span className="text-xs text-muted-foreground">· {filtered.length} de {rows.length}</span>
           </div>
-          <div className="sm:ml-auto relative w-full sm:w-72">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <input
-              type="text"
+          <div className="sm:ml-auto w-full sm:w-96">
+            <PortalSearchBar
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por nombre o sucursal…"
-              className="w-full pl-9 pr-9 py-2 text-sm rounded-lg border border-slate-200 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500/30 focus:border-orange-500"
+              onChange={setSearch}
+              placeholder="Buscar por nombre, RUT, sucursal o cargo…"
+              total={rows.length}
+              results={filtered.length}
             />
-            {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                aria-label="Limpiar búsqueda"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
           </div>
         </div>
         <div className="overflow-x-auto">
