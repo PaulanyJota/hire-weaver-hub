@@ -15,17 +15,17 @@ type SolicitudType = 'f30' | 'liquidacion' | 'contrato' | 'remuneraciones' | 'ac
 
 interface RequestRow {
   id: string;
-  request_type: string;
   doc_type: string | null;
-  status: string;
-  reason: string | null;
-  submitted_at: string;
-  decided_at: string | null;
-  requestor_name: string | null;
+  doc_label: string | null;
   scope: string | null;
-  scope_value: string | null;
+  scope_label: string | null;
+  requestor_name: string | null;
+  reason: string | null;
+  periods: string[] | null;
+  format: string | null;
+  status: string;
+  submitted_at: string;
   details: any;
-  worker: { first_name: string; last_name: string } | null;
 }
 
 const TYPES: Array<{
@@ -59,6 +59,8 @@ const BRANCH_OPTIONS = Object.entries(BRANCH_ORDER)
   .sort((a, b) => a[1] - b[1])
   .map(([code]) => ({ code, name: BRANCH_NAMES[code] }));
 
+const DEFAULT_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
+
 function fmtDate(d: string) {
   return new Date(d).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
 }
@@ -80,39 +82,41 @@ export default function PortalSolicitudes() {
   const { toast } = useToast();
   const [rows, setRows] = useState<RequestRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [openType, setOpenType] = useState<SolicitudType | null>(null);
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase
-      .from('portal_approval_requests')
-      .select('id, request_type, doc_type, status, reason, submitted_at, decided_at, requestor_name, scope, scope_value, details, worker:portal_workers(first_name,last_name)')
-      .order('submitted_at', { ascending: false })
-      .limit(200);
-    setRows((data ?? []) as any);
-    setLoading(false);
+    setLoadError(null);
+    try {
+      const companyId = company?.id ?? DEFAULT_COMPANY_ID;
+      const { data, error } = await (supabase as any).rpc('get_document_requests', { p_company_id: companyId });
+      if (error) throw error;
+      setRows((data ?? []) as RequestRow[]);
+    } catch (e: any) {
+      console.error('[solicitudes] load error', e);
+      setLoadError(e?.message ?? 'No pudimos cargar las solicitudes.');
+      setRows([]);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [company?.id]);
 
   const kpis = useMemo(() => {
     const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
     const inMonth = rows.filter(r => new Date(r.submitted_at) >= monthStart);
     const pendientes = rows.filter(r => ['pendiente', 'en_proceso'].includes(r.status)).length;
     const completadas = rows.filter(r => ['completada', 'aprobada'].includes(r.status)).length;
-    const closed = rows.filter(r => r.decided_at && ['completada', 'aprobada', 'rechazada'].includes(r.status));
-    const avgHrs = closed.length
-      ? closed.reduce((acc, r) => acc + (new Date(r.decided_at!).getTime() - new Date(r.submitted_at).getTime()), 0) / closed.length / 3_600_000
-      : 0;
-    return { total: inMonth.length, pendientes, completadas, avg: avgHrs };
+    return { total: inMonth.length, pendientes, completadas, avg: 0 };
   }, [rows]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return rows;
     return rows.filter(r => matchesSearch([
-      r.worker ? `${r.worker.first_name} ${r.worker.last_name}` : null,
-      r.requestor_name, r.doc_type, TYPE_LABELS[r.doc_type ?? ''], r.reason, r.scope_value,
+      r.requestor_name, r.doc_type, r.doc_label, TYPE_LABELS[r.doc_type ?? ''], r.reason, r.scope_label, r.scope,
     ], search));
   }, [rows, search]);
 
@@ -174,11 +178,19 @@ export default function PortalSolicitudes() {
           total={rows.length}
           results={filtered.length}
         />
-        {loading ? (
+        {loadError ? (
+          <div className="mt-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5 text-sm">
+            <p className="font-semibold text-destructive mb-1">No pudimos cargar las solicitudes</p>
+            <p className="text-muted-foreground text-xs">{loadError}</p>
+            <button onClick={load} className="mt-2 text-xs font-semibold" style={{ color: '#F97316' }}>
+              Reintentar
+            </button>
+          </div>
+        ) : loading ? (
           <div className="space-y-2 mt-3">{[1,2,3].map(i => <Skeleton key={i} className="h-12 w-full rounded-xl" />)}</div>
         ) : filtered.length === 0 ? (
           <div className="py-12 text-center text-sm text-muted-foreground">
-            {rows.length === 0 ? 'Aún no hay solicitudes registradas.' : 'Sin resultados para tu búsqueda.'}
+            {rows.length === 0 ? 'No hay solicitudes aún.' : 'Sin resultados para tu búsqueda.'}
           </div>
         ) : (
           <div className="overflow-x-auto mt-3 -mx-2">
@@ -194,15 +206,10 @@ export default function PortalSolicitudes() {
               </thead>
               <tbody>
                 {filtered.map(r => {
-                  const docKey = r.doc_type ?? r.request_type;
-                  const tipoLabel = TYPE_LABELS[docKey] ?? docKey;
-                  const detalle = r.worker
-                    ? `${r.worker.first_name} ${r.worker.last_name}`
-                    : r.scope === 'branch' && r.scope_value
-                      ? `Sucursal: ${BRANCH_NAMES[r.scope_value] ?? r.scope_value}`
-                      : r.scope === 'all'
-                        ? 'Toda la empresa'
-                        : (r.reason ?? '—');
+                  const docKey = r.doc_type ?? '';
+                  const tipoLabel = r.doc_label ?? TYPE_LABELS[docKey] ?? docKey ?? '—';
+                  const detalle = r.scope_label
+                    ?? (r.scope === 'all' ? 'Toda la empresa' : r.reason ?? '—');
                   const st = STATUS_META[r.status] ?? STATUS_META.pendiente;
                   return (
                     <tr key={r.id} className="border-b border-border/60 hover:bg-muted/30">
@@ -224,6 +231,7 @@ export default function PortalSolicitudes() {
                   );
                 })}
               </tbody>
+
             </table>
           </div>
         )}
