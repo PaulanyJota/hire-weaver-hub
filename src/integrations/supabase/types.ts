@@ -308,51 +308,81 @@ export type Database = {
           decided_at: string | null
           decided_by: string | null
           decision_notes: string | null
+          details: Json | null
+          doc_type: string | null
           end_date: string
+          format: string | null
           id: string
           notified_at: string | null
           notified_to_nodo: boolean
+          periods: string[] | null
+          portal_company_id: string | null
           reason: string | null
           request_type: Database["public"]["Enums"]["portal_absence_type"]
+          requestor_email: string | null
+          requestor_name: string | null
+          scope: string | null
+          scope_value: string | null
           start_date: string
           status: Database["public"]["Enums"]["portal_approval_status"]
           submitted_at: string
           updated_at: string
           worker_id: string
+          workers_affected: Json | null
         }
         Insert: {
           created_at?: string
           decided_at?: string | null
           decided_by?: string | null
           decision_notes?: string | null
+          details?: Json | null
+          doc_type?: string | null
           end_date: string
+          format?: string | null
           id?: string
           notified_at?: string | null
           notified_to_nodo?: boolean
+          periods?: string[] | null
+          portal_company_id?: string | null
           reason?: string | null
           request_type: Database["public"]["Enums"]["portal_absence_type"]
+          requestor_email?: string | null
+          requestor_name?: string | null
+          scope?: string | null
+          scope_value?: string | null
           start_date: string
           status?: Database["public"]["Enums"]["portal_approval_status"]
           submitted_at?: string
           updated_at?: string
           worker_id: string
+          workers_affected?: Json | null
         }
         Update: {
           created_at?: string
           decided_at?: string | null
           decided_by?: string | null
           decision_notes?: string | null
+          details?: Json | null
+          doc_type?: string | null
           end_date?: string
+          format?: string | null
           id?: string
           notified_at?: string | null
           notified_to_nodo?: boolean
+          periods?: string[] | null
+          portal_company_id?: string | null
           reason?: string | null
           request_type?: Database["public"]["Enums"]["portal_absence_type"]
+          requestor_email?: string | null
+          requestor_name?: string | null
+          scope?: string | null
+          scope_value?: string | null
           start_date?: string
           status?: Database["public"]["Enums"]["portal_approval_status"]
           submitted_at?: string
           updated_at?: string
           worker_id?: string
+          workers_affected?: Json | null
         }
         Relationships: [
           {
@@ -1283,6 +1313,21 @@ export type Database = {
         Args: { p_cost_center: string }
         Returns: number
       }
+      create_document_request: {
+        Args: {
+          p_company_id: string
+          p_details?: Json
+          p_doc_type: string
+          p_format?: string
+          p_periods?: string[]
+          p_reason?: string
+          p_requestor_email?: string
+          p_requestor_name: string
+          p_scope: string
+          p_scope_value: string
+        }
+        Returns: string
+      }
       get_attendance_ranking: {
         Args: { p_days?: number }
         Returns: {
@@ -1441,6 +1486,23 @@ export type Database = {
         }[]
       }
       get_contracts_kpis: { Args: { p_company_id?: string }; Returns: Json }
+      get_document_requests: {
+        Args: { p_company_id: string; p_limit?: number }
+        Returns: {
+          details: Json
+          doc_label: string
+          doc_type: string
+          format: string
+          id: string
+          periods: string[]
+          reason: string
+          requestor_name: string
+          scope: string
+          scope_label: string
+          status: string
+          submitted_at: string
+        }[]
+      }
       get_marcaje_control: {
         Args: never
         Returns: {
