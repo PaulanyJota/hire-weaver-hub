@@ -5,8 +5,9 @@ import { usePortalAuth } from '@/portal/hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { sucursalName } from '../lib/sucursales';
-import { sortByBranch } from '../constants/branches';
-import { DollarSign, Users, TrendingUp, Building2, Trophy, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { sortByBranch, branchOrder } from '../constants/branches';
+import { shiftedPeriodEs, shiftedPeriodEsShort } from '../lib/periodLabel';
+import { DollarSign, Users, TrendingUp, Building2, Trophy, X, ChevronDown, ChevronRight, AlertTriangle, ArrowDownRight, ArrowUpRight, Sparkles, XCircle } from 'lucide-react';
 import { useBranchRankingKpis } from '../hooks/useBranchRankingKpis';
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
@@ -23,14 +24,53 @@ interface Summary {
   top_workers: { worker_id: string; nombre: string; sucursal: string; total: number; conceptos: number }[];
 }
 
+interface HistoricalByPeriod {
+  period: string;
+  periodo_label: string;
+  total: number;
+  trabajadores: number;
+  total_mes_anterior: number;
+  delta_mes_abs: number | null;
+  delta_mes_pct: number | null;
+  total_anio_anterior: number;
+  delta_anio_abs: number | null;
+  delta_anio_pct: number | null;
+}
+interface HistoricalByBranch {
+  period: string;
+  periodo_label: string;
+  sucursal: string;
+  total: number;
+  trabajadores: number;
+  delta_mes_abs: number | null;
+  delta_mes_pct: number | null;
+  tendencia: 'up' | 'down' | 'new' | 'lost' | 'flat' | null;
+}
+interface HistoricalByConcept {
+  period: string;
+  concept: string;
+  total: number;
+  ocurrencias: number;
+  delta_mes_pct: number | null;
+}
+interface HistoricalAlert {
+  tipo: string;
+  sucursal?: string;
+  delta_pct?: number;
+  total_actual?: number;
+  total_anterior?: number;
+}
+interface Historical {
+  by_period: HistoricalByPeriod[];
+  by_branch: HistoricalByBranch[];
+  by_concept: HistoricalByConcept[];
+  alerts: HistoricalAlert[];
+}
+
 const fmtCLP = (n: number) => '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
-const fmtPeriod = (p: string) => {
-  if (!p) return '';
-  const [y, m] = p.slice(0, 10).split('-');
-  const d = new Date(Date.UTC(Number(y), Number(m) - 1, 1));
-  const s = d.toLocaleDateString('es-CL', { month: 'long', year: 'numeric', timeZone: 'UTC' });
-  return s.charAt(0).toUpperCase() + s.slice(1);
-};
+// En Chile el período de pago = mes siguiente al trabajado. Mostramos siempre el mes TRABAJADO.
+const fmtPeriod = (p: string) => shiftedPeriodEs(p);
+const fmtPeriodShort = (p: string) => shiftedPeriodEsShort(p);
 
 export default function PortalComisiones() {
   const { company } = usePortalAuth();
