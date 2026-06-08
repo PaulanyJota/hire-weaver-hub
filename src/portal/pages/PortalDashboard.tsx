@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
-import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity, Menu, Flame, BarChart3, AlertTriangle, DollarSign } from 'lucide-react';
+import { Users, CheckCircle2, Clock, TrendingUp, Activity, Menu, Flame, BarChart3, DollarSign } from 'lucide-react';
 import { usePortalSidebar } from '../hooks/usePortalSidebar';
 
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
 } from 'recharts';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { PortalAvatar } from '../components/Avatar';
 import PortalDashboardExtras from '../components/PortalDashboardExtras';
 import WorkerNameLink from '../components/WorkerNameLink';
