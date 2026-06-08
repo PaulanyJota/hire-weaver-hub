@@ -95,7 +95,7 @@ export default function PortalTrabajadorDetalle() {
       const since = new Date(); since.setDate(since.getDate() - 30);
       const sinceStr = since.toISOString().slice(0, 10);
 
-      const [w, c, a, ab, prof, pay, sal] = await Promise.all([
+      const [w, c, a, ab, prof, pay, sal, com] = await Promise.all([
         supabase.from('portal_workers')
           .select('id, first_name, last_name, rut, rut_display, position, area, sub_area, division, cost_center, hire_date, termination_date, active, photo_url, email, phone')
           .eq('id', id).maybeSingle(),
@@ -111,6 +111,7 @@ export default function PortalTrabajadorDetalle() {
         supabase.rpc('get_worker_profile' as any, { p_worker_id: id }),
         supabase.rpc('get_worker_pay_history' as any, { p_worker_id: id }),
         supabase.rpc('get_worker_salary_history' as any, { p_worker_id: id }),
+        supabase.rpc('get_worker_commissions' as any, { p_worker_id: id, p_periods: 6 }),
       ]);
       if (cancelled) return;
       setWorker((w.data as Worker) ?? null);
@@ -124,6 +125,7 @@ export default function PortalTrabajadorDetalle() {
       setSalaryHist(((sal.data ?? []) as any[]).map((r: any) => ({
         period: r.period, liquid_salary: Number(r.liquid_salary ?? 0), delta_pct: r.delta_pct == null ? null : Number(r.delta_pct),
       })));
+      setCommissions((com.data as any) ?? null);
 
       // Inferred schedule: try to fetch; if missing, infer then fetch again
       const fetchInferred = async () => {
