@@ -11,6 +11,7 @@ const items = [
   { to: '/portal/asistencia', label: 'Asistencia', icon: Clock },
   { to: '/portal/control-marcaje', label: 'Control de marcaje', icon: ShieldCheck },
   { to: '/portal/contratos', label: 'Contratos', icon: FileText },
+  { to: '/portal/comisiones', label: 'Comisiones', icon: DollarSign },
   { to: '/portal/aprobaciones', label: 'Aprobaciones', icon: ClipboardCheck, adminOnly: true },
   { to: '/portal/incidencias', label: 'Incidencias', icon: AlertTriangle },
   { to: '/portal/configuracion', label: 'Configuración', icon: Settings, adminOnly: true },
