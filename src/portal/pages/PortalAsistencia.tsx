@@ -155,6 +155,11 @@ export default function PortalAsistencia() {
   const tabla = useMemo(() => {
     let list = rows.slice();
     if (sucursalFilter) list = list.filter(r => r.sucursal === sucursalFilter);
+    if (search.trim()) {
+      list = list.filter(r => matchesSearch([
+        r.nombre, r.worker_position, r.cost_center, r.sucursal,
+      ], search));
+    }
     list.sort((a, b) => {
       const dir = sortDir === 'asc' ? 1 : -1;
       const av = (a as any)[sortKey];
@@ -166,7 +171,7 @@ export default function PortalAsistencia() {
       return String(av).localeCompare(String(bv)) * dir;
     });
     return list;
-  }, [rows, sucursalFilter, sortKey, sortDir]);
+  }, [rows, sucursalFilter, sortKey, sortDir, search]);
 
   const toggleSort = (k: SortKey) => {
     if (sortKey === k) setSortDir(d => (d === 'asc' ? 'desc' : 'asc'));
