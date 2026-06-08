@@ -230,7 +230,8 @@ export default function PortalDashboard() {
             <div>
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Puntualidad semana</p>
               {!punct ? <Skeleton className="h-9 w-20 mt-2" /> : punct.puntualidad_semana === 0 ? (
-                <p className="text-2xl font-bold mt-2 tracking-tight text-slate-400">Calculando...</p>
+                <p className="text-sm font-medium mt-3 tracking-tight text-slate-400">Sin datos de horario</p>
+
               ) : (
                 <p className="text-3xl font-bold mt-2 tracking-tight" style={{ color: '#F97316' }}>
                   {punct.puntualidad_semana}%
