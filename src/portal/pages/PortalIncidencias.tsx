@@ -29,7 +29,16 @@ export default function PortalIncidencias() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
+  const [search, setSearch] = useState('');
   const [form, setForm] = useState({ worker_id: '', incident_type: 'observacion', date: new Date().toISOString().slice(0,10), description: '', severity: 2 });
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return items;
+    return items.filter(i => matchesSearch([
+      i.worker ? `${i.worker.first_name} ${i.worker.last_name}` : null,
+      i.incident_type, i.description,
+    ], search));
+  }, [items, search]);
 
   const load = async () => {
     setLoading(true);
