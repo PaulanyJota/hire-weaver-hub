@@ -259,7 +259,10 @@ export default function PortalContratos() {
                 <th className="px-4 py-3 font-semibold">Tipo</th>
                 <th className="px-4 py-3 font-semibold">Modalidad</th>
                 <th className="px-4 py-3 font-semibold">Vencimiento</th>
-                <th className="px-6 py-3 font-semibold text-right">Sueldo líquido</th>
+                <th className="px-6 py-3 font-semibold text-right" title="Corresponde a la última liquidación. En Chile el pago de un mes refleja el trabajo del mes anterior.">
+                  Sueldo líquido
+                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">mes trabajado</span>
+                </th>
               </tr>
             </thead>
             <tbody>
