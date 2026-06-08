@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
-import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity, Menu, Flame, BarChart3 } from 'lucide-react';
+import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity, Menu, Flame, BarChart3, AlertTriangle, DollarSign } from 'lucide-react';
 import { usePortalSidebar } from '../hooks/usePortalSidebar';
 
 import {
@@ -12,7 +12,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
 import PortalDashboardExtras from '../components/PortalDashboardExtras';
 import WorkerNameLink from '../components/WorkerNameLink';
-import { useBranchRankingKpis, usePunctualityKpis } from '../hooks/useBranchRankingKpis';
+import { useBranchRankingKpis, usePunctualityKpis, useOvertimeKpis, useSalaryKpis } from '../hooks/useBranchRankingKpis';
+import { branchName } from '../constants/branches';
 
 interface Worker { id: string; first_name: string; last_name: string; photo_url: string | null; active: boolean; cost_center: string | null }
 interface Att { worker_id: string; date: string; check_in: string | null; worked_hours: number | null; late_minutes: number | null }
