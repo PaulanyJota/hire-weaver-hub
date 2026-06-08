@@ -1,6 +1,7 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { Home, Users, ClipboardCheck, AlertTriangle, Settings, LogOut, Clock, ShieldCheck, X, FileText, DollarSign } from 'lucide-react';
 import { NodoWillLogo } from '@/components/NodoWillLogo';
+import lucanoLogo from '@/assets/lucano-logo.png.asset.json';
 import { usePortalAuth } from '../hooks/usePortalAuth';
 import { usePortalSidebar } from '../hooks/usePortalSidebar';
 import { cn } from '@/lib/utils';
