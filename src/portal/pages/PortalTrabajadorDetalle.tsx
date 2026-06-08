@@ -393,7 +393,7 @@ export default function PortalTrabajadorDetalle() {
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={[...commissions.history].sort((a, b) => (a.period < b.period ? -1 : 1)).map(h => ({
-                    period: fmtPeriodSafe(h.period),
+                    period: shiftedPeriodEs(h.period),
                     total: Number(h.total) || 0,
                   }))} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
                     <defs>
