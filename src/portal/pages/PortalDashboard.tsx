@@ -132,10 +132,29 @@ export default function PortalDashboard() {
   const today = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const firstName = profile?.full_name.split(' ')[0] ?? '';
 
+  // KPI Horas extra (invertido: pocas = bueno)
+  const otTotal = overtime?.total_horas_extra ?? 0;
+  const otNivel = overtime?.nivel_alerta ?? 'ok';
+  const otDelta = overtime?.delta_pct ?? 0;
+  const otAccent = otNivel === 'critical' ? '#DC2626' : otNivel === 'warning' ? '#F97316' : '#64748B';
+  const otGlow = otNivel === 'critical' ? 'hsl(0 80% 55% / 0.18)' : otNivel === 'warning' ? 'hsl(25 95% 53% / 0.18)' : 'hsl(215 16% 47% / 0.12)';
+  const otSub = otNivel === 'critical' ? 'Requiere atención inmediata' : otNivel === 'warning' ? 'Requiere seguimiento' : 'Sin horas extra relevantes ✓';
+
   const cards = [
     { label: 'Trabajadores activos', value: activeWorkers, icon: Users, glow: 'hsl(213 78% 29% / 0.15)', accent: 'hsl(213 78% 29%)', to: '/portal/trabajadores' },
     { label: 'Asistencias hoy', value: kpiAttendanceToday, sub: `${attendanceRate}% del equipo`, icon: CheckCircle2, glow: 'hsl(152 60% 45% / 0.18)', accent: 'hsl(152 60% 38%)', to: '/portal/asistencias-hoy' },
-    { label: 'Horas semana', value: kpiHoursWeek.toFixed(0), sub: 'horas registradas', icon: Clock, glow: 'hsl(199 89% 48% / 0.18)', accent: 'hsl(199 89% 42%)', to: '/portal/horas-semana' },
+    {
+      label: 'Horas extra',
+      value: overtime ? `${otTotal.toFixed(1)}h` : '—',
+      sub: otSub,
+      icon: otNivel === 'ok' ? Clock : AlertTriangle,
+      glow: otGlow,
+      accent: otAccent,
+      delta: otDelta,
+      pulse: otNivel === 'critical',
+      kind: 'overtime' as const,
+    },
+    { label: 'Comisiones ' + (salary?.periodo_label ?? ''), value: branchKpis ? `$${Math.round(((branchKpis.comision_per_capita ?? []).reduce((a, b) => a + Number(b.total_comisiones ?? 0), 0))).toLocaleString('es-CL')}` : '—', sub: 'total del equipo', icon: DollarSign, glow: 'hsl(25 95% 53% / 0.18)', accent: '#F97316', to: '/portal/comisiones' },
     { label: 'Atrasos semana', value: kpiLateWeek, sub: 'minutos acumulados', icon: Timer, glow: 'hsl(25 95% 53% / 0.18)', accent: 'hsl(25 90% 45%)' },
   ];
 
