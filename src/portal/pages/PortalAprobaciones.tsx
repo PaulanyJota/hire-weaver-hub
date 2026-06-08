@@ -25,6 +25,15 @@ export default function PortalAprobaciones() {
   const [loading, setLoading] = useState(true);
   const [decisionNotes, setDecisionNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+
+  const filtered = useMemo(() => {
+    if (!search.trim()) return items;
+    return items.filter(a => matchesSearch([
+      a.worker ? `${a.worker.first_name} ${a.worker.last_name}` : null,
+      a.request_type, a.reason,
+    ], search));
+  }, [items, search]);
 
   const load = async () => {
     setLoading(true);
