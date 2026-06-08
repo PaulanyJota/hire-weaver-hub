@@ -289,6 +289,11 @@ export default function PortalComisiones() {
     [summary]
   );
 
+  const filteredSucursal = useMemo(() => {
+    if (!search.trim()) return porSucursalSorted;
+    return porSucursalSorted.filter(s => matchesSearch([s.sucursal, sucursalName(s.sucursal)], search));
+  }, [porSucursalSorted, search]);
+
   const conceptList = summary?.por_concepto?.map(c => c.concept) ?? [];
   const branchList = porSucursalSorted.map(b => b.sucursal);
   const enrichedWorkers = useMemo(() => {
@@ -297,6 +302,18 @@ export default function PortalComisiones() {
       conceptos_list: workerConcepts[w.worker_id] ?? [],
     }));
   }, [summary, workerConcepts]);
+
+  const filteredWorkers = useMemo(() => {
+    if (!search.trim()) return enrichedWorkers;
+    return enrichedWorkers.filter(w => matchesSearch([
+      w.nombre, w.sucursal, sucursalName(w.sucursal), ...(w.conceptos_list ?? []),
+    ], search));
+  }, [enrichedWorkers, search]);
+
+  const filteredConceptos = useMemo(() => {
+    if (!search.trim() || !summary?.por_concepto) return summary?.por_concepto ?? [];
+    return summary.por_concepto.filter(c => matchesSearch([c.concept], search));
+  }, [summary, search]);
 
 
   return (
