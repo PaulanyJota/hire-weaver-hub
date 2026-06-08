@@ -150,6 +150,14 @@ export default function PortalControlMarcaje() {
         />
       </div>
 
+      <PortalSearchBar
+        value={search}
+        onChange={setSearch}
+        placeholder="Buscar por nombre, RUT, cargo o sucursal…"
+        total={rows.length}
+        results={filteredRows.length}
+      />
+
       {/* Tabla agrupada por sucursal */}
       <div className="p-card overflow-hidden rounded-xl border border-slate-200">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-5 pb-3">
