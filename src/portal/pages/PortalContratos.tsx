@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import {
   FileText, Users, AlertTriangle, DollarSign, Search, X, Briefcase,
 } from 'lucide-react';
+import { BRANCH_NAMES, branchOrder } from '../constants/branches';
 
 const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
 
