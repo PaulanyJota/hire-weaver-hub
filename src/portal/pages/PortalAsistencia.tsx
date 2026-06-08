@@ -9,7 +9,8 @@ import PortalPageHeader from '../components/PortalPageHeader';
 import AttendanceTeamStatus, { type PresenteRow } from '../components/AttendanceTeamStatus';
 import WorkerNameLink from '../components/WorkerNameLink';
 import { useSucursalesCount } from '../hooks/useSucursalesCount';
-import { sucursalGeoIndexByName } from '../lib/sucursales';
+import { sucursalGeoIndexByName, sucursalName } from '../lib/sucursales';
+import { useBranchRankingKpis, usePerfectAttendance } from '../hooks/useBranchRankingKpis';
 
 type Row = {
   worker_id: string;
