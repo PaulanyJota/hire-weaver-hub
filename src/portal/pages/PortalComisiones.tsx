@@ -42,8 +42,9 @@ export default function PortalComisiones() {
   const [loading, setLoading] = useState(true);
   const { data: branchKpis } = useBranchRankingKpis(companyId);
   const perCapita = useMemo(
-    () => (branchKpis?.comision_per_capita ?? []).slice().sort((a, b) => b.comision_per_capita - a.comision_per_capita),
+    () => sortByBranch(branchKpis?.comision_per_capita ?? []),
     [branchKpis]
+  );
   );
 
   // Modals
