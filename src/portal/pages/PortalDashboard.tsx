@@ -145,13 +145,19 @@ export default function PortalDashboard() {
   const today = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const firstName = profile?.full_name.split(' ')[0] ?? '';
 
-  // KPI Horas extra (invertido: pocas = bueno)
+  // KPI Horas extra — métrica informativa, sin tono de alarma
   const otTotal = overtime?.total_horas_extra ?? 0;
-  const otNivel = overtime?.nivel_alerta ?? 'ok';
   const otDelta = overtime?.delta_pct ?? 0;
-  const otAccent = otNivel === 'critical' ? '#DC2626' : otNivel === 'warning' ? '#F97316' : '#64748B';
-  const otGlow = otNivel === 'critical' ? 'hsl(0 80% 55% / 0.18)' : otNivel === 'warning' ? 'hsl(25 95% 53% / 0.18)' : 'hsl(215 16% 47% / 0.12)';
-  const otSub = otNivel === 'critical' ? 'Requiere atención inmediata' : otNivel === 'warning' ? 'Requiere seguimiento' : 'Sin horas extra relevantes ✓';
+  const otCount = overtime?.trabajadores_afectados ?? 0;
+  const otAccent = '#64748B';
+  const otGlow = 'hsl(215 16% 47% / 0.12)';
+  const otSub = overtime
+    ? (otTotal === 0
+        ? 'Sin horas extra este mes'
+        : `${otCount} trabajador${otCount === 1 ? '' : 'es'} · ${overtime.dias_con_extra} día${overtime.dias_con_extra === 1 ? '' : 's'}`)
+    : '';
+
+  const [otOpen, setOtOpen] = useState(false);
 
   const commValue = commTotal ? `$${Math.round(commTotal.total).toLocaleString('es-CL')}` : '—';
   const commDelta = commTotal?.delta_pct ?? null;
@@ -164,12 +170,12 @@ export default function PortalDashboard() {
       label: 'Horas extra',
       value: overtime ? `${otTotal.toFixed(1)}h` : '—',
       sub: otSub,
-      icon: otNivel === 'ok' ? Clock : AlertTriangle,
+      icon: Clock,
       glow: otGlow,
       accent: otAccent,
       delta: otDelta,
-      pulse: otNivel === 'critical',
       kind: 'overtime',
+      onClick: () => setOtOpen(true),
     },
     {
       label: periodoLabel ? `Comisiones ${periodoLabel}` : 'Comisiones',
@@ -181,7 +187,6 @@ export default function PortalDashboard() {
       accent: '#F97316',
       to: '/portal/comisiones',
     },
-    { label: 'Atrasos semana', value: kpiLateWeek, sub: 'minutos acumulados', icon: Timer, glow: 'hsl(25 95% 53% / 0.18)', accent: 'hsl(25 90% 45%)' },
   ];
 
   return (
