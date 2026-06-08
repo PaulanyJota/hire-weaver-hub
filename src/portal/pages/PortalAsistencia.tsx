@@ -10,6 +10,7 @@ import AttendanceTeamStatus, { type PresenteRow } from '../components/Attendance
 import WorkerNameLink from '../components/WorkerNameLink';
 import { useSucursalesCount } from '../hooks/useSucursalesCount';
 import { sucursalGeoIndexByName, sucursalName } from '../lib/sucursales';
+import { sortByBranch } from '../constants/branches';
 import { useBranchRankingKpis, usePerfectAttendance } from '../hooks/useBranchRankingKpis';
 
 type Row = {
