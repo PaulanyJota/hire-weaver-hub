@@ -11,6 +11,7 @@ import {
 import { BRANCH_NAMES, branchOrder } from '../constants/branches';
 import { useSalaryKpis, useSalaryBreakdown, type SalaryBreakdownRow } from '../hooks/useBranchRankingKpis';
 import { PieChart, Pie, Cell, Legend, Tooltip as RTooltip, ResponsiveContainer } from 'recharts';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
 
