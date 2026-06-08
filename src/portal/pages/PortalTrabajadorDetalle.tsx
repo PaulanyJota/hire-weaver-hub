@@ -14,6 +14,8 @@ import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid,
   LineChart, Line,
 } from 'recharts';
+import { useSalaryBreakdown } from '../hooks/useBranchRankingKpis';
+
 
 interface Worker {
   id: string;
@@ -92,6 +94,10 @@ export default function PortalTrabajadorDetalle() {
   const [commissions, setCommissions] = useState<{ history: Array<{ period: string; total: number; detalle: Array<{ concept: string; amount: number }> }>; by_concept: Array<{ concept: string; total: number; veces: number }>; total_all: number } | null>(null);
   const [inferred, setInferred] = useState<{ dias_activos: number[]; hora_entrada: string | null; hora_salida: string | null; jornada_horas: number | null } | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const { data: breakdownAll = [] } = useSalaryBreakdown(null, null);
+  const breakdown = useMemo(() => breakdownAll.find(b => b.worker_id === id) ?? null, [breakdownAll, id]);
+
 
   useEffect(() => {
     if (!id) return;
@@ -322,6 +328,58 @@ export default function PortalTrabajadorDetalle() {
           <h2 className="text-sm font-bold tracking-tight" style={{ color: '#1B3A5C' }}>Remuneraciones</h2>
           <span className="ml-auto text-xs text-muted-foreground tabular-nums">{payHistory.length} período{payHistory.length === 1 ? '' : 's'}</span>
         </div>
+        {breakdown && breakdown.total_liquid > 0 && (
+          <div className="px-6 py-5 border-b border-slate-200 bg-gradient-to-br from-orange-50/30 to-amber-50/30">
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-3">
+              Composición sueldo · {breakdown.period_label}
+            </p>
+            <div className="relative w-full h-7 rounded-lg overflow-hidden flex bg-slate-200" role="img"
+              aria-label={`Base ${breakdown.pct_base}%, comisiones ${breakdown.pct_commissions}%`}>
+              {breakdown.base_liquid > 0 && (
+                <div
+                  className="h-full flex items-center justify-center text-[11px] font-bold text-white transition-all"
+                  style={{ width: `${breakdown.pct_base}%`, background: '#F97316' }}
+                  title={`Base líquido: $${Math.round(breakdown.base_liquid).toLocaleString('es-CL')} (${Number(breakdown.pct_base).toFixed(1)}%)`}
+                >
+                  {breakdown.pct_base >= 12 ? `${Number(breakdown.pct_base).toFixed(0)}%` : ''}
+                </div>
+              )}
+              {breakdown.commissions > 0 && (
+                <div
+                  className="h-full flex items-center justify-center text-[11px] font-bold text-slate-900 transition-all"
+                  style={{ width: `${breakdown.pct_commissions}%`, background: '#FBBF24' }}
+                  title={`Comisiones: $${Math.round(breakdown.commissions).toLocaleString('es-CL')} (${Number(breakdown.pct_commissions).toFixed(1)}%)`}
+                >
+                  {breakdown.pct_commissions >= 8 ? `${Number(breakdown.pct_commissions).toFixed(0)}%` : ''}
+                </div>
+              )}
+            </div>
+            <div className="flex flex-wrap gap-x-5 gap-y-1 mt-3 text-xs">
+              <span className="flex items-center gap-1.5">
+                <span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#F97316' }} />
+                <span className="text-slate-600">Base líquido</span>
+                <span className="font-mono tabular-nums font-semibold" style={{ color: '#1B3A5C' }}>
+                  ${Math.round(breakdown.base_liquid).toLocaleString('es-CL')}
+                </span>
+                <span className="text-slate-400">({Number(breakdown.pct_base).toFixed(1)}%)</span>
+              </span>
+              {breakdown.commissions > 0 && (
+                <span className="flex items-center gap-1.5">
+                  <span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#FBBF24' }} />
+                  <span className="text-slate-600">Comisiones</span>
+                  <span className="font-mono tabular-nums font-semibold" style={{ color: '#1B3A5C' }}>
+                    ${Math.round(breakdown.commissions).toLocaleString('es-CL')}
+                  </span>
+                  <span className="text-slate-400">({Number(breakdown.pct_commissions).toFixed(1)}%)</span>
+                </span>
+              )}
+            </div>
+            <p className="mt-3 text-sm font-bold" style={{ color: '#1B3A5C' }}>
+              Total {breakdown.period_label}: <span className="font-mono tabular-nums" style={{ color: '#F97316' }}>${Math.round(breakdown.total_liquid).toLocaleString('es-CL')}</span>
+            </p>
+          </div>
+        )}
+
         {salaryHist.length >= 2 && (
           <div className="px-6 py-4 border-b border-slate-200 bg-gradient-to-br from-orange-50/40 to-slate-50/40">
             <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Evolución sueldo líquido</p>

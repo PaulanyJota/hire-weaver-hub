@@ -91,16 +91,30 @@ export function useOvertimeKpis(companyId?: string | null) {
 }
 
 export interface SalaryKpis {
-  periodo_label: string;
-  sueldo_min: number;
-  sueldo_max: number;
-  sueldo_promedio: number;
-  sueldo_mediana: number;
-  masa_est: number;
-  masa_outsourcing: number;
-  masa_total: number;
-  comision_sobre_sueldo: Array<{ nombre: string; sucursal: string; sueldo: number; comision: number; pct_comision: number }>;
-  constantes: Array<{ worker_id: string; nombre: string; sucursal: string }>;
+  // Nuevo shape de get_salary_kpis
+  period?: string;
+  period_label?: string;
+  masa_base?: number;
+  masa_commissions?: number;
+  masa_other?: number;
+  masa_total?: number;
+  avg_total?: number;
+  min_total?: number;
+  max_total?: number;
+  median_total?: number;
+  avg_pct_commissions?: number;
+  worker_count?: number;
+
+  // Compat antiguo (no presente en RPC nuevo, pero referenciado en otras vistas)
+  periodo_label?: string;
+  sueldo_min?: number;
+  sueldo_max?: number;
+  sueldo_promedio?: number;
+  sueldo_mediana?: number;
+  masa_est?: number;
+  masa_outsourcing?: number;
+  comision_sobre_sueldo?: Array<{ nombre: string; sucursal: string; sueldo: number; comision: number; pct_comision: number }>;
+  constantes?: Array<{ worker_id: string; nombre: string; sucursal: string }>;
 }
 
 export function useSalaryKpis(companyId?: string | null) {
@@ -110,8 +124,46 @@ export function useSalaryKpis(companyId?: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase.rpc('get_salary_kpis' as any, { p_company_id: cid });
       if (error) { console.error('[salary-kpis]', error); return null; }
-      return (data as SalaryKpis) ?? null;
+      const k = (data as SalaryKpis) ?? null;
+      if (k) {
+        // alias para código legado
+        k.periodo_label ??= k.period_label;
+      }
+      return k;
     },
     staleTime: 60_000,
   });
 }
+
+export interface SalaryBreakdownRow {
+  worker_id: string;
+  worker_name: string;
+  cost_center: string;
+  period: string;
+  period_label: string;
+  base_liquid: number;
+  commissions: number;
+  overtime: number;
+  other_bonuses: number;
+  total_liquid: number;
+  pct_base: number;
+  pct_commissions: number;
+  pct_overtime: number;
+}
+
+export function useSalaryBreakdown(companyId?: string | null, period?: string | null) {
+  const cid = companyId ?? LUCANO_COMPANY_ID;
+  return useQuery<SalaryBreakdownRow[]>({
+    queryKey: ['salary-breakdown', cid, period ?? 'latest'],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_salary_breakdown' as any, {
+        p_company_id: cid,
+        p_period: period ?? null,
+      });
+      if (error) { console.error('[salary-breakdown]', error); return []; }
+      return (data as SalaryBreakdownRow[]) ?? [];
+    },
+    staleTime: 60_000,
+  });
+}
+

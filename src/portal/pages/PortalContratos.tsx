@@ -5,9 +5,11 @@ import { usePortalAuth } from '../hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   FileText, Users, AlertTriangle, DollarSign, Search, X, Briefcase, FileSignature,
+  ArrowUp, ArrowDown, ArrowUpDown,
 } from 'lucide-react';
+
 import { BRANCH_NAMES, branchOrder } from '../constants/branches';
-import { useSalaryKpis } from '../hooks/useBranchRankingKpis';
+import { useSalaryKpis, useSalaryBreakdown, type SalaryBreakdownRow } from '../hooks/useBranchRankingKpis';
 import { PieChart, Pie, Cell, Legend, Tooltip as RTooltip, ResponsiveContainer } from 'recharts';
 
 const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
@@ -47,6 +49,31 @@ export default function PortalContratos() {
   const [showVenc, setShowVenc] = useState(false);
   const [commissionByWorker, setCommissionByWorker] = useState<Record<string, number>>({});
   const { data: salary } = useSalaryKpis(company?.id ?? LUCANO_COMPANY_ID);
+  const { data: breakdown = [] } = useSalaryBreakdown(company?.id ?? LUCANO_COMPANY_ID, null);
+  const breakdownByWorker = useMemo(() => {
+    const m: Record<string, SalaryBreakdownRow> = {};
+    breakdown.forEach(r => { m[r.worker_id] = r; });
+    return m;
+  }, [breakdown]);
+  const [sortKey, setSortKey] = useState<'worker_name' | 'cost_center' | 'base_liquid' | 'commissions' | 'other_bonuses' | 'total_liquid' | 'pct_commissions'>('total_liquid');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const handleSort = (k: typeof sortKey) => {
+    if (k === sortKey) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
+    else { setSortKey(k); setSortDir('asc'); }
+  };
+  const sortedBreakdown = useMemo(() => {
+    const arr = [...breakdown];
+    arr.sort((a, b) => {
+      if (sortKey === 'worker_name') return a.worker_name.localeCompare(b.worker_name);
+      if (sortKey === 'cost_center') return branchOrder(a.cost_center) - branchOrder(b.cost_center);
+      const av = Number((a as any)[sortKey] ?? 0);
+      const bv = Number((b as any)[sortKey] ?? 0);
+      return av - bv;
+    });
+    if (sortDir === 'desc') arr.reverse();
+    return arr;
+  }, [breakdown, sortKey, sortDir]);
+
 
   useEffect(() => {
     let cancelled = false;
@@ -208,25 +235,25 @@ export default function PortalContratos() {
         <Kpi icon={<DollarSign className="w-4 h-4" />} label="Masa salarial" value={fmtCLP(kpis.masa)} />
       </div>
 
-      {/* Dispersión salarial + Donut EST/Outsourcing */}
+      {/* Dispersión salarial + Donut Base/Comisiones */}
       {salary && (
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 p-card p-5 space-y-4">
             <div>
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Dispersión salarial · {salary.periodo_label}</p>
-              <p className="text-xs text-slate-500 mt-0.5">Sueldo líquido del mes trabajado</p>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Dispersión salarial · {salary.period_label}</p>
+              <p className="text-xs text-slate-500 mt-0.5">Sueldo líquido total del mes trabajado</p>
             </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {[
-                { label: 'Mín', value: salary.sueldo_min },
-                { label: 'Mediana', value: salary.sueldo_mediana },
-                { label: 'Promedio', value: salary.sueldo_promedio },
-                { label: 'Máx', value: salary.sueldo_max },
+                { label: 'Mín', value: salary.min_total ?? 0 },
+                { label: 'Mediana', value: salary.median_total ?? 0 },
+                { label: 'Promedio', value: salary.avg_total ?? 0 },
+                { label: 'Máx', value: salary.max_total ?? 0 },
               ].map(s => (
                 <div key={s.label} className="rounded-xl border border-slate-200 px-3 py-2 bg-slate-50/60">
                   <p className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">{s.label}</p>
                   <p className="text-sm font-bold tabular-nums mt-0.5" style={{ color: '#1B3A5C' }}>{fmtCLP(s.value)}</p>
-                  <p className="text-[10px] text-slate-400 mt-0.5">sueldo líquido {salary.periodo_label}</p>
+                  <p className="text-[10px] text-slate-400 mt-0.5">total líquido {salary.period_label}</p>
                 </div>
               ))}
             </div>
@@ -234,42 +261,47 @@ export default function PortalContratos() {
             <div className="pt-2">
               <div className="relative h-2 rounded-full bg-slate-200">
                 {(() => {
-                  const range = Math.max(1, salary.sueldo_max - salary.sueldo_min);
-                  const pos = (v: number) => `${Math.max(0, Math.min(100, ((v - salary.sueldo_min) / range) * 100))}%`;
-                  return ['sueldo_min','sueldo_mediana','sueldo_promedio','sueldo_max'].map((k, i) => {
-                    const v = (salary as any)[k] as number;
-                    return (
-                      <div key={k} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 border-white shadow"
-                        style={{ left: pos(v), background: i === 1 || i === 2 ? '#F97316' : '#EA580C' }}
-                        title={`${k}: ${fmtCLP(v)}`} />
-                    );
-                  });
+                  const min = salary.min_total ?? 0;
+                  const max = salary.max_total ?? 0;
+                  const range = Math.max(1, max - min);
+                  const pos = (v: number) => `${Math.max(0, Math.min(100, ((v - min) / range) * 100))}%`;
+                  const items: Array<[string, number]> = [
+                    ['Mín', min],
+                    ['Mediana', salary.median_total ?? 0],
+                    ['Promedio', salary.avg_total ?? 0],
+                    ['Máx', max],
+                  ];
+                  return items.map(([k, v], i) => (
+                    <div key={k} className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 rounded-full border-2 border-white shadow"
+                      style={{ left: pos(v), background: i === 1 || i === 2 ? '#F97316' : '#EA580C' }}
+                      title={`${k}: ${fmtCLP(v)}`} />
+                  ));
                 })()}
               </div>
               <div className="flex justify-between text-[10px] text-slate-400 mt-1.5 tabular-nums">
-                <span>{fmtCLP(salary.sueldo_min)}</span>
-                <span>{fmtCLP(salary.sueldo_max)}</span>
+                <span>{fmtCLP(salary.min_total ?? 0)}</span>
+                <span>{fmtCLP(salary.max_total ?? 0)}</span>
               </div>
             </div>
           </div>
 
           <div className="p-card p-5">
-            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Masa salarial por modalidad</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Composición masa salarial</p>
             <div className="h-44 mt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={[
-                      { name: 'EST', value: salary.masa_est, color: '#1B3A5C' },
-                      { name: 'Outsourcing', value: salary.masa_outsourcing, color: '#F97316' },
+                      { name: 'Base líquido', value: salary.masa_base ?? 0 },
+                      { name: 'Comisiones', value: salary.masa_commissions ?? 0 },
                     ]}
                     dataKey="value"
                     innerRadius={38}
                     outerRadius={62}
                     paddingAngle={2}
                   >
-                    <Cell fill="#1B3A5C" />
                     <Cell fill="#F97316" />
+                    <Cell fill="#FBBF24" />
                   </Pie>
                   <RTooltip formatter={(v: any) => fmtCLP(Number(v))} contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 10, fontSize: 12 }} />
                 </PieChart>
@@ -277,17 +309,19 @@ export default function PortalContratos() {
             </div>
             <div className="space-y-1 mt-1 text-xs">
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#1B3A5C' }} /> EST</span>
-                <span className="tabular-nums font-mono">{fmtCLP(salary.masa_est)} <span className="text-slate-400">({salary.masa_total ? ((salary.masa_est / salary.masa_total) * 100).toFixed(1) : 0}%)</span></span>
+                <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#F97316' }} /> Base líquido</span>
+                <span className="tabular-nums font-mono">{fmtCLP(salary.masa_base ?? 0)} <span className="text-slate-400">({salary.masa_total ? (((salary.masa_base ?? 0) / salary.masa_total) * 100).toFixed(1) : 0}%)</span></span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#F97316' }} /> Outsourcing</span>
-                <span className="tabular-nums font-mono">{fmtCLP(salary.masa_outsourcing)} <span className="text-slate-400">({salary.masa_total ? ((salary.masa_outsourcing / salary.masa_total) * 100).toFixed(1) : 0}%)</span></span>
+                <span className="flex items-center gap-2"><span className="w-2.5 h-2.5 rounded-sm" style={{ background: '#FBBF24' }} /> Comisiones</span>
+                <span className="tabular-nums font-mono">{fmtCLP(salary.masa_commissions ?? 0)} <span className="text-slate-400">({salary.masa_total ? (((salary.masa_commissions ?? 0) / salary.masa_total) * 100).toFixed(1) : 0}%)</span></span>
               </div>
             </div>
           </div>
         </section>
       )}
+
+
 
 
       {/* Alerta vencimientos */}
@@ -383,13 +417,13 @@ export default function PortalContratos() {
                 <th className="px-4 py-3 font-semibold">Tipo</th>
                 <th className="px-4 py-3 font-semibold">Modalidad</th>
                 <th className="px-4 py-3 font-semibold">Vencimiento</th>
-                <th className="px-6 py-3 font-semibold text-right" title="Corresponde a la última liquidación. En Chile el pago de un mes refleja el trabajo del mes anterior.">
-                  Sueldo líquido
-                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">mes trabajado</span>
+                <th className="px-4 py-3 font-semibold text-right">
+                  Comisiones
+                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">{salary?.period_label ?? ''}</span>
                 </th>
-                <th className="px-6 py-3 font-semibold text-right">
-                  Costo {salary?.periodo_label ?? ''}
-                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">sueldo + comisión</span>
+                <th className="px-6 py-3 font-semibold text-right" title="Total líquido = base + comisiones + otros bonos del mes trabajado.">
+                  Sueldo líquido total
+                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">{salary?.period_label ?? 'mes trabajado'}</span>
                 </th>
               </tr>
             </thead>
@@ -397,8 +431,9 @@ export default function PortalContratos() {
               {filtered.length === 0 ? (
                 <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">Sin resultados.</td></tr>
               ) : filtered.map(r => {
-                const com = commissionByWorker[r.worker_id] ?? 0;
-                const costo = (r.liquid_salary || 0) + com;
+                const bd = breakdownByWorker[r.worker_id];
+                const com = bd?.commissions ?? commissionByWorker[r.worker_id] ?? 0;
+                const total = bd?.total_liquid ?? ((r.liquid_salary || 0) + com);
                 return (
                 <tr key={r.worker_id} className="border-b border-slate-100 hover:bg-slate-50/60">
                   <td className="px-6 py-3">
@@ -417,17 +452,15 @@ export default function PortalContratos() {
                       ? <span className="text-slate-700">{fmtDate(r.end_date)}</span>
                       : <span className="text-slate-400 italic">Sin vencimiento</span>}
                   </td>
-                  <td className="px-6 py-3 text-right font-mono tabular-nums font-semibold" style={{ color: '#1B3A5C' }}
-                    title="Sueldo líquido del último mes trabajado (la liquidación se paga al mes siguiente)">
-                    {r.liquid_salary > 0 ? fmtCLP(r.liquid_salary) : <span className="text-slate-400 font-normal">—</span>}
+                  <td className="px-4 py-3 text-right font-mono tabular-nums">
+                    {com > 0
+                      ? <span style={{ color: '#B45309' }}>{fmtCLP(com)}</span>
+                      : <span className="text-slate-300">—</span>}
                   </td>
                   <td className="px-6 py-3 text-right font-mono tabular-nums">
-                    {costo > 0 ? (
-                      <>
-                        <span className="font-bold" style={{ color: '#F97316' }}>{fmtCLP(costo)}</span>
-                        {com === 0 && <span className="block text-[10px] text-slate-400 font-normal">sin comisión</span>}
-                      </>
-                    ) : <span className="text-slate-400 font-normal">—</span>}
+                    {total > 0
+                      ? <span className="font-bold" style={{ color: '#F97316' }}>{fmtCLP(total)}</span>
+                      : <span className="text-slate-400 font-normal">—</span>}
                   </td>
                 </tr>
               );
@@ -436,6 +469,70 @@ export default function PortalContratos() {
           </table>
         </div>
       </section>
+
+      {/* Composición del sueldo */}
+      {breakdown.length > 0 && (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-base font-bold tracking-tight" style={{ color: '#1B3A5C' }}>
+              Composición del sueldo — {salary?.period_label ?? ''}
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">Desglose por trabajador: base líquido, comisiones y otros bonos.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Kpi icon={<DollarSign className="w-4 h-4" />} label="Masa total" value={fmtCLP(salary?.masa_total ?? 0)} />
+            <Kpi icon={<DollarSign className="w-4 h-4" />} label="Comisiones"
+              value={`${fmtCLP(salary?.masa_commissions ?? 0)}${salary?.masa_total ? ` · ${(((salary?.masa_commissions ?? 0) / salary.masa_total) * 100).toFixed(1)}%` : ''}`} />
+            <Kpi icon={<DollarSign className="w-4 h-4" />} label="Sueldo promedio total" value={fmtCLP(salary?.avg_total ?? 0)} />
+          </div>
+
+          <div className="p-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="p-table w-full">
+                <thead>
+                  <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                    <SortHeader label="Trabajador" k="worker_name" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} className="px-6" />
+                    <SortHeader label="Sucursal" k="cost_center" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
+                    <SortHeader label="Base líquido" k="base_liquid" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} align="right" />
+                    <SortHeader label="Comisiones" k="commissions" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} align="right" />
+                    <SortHeader label="Otros bonos" k="other_bonuses" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} align="right" />
+                    <SortHeader label="Total líquido" k="total_liquid" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} align="right" className="px-6" />
+                    <SortHeader label="% Comisiones" k="pct_commissions" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} align="right" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedBreakdown.map(b => (
+                    <tr key={b.worker_id} className="border-b border-slate-100 hover:bg-slate-50/60">
+                      <td className="px-6 py-3">
+                        <Link to={`/portal/trabajadores/${b.worker_id}`} className="font-semibold hover:underline" style={{ color: '#1B3A5C' }}>
+                          {b.worker_name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-700">{CC_NAME[b.cost_center] ?? b.cost_center}</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums">{fmtCLP(b.base_liquid)}</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums" style={{ color: b.commissions > 0 ? '#B45309' : undefined }}>
+                        {b.commissions > 0 ? fmtCLP(b.commissions) : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums">
+                        {b.other_bonuses > 0 ? fmtCLP(b.other_bonuses) : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-6 py-3 text-right font-mono tabular-nums font-bold" style={{ color: '#F97316' }}>
+                        {fmtCLP(b.total_liquid)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-xs text-slate-600">
+                        {Number(b.pct_commissions).toFixed(1)}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
+
+
 
     </div>
   );
@@ -484,5 +581,29 @@ function ModalityBadge({ modality }: { modality: string | null }) {
     <span className="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
       Outsourcing
     </span>
+  );
+}
+
+function SortHeader({
+  label, k, sortKey, sortDir, onClick, align = 'left', className = '',
+}: {
+  label: string;
+  k: any;
+  sortKey: any;
+  sortDir: 'asc' | 'desc';
+  onClick: (k: any) => void;
+  align?: 'left' | 'right';
+  className?: string;
+}) {
+  const active = sortKey === k;
+  const Icon = !active ? ArrowUpDown : sortDir === 'asc' ? ArrowUp : ArrowDown;
+  return (
+    <th className={`${className || 'px-4'} py-3 font-semibold cursor-pointer select-none ${align === 'right' ? 'text-right' : ''}`}
+      onClick={() => onClick(k)}>
+      <span className={`inline-flex items-center gap-1 ${align === 'right' ? 'justify-end' : ''}`}>
+        {label}
+        <Icon className={`w-3 h-3 ${active ? 'text-orange-500' : 'text-slate-300'}`} />
+      </span>
+    </th>
   );
 }

@@ -1433,6 +1433,24 @@ export type Database = {
         Args: { p_company_id: string; p_tolerance_minutes?: number }
         Returns: Json
       }
+      get_salary_breakdown: {
+        Args: { p_company_id: string; p_period?: string }
+        Returns: {
+          base_liquid: number
+          commissions: number
+          cost_center: string
+          other_bonuses: number
+          overtime: number
+          pct_base: number
+          pct_commissions: number
+          pct_overtime: number
+          period: string
+          period_label: string
+          total_liquid: number
+          worker_id: string
+          worker_name: string
+        }[]
+      }
       get_salary_kpis: { Args: { p_company_id: string }; Returns: Json }
       get_week_hours: {
         Args: { p_company_id?: string }
