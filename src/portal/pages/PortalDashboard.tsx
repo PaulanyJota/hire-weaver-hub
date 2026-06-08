@@ -91,7 +91,10 @@ export default function PortalDashboard() {
   }, []);
 
   const kpiAttendanceToday = useMemo(() => new Set(attendanceToday.map(r => r.worker_id)).size, [attendanceToday]);
-  const kpiHoursWeek = useMemo(() => weekAtt.reduce((s, r) => s + Number(r.worked_hours ?? 0), 0), [weekAtt]);
+  const kpiHoursWeek = useMemo(() => {
+    const total = weekAtt.reduce((s, r) => s + Math.max(0, Number(r.worked_hours ?? 0)), 0);
+    return total > 0 ? total : 0;
+  }, [weekAtt]);
   const kpiLateWeek = useMemo(() => weekAtt.reduce((s, r) => s + Number(r.late_minutes ?? 0), 0), [weekAtt]);
   const attendanceRate = activeWorkers > 0 ? Math.round((kpiAttendanceToday / activeWorkers) * 100) : 0;
 
@@ -227,7 +230,8 @@ export default function PortalDashboard() {
             <div>
               <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Puntualidad semana</p>
               {!punct ? <Skeleton className="h-9 w-20 mt-2" /> : punct.puntualidad_semana === 0 ? (
-                <p className="text-2xl font-bold mt-2 tracking-tight text-slate-400">Calculando...</p>
+                <p className="text-sm font-medium mt-3 tracking-tight text-slate-400">Sin datos de horario</p>
+
               ) : (
                 <p className="text-3xl font-bold mt-2 tracking-tight" style={{ color: '#F97316' }}>
                   {punct.puntualidad_semana}%

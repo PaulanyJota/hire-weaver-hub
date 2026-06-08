@@ -5,7 +5,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
 import { formatRut } from '../lib/formatRut';
 import { fmtPeriodSafe } from '../components/SucursalPayroll';
-import { shiftedPeriodEs } from '../lib/periodLabel';
+import { shiftedPeriodEs, fmtPeriodEs } from '../lib/periodLabel';
 import {
   ArrowLeft, Mail, Phone, MapPin, Building2, Calendar, BadgeCheck,
   Briefcase, FileText, CalendarX, Clock, CalendarCheck, Timer, DollarSign,
@@ -68,9 +68,14 @@ const isWeekend = (d: string) => {
 
 function ContractTile({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white/15 backdrop-blur rounded-xl p-4 border border-white/20">
-      <p className="text-[10px] uppercase tracking-wider opacity-80 font-semibold">{label}</p>
-      <p className="text-lg font-bold mt-1 capitalize">{value}</p>
+    <div className="bg-white rounded-xl p-4 border border-orange-200">
+      <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">{label}</p>
+      <span
+        className="inline-block mt-2 px-2.5 py-1 rounded-lg text-sm font-bold capitalize"
+        style={{ background: '#FFF7ED', color: '#EA580C', border: '1px solid #FED7AA' }}
+      >
+        {value}
+      </span>
     </div>
   );
 }
@@ -252,12 +257,9 @@ export default function PortalTrabajadorDetalle() {
       </section>
 
       {/* Contrato */}
-      <section
-        className="rounded-2xl p-6 text-white shadow-lg"
-        style={{ background: 'linear-gradient(135deg, #F97316 0%, #FB923C 50%, #EA580C 100%)' }}
-      >
-        <p className="text-[11px] uppercase tracking-wider font-semibold opacity-80">Contrato</p>
-        <h2 className="text-xl font-bold mt-1">Información contractual</h2>
+      <section className="p-card p-6 border border-orange-200 bg-white">
+        <p className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: '#EA580C' }}>Contrato</p>
+        <h2 className="text-xl font-bold mt-1" style={{ color: '#1B3A5C' }}>Información contractual</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-4">
           <ContractTile label="Tipo de contrato" value={profileExt?.contract_type ?? '—'} />
           <ContractTile label="Vencimiento" value={profileExt?.contract_end ? new Date(profileExt.contract_end + 'T00:00:00').toLocaleDateString('es-CL') : '—'} />
@@ -393,7 +395,7 @@ export default function PortalTrabajadorDetalle() {
               <div className="h-48">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={[...commissions.history].sort((a, b) => (a.period < b.period ? -1 : 1)).map(h => ({
-                    period: shiftedPeriodEs(h.period),
+                    period: fmtPeriodEs(h.period),
                     total: Number(h.total) || 0,
                   }))} margin={{ top: 8, right: 10, left: 0, bottom: 0 }}>
                     <defs>
