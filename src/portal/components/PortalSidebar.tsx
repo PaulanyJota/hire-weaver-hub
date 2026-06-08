@@ -24,6 +24,24 @@ export function PortalSidebar() {
   const { profile, company, isAdmin, signOut } = usePortalAuth();
   const { isOpen, close } = usePortalSidebar();
   const navigate = useNavigate();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    let active = true;
+    const load = async () => {
+      const { count } = await supabase
+        .from('portal_approval_requests')
+        .select('id', { count: 'exact', head: true })
+        .in('status', ['pendiente', 'en_proceso']);
+      if (active) setPendingCount(count ?? 0);
+    };
+    load();
+    const ch = supabase.channel('sidebar-solicitudes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'portal_approval_requests' }, load)
+      .subscribe();
+    return () => { active = false; supabase.removeChannel(ch); };
+  }, [isAdmin]);
 
   const handleSignOut = async () => {
     await signOut();
