@@ -178,11 +178,19 @@ export default function PortalSolicitudes() {
           total={rows.length}
           results={filtered.length}
         />
-        {loading ? (
+        {loadError ? (
+          <div className="mt-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5 text-sm">
+            <p className="font-semibold text-destructive mb-1">No pudimos cargar las solicitudes</p>
+            <p className="text-muted-foreground text-xs">{loadError}</p>
+            <button onClick={load} className="mt-2 text-xs font-semibold" style={{ color: '#F97316' }}>
+              Reintentar
+            </button>
+          </div>
+        ) : loading ? (
           <div className="space-y-2 mt-3">{[1,2,3].map(i => <Skeleton key={i} className="h-12 w-full rounded-xl" />)}</div>
         ) : filtered.length === 0 ? (
           <div className="py-12 text-center text-sm text-muted-foreground">
-            {rows.length === 0 ? 'Aún no hay solicitudes registradas.' : 'Sin resultados para tu búsqueda.'}
+            {rows.length === 0 ? 'No hay solicitudes aún.' : 'Sin resultados para tu búsqueda.'}
           </div>
         ) : (
           <div className="overflow-x-auto mt-3 -mx-2">
@@ -198,15 +206,10 @@ export default function PortalSolicitudes() {
               </thead>
               <tbody>
                 {filtered.map(r => {
-                  const docKey = r.doc_type ?? r.request_type;
-                  const tipoLabel = TYPE_LABELS[docKey] ?? docKey;
-                  const detalle = r.worker
-                    ? `${r.worker.first_name} ${r.worker.last_name}`
-                    : r.scope === 'branch' && r.scope_value
-                      ? `Sucursal: ${BRANCH_NAMES[r.scope_value] ?? r.scope_value}`
-                      : r.scope === 'all'
-                        ? 'Toda la empresa'
-                        : (r.reason ?? '—');
+                  const docKey = r.doc_type ?? '';
+                  const tipoLabel = r.doc_label ?? TYPE_LABELS[docKey] ?? docKey ?? '—';
+                  const detalle = r.scope_label
+                    ?? (r.scope === 'all' ? 'Toda la empresa' : r.reason ?? '—');
                   const st = STATUS_META[r.status] ?? STATUS_META.pendiente;
                   return (
                     <tr key={r.id} className="border-b border-border/60 hover:bg-muted/30">
@@ -228,6 +231,7 @@ export default function PortalSolicitudes() {
                   );
                 })}
               </tbody>
+
             </table>
           </div>
         )}
