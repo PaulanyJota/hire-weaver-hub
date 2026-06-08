@@ -5,8 +5,11 @@ import { usePortalAuth } from '@/portal/hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { sucursalName } from '../lib/sucursales';
-import { DollarSign, Users, TrendingUp, Building2, Trophy } from 'lucide-react';
+import { DollarSign, Users, TrendingUp, Building2, Trophy, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { useBranchRankingKpis } from '../hooks/useBranchRankingKpis';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
+} from 'recharts';
 
 const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
 
@@ -41,6 +44,16 @@ export default function PortalComisiones() {
     () => (branchKpis?.comision_per_capita ?? []).slice().sort((a, b) => b.comision_per_capita - a.comision_per_capita),
     [branchKpis]
   );
+
+  // Modals
+  const [modal, setModal] = useState<null | 'total' | 'concept' | 'branch' | 'workers'>(null);
+  const [expandedBranch, setExpandedBranch] = useState<string | null>(null);
+  const [branchDetails, setBranchDetails] = useState<Record<string, Array<{ worker_id: string; nombre: string; concept: string; amount: number }>>>({});
+  const [allPeriodSummaries, setAllPeriodSummaries] = useState<Summary[]>([]);
+  const [trendLoading, setTrendLoading] = useState(false);
+  const [selectedConcept, setSelectedConcept] = useState<string | null>(null);
+  const [selectedBranch, setSelectedBranch] = useState<string | null>(null);
+  const [workerConcepts, setWorkerConcepts] = useState<Record<string, string[]>>({});
 
   useEffect(() => {
     let cancel = false;
@@ -77,6 +90,116 @@ export default function PortalComisiones() {
   );
   const topBranch = summary?.por_sucursal?.[0];
 
+  // Initialize selectedConcept/Branch when summary loads
+  useEffect(() => {
+    if (topConcept && !selectedConcept) setSelectedConcept(topConcept.concept);
+    if (topBranch && !selectedBranch) setSelectedBranch(topBranch.sucursal);
+  }, [topConcept, topBranch]);
+
+  // Load branch detail (workers + concepts for current period)
+  const loadBranchDetail = async (sucursal: string) => {
+    if (branchDetails[sucursal] || !period) return;
+    const start = period.slice(0, 10);
+    const end = (() => {
+      const [y, m] = start.split('-').map(Number);
+      const next = new Date(Date.UTC(y, m, 1));
+      return next.toISOString().slice(0, 10);
+    })();
+    const { data } = await supabase
+      .from('portal_commissions')
+      .select('worker_id, concept, amount, cost_center, portal_workers!inner(first_name, last_name)')
+      .eq('portal_company_id', companyId)
+      .eq('cost_center', sucursal)
+      .gte('period', start)
+      .lt('period', end);
+    const rows = (data ?? []).map((r: any) => {
+      const w = Array.isArray(r.portal_workers) ? r.portal_workers[0] : r.portal_workers;
+      return {
+        worker_id: r.worker_id,
+        nombre: w ? `${w.first_name} ${w.last_name}` : '—',
+        concept: r.concept,
+        amount: Number(r.amount) || 0,
+      };
+    }).sort((a, b) => b.amount - a.amount);
+    setBranchDetails(prev => ({ ...prev, [sucursal]: rows }));
+  };
+
+  // Load multi-period trends (last 3 periods)
+  const loadTrend = async () => {
+    if (allPeriodSummaries.length > 0 || periods.length === 0) return;
+    setTrendLoading(true);
+    const last3 = periods.slice(0, 3);
+    const results = await Promise.all(last3.map(p =>
+      supabase.rpc('get_commissions_summary' as any, { p_company_id: companyId, p_period: p })
+    ));
+    const sums = results.map(r => r.data as Summary).filter(Boolean);
+    setAllPeriodSummaries(sums);
+    setTrendLoading(false);
+  };
+
+  // Load worker → concepts list (for workers modal)
+  const loadWorkerConcepts = async () => {
+    if (Object.keys(workerConcepts).length > 0 || !period) return;
+    const start = period.slice(0, 10);
+    const end = (() => {
+      const [y, m] = start.split('-').map(Number);
+      return new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 10);
+    })();
+    const { data } = await supabase
+      .from('portal_commissions')
+      .select('worker_id, concept')
+      .eq('portal_company_id', companyId)
+      .gte('period', start)
+      .lt('period', end);
+    const map: Record<string, string[]> = {};
+    (data ?? []).forEach((r: any) => {
+      if (!map[r.worker_id]) map[r.worker_id] = [];
+      if (!map[r.worker_id].includes(r.concept)) map[r.worker_id].push(r.concept);
+    });
+    setWorkerConcepts(map);
+  };
+
+  const openModal = (m: 'total' | 'concept' | 'branch' | 'workers') => {
+    setModal(m);
+    if (m === 'concept' || m === 'branch') loadTrend();
+    if (m === 'workers') loadWorkerConcepts();
+  };
+
+  // Concept trend data: amount per period for selectedConcept
+  const conceptTrendData = useMemo(() => {
+    if (!selectedConcept) return [];
+    return allPeriodSummaries.slice().reverse().map(s => {
+      const row = s.por_concepto?.find(c => c.concept === selectedConcept);
+      return { period: fmtPeriod(s.period), total: row?.total ?? 0 };
+    });
+  }, [allPeriodSummaries, selectedConcept]);
+
+  // Branch trend data: amount per period for selectedBranch
+  const branchTrendData = useMemo(() => {
+    if (!selectedBranch) return [];
+    return allPeriodSummaries.slice().reverse().map(s => {
+      const row = s.por_sucursal?.find(b => b.sucursal === selectedBranch);
+      return { period: fmtPeriod(s.period), total: row?.total ?? 0 };
+    });
+  }, [allPeriodSummaries, selectedBranch]);
+
+  // Branch comparative (current period, all branches)
+  const branchComparative = useMemo(() => {
+    if (!summary?.por_sucursal) return [];
+    return summary.por_sucursal.slice().sort((a, b) => b.total - a.total)
+      .map(b => ({ sucursal: sucursalName(b.sucursal), code: b.sucursal, total: b.total }));
+  }, [summary]);
+
+  const conceptList = summary?.por_concepto?.map(c => c.concept) ?? [];
+  const branchList = summary?.por_sucursal?.map(b => b.sucursal) ?? [];
+  const enrichedWorkers = useMemo(() => {
+    return (summary?.top_workers ?? []).slice().sort((a, b) => b.total - a.total).map(w => ({
+      ...w,
+      conceptos_list: workerConcepts[w.worker_id] ?? [],
+    }));
+  }, [summary, workerConcepts]);
+
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       <PortalPageHeader
@@ -102,33 +225,18 @@ export default function PortalComisiones() {
 
       {/* KPIs */}
       <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          {
-            label: 'Total comisiones',
-            value: loading ? null : fmtCLP(summary?.total ?? 0),
-            icon: DollarSign,
-            color: '#F97316',
-          },
-          {
-            label: 'Trabajadores con comisión',
-            value: loading ? null : `${summary?.trabajadores ?? 0}`,
-            icon: Users,
-            color: '#1B3A5C',
-          },
-          {
-            label: 'Top concepto',
-            value: loading ? null : (topConcept?.concept ?? '—'),
-            icon: TrendingUp,
-            color: '#1D9E75',
-          },
-          {
-            label: 'Top sucursal',
-            value: loading ? null : (topBranch ? `${sucursalName(topBranch.sucursal)} · ${topBranch.pct}%` : '—'),
-            icon: Building2,
-            color: '#EA580C',
-          },
-        ].map(c => (
-          <div key={c.label} className="p-card p-5">
+        {([
+          { key: 'total', label: 'Total comisiones', value: loading ? null : fmtCLP(summary?.total ?? 0), icon: DollarSign, color: '#F97316' },
+          { key: 'workers', label: 'Trabajadores con comisión', value: loading ? null : `${summary?.trabajadores ?? 0}`, icon: Users, color: '#1B3A5C' },
+          { key: 'concept', label: 'Top concepto', value: loading ? null : (topConcept?.concept ?? '—'), icon: TrendingUp, color: '#1D9E75' },
+          { key: 'branch', label: 'Top sucursal', value: loading ? null : (topBranch ? `${sucursalName(topBranch.sucursal)} · ${topBranch.pct}%` : '—'), icon: Building2, color: '#EA580C' },
+        ] as const).map(c => (
+          <button
+            key={c.label}
+            type="button"
+            onClick={() => openModal(c.key)}
+            className="p-card p-5 text-left hover:shadow-lg hover:-translate-y-0.5 transition-all cursor-pointer focus:outline-none focus:ring-2 focus:ring-orange-400"
+          >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">{c.label}</p>
@@ -137,13 +245,14 @@ export default function PortalComisiones() {
                 ) : (
                   <p className="text-xl font-bold mt-2 tabular-nums truncate" style={{ color: c.color }}>{c.value}</p>
                 )}
+                <p className="text-[10px] text-muted-foreground mt-1">Click para ver detalle →</p>
               </div>
               <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
                 style={{ background: `${c.color}15`, color: c.color }}>
                 <c.icon className="w-5 h-5" />
               </div>
             </div>
-          </div>
+          </button>
         ))}
       </section>
 
@@ -294,6 +403,236 @@ export default function PortalComisiones() {
           </table>
         )}
       </section>
+
+      {/* ============ MODALES ============ */}
+      {modal && (
+        <Modal onClose={() => setModal(null)} title={
+          modal === 'total' ? `Total comisiones · ${period ? fmtPeriod(period) : ''}` :
+          modal === 'concept' ? 'Evolución por concepto' :
+          modal === 'branch' ? 'Evolución por sucursal' :
+          'Trabajadores con comisión'
+        }>
+          {/* MODAL TOTAL */}
+          {modal === 'total' && summary && (
+            <div className="space-y-2">
+              {summary.por_sucursal.map(s => {
+                const isOpen = expandedBranch === s.sucursal;
+                const rows = branchDetails[s.sucursal];
+                const total = rows ? rows.reduce((a, b) => a + b.amount, 0) : s.total;
+                return (
+                  <div key={s.sucursal} className="rounded-xl border border-slate-200 overflow-hidden">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = isOpen ? null : s.sucursal;
+                        setExpandedBranch(next);
+                        if (next) loadBranchDetail(next);
+                      }}
+                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-orange-50/40 text-left"
+                    >
+                      {isOpen ? <ChevronDown className="w-4 h-4 text-slate-500" /> : <ChevronRight className="w-4 h-4 text-slate-500" />}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-sm" style={{ color: '#1B3A5C' }}>{sucursalName(s.sucursal)}</p>
+                        <p className="text-[11px] text-muted-foreground">{s.trabajadores} trabajador{s.trabajadores === 1 ? '' : 'es'}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-mono tabular-nums font-bold text-sm" style={{ color: '#F97316' }}>{fmtCLP(s.total)}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div className="h-full rounded-full" style={{ width: `${Math.min(100, Number(s.pct))}%`, background: 'linear-gradient(90deg,#F97316,#EA580C)' }} />
+                          </div>
+                          <span className="text-[10px] font-bold tabular-nums" style={{ color: '#EA580C' }}>{s.pct}%</span>
+                        </div>
+                      </div>
+                    </button>
+                    {isOpen && (
+                      <div className="border-t border-slate-200 bg-slate-50/50">
+                        {!rows ? (
+                          <div className="p-4 space-y-2">{[1,2].map(i => <Skeleton key={i} className="h-8 w-full" />)}</div>
+                        ) : rows.length === 0 ? (
+                          <p className="p-4 text-xs text-muted-foreground text-center">Sin detalle.</p>
+                        ) : (
+                          <>
+                            <table className="w-full text-xs">
+                              <thead>
+                                <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                  <th className="text-left px-4 py-2 font-semibold">Trabajador</th>
+                                  <th className="text-left px-3 py-2 font-semibold">Concepto</th>
+                                  <th className="text-right px-4 py-2 font-semibold">Monto</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {rows.map((r, i) => (
+                                  <tr key={i} className="border-t border-slate-200">
+                                    <td className="px-4 py-2">
+                                      <Link to={`/portal/trabajadores/${r.worker_id}`} className="font-semibold hover:text-[#F97316]" style={{ color: '#1B3A5C' }}>{r.nombre}</Link>
+                                    </td>
+                                    <td className="px-3 py-2 text-muted-foreground">{r.concept}</td>
+                                    <td className="px-4 py-2 text-right font-mono tabular-nums" style={{ color: '#F97316' }}>{fmtCLP(r.amount)}</td>
+                                  </tr>
+                                ))}
+                                <tr className="border-t-2 border-orange-300 bg-orange-50/50">
+                                  <td colSpan={2} className="px-4 py-2 text-[11px] uppercase tracking-wider font-bold" style={{ color: '#EA580C' }}>Total sucursal</td>
+                                  <td className="px-4 py-2 text-right font-mono tabular-nums font-bold" style={{ color: '#EA580C' }}>{fmtCLP(total)}</td>
+                                </tr>
+                              </tbody>
+                            </table>
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* MODAL CONCEPT TREND */}
+          {modal === 'concept' && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-2 flex-wrap">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Concepto:</label>
+                <select
+                  value={selectedConcept ?? ''}
+                  onChange={e => setSelectedConcept(e.target.value)}
+                  className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  style={{ color: '#1B3A5C' }}
+                >
+                  {conceptList.map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Evolución mes a mes</p>
+                <div className="h-64">
+                  {trendLoading ? <Skeleton className="h-full w-full" /> : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={conceptTrendData}>
+                        <defs>
+                          <linearGradient id="gConceptTrend" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#FB923C" />
+                            <stop offset="100%" stopColor="#EA580C" />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                        <XAxis dataKey="period" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`} />
+                        <Tooltip
+                          formatter={(v: any) => [fmtCLP(Number(v)), selectedConcept ?? '']}
+                          contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }}
+                        />
+                        <Bar dataKey="total" fill="url(#gConceptTrend)" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL BRANCH TREND + COMPARATIVE */}
+          {modal === 'branch' && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-2 flex-wrap">
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Sucursal:</label>
+                <select
+                  value={selectedBranch ?? ''}
+                  onChange={e => setSelectedBranch(e.target.value)}
+                  className="bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-orange-400"
+                  style={{ color: '#1B3A5C' }}
+                >
+                  {branchList.map(b => <option key={b} value={b}>{sucursalName(b)}</option>)}
+                </select>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">
+                  Evolución {selectedBranch ? sucursalName(selectedBranch) : ''} · últimos {allPeriodSummaries.length} períodos
+                </p>
+                <div className="h-56">
+                  {trendLoading ? <Skeleton className="h-full w-full" /> : (
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={branchTrendData}>
+                        <defs>
+                          <linearGradient id="gBranchTrend" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="0%" stopColor="#FB923C" />
+                            <stop offset="100%" stopColor="#EA580C" />
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                        <XAxis dataKey="period" tick={{ fontSize: 11 }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`} />
+                        <Tooltip formatter={(v: any) => [fmtCLP(Number(v)), 'Total']} contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }} />
+                        <Bar dataKey="total" fill="url(#gBranchTrend)" radius={[6, 6, 0, 0]} />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              </div>
+              <div>
+                <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold mb-2">Comparativa entre sucursales · {period ? fmtPeriod(period) : ''}</p>
+                <div className="h-72">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={branchComparative} layout="vertical" margin={{ left: 8, right: 16 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" horizontal={false} />
+                      <XAxis type="number" tick={{ fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={(v) => v >= 1000 ? `${Math.round(v / 1000)}k` : `${v}`} />
+                      <YAxis dataKey="sucursal" type="category" tick={{ fontSize: 11 }} width={110} axisLine={false} tickLine={false} />
+                      <Tooltip formatter={(v: any) => [fmtCLP(Number(v)), 'Total']} contentStyle={{ background: 'white', border: '1px solid hsl(var(--border))', borderRadius: 12, fontSize: 12 }} />
+                      <Bar dataKey="total" radius={[0, 6, 6, 0]}>
+                        {branchComparative.map((entry, idx) => {
+                          const isTop = entry.code === topBranch?.sucursal;
+                          const shade = isTop ? '#EA580C' : `rgba(249,115,22,${Math.max(0.35, 1 - idx * 0.1)})`;
+                          return <Cell key={idx} fill={shade} />;
+                        })}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL WORKERS */}
+          {modal === 'workers' && summary && (
+            <div>
+              <p className="text-xs text-muted-foreground mb-3">{enrichedWorkers.length} trabajador{enrichedWorkers.length === 1 ? '' : 'es'} recibieron comisión este mes</p>
+              <ul className="divide-y divide-slate-100">
+                {enrichedWorkers.map((w, idx) => (
+                  <li key={w.worker_id} className="flex items-start gap-3 py-3">
+                    <span className="w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0 bg-orange-50 text-orange-600">{idx + 1}</span>
+                    <div className="flex-1 min-w-0">
+                      <Link to={`/portal/trabajadores/${w.worker_id}`} className="font-semibold text-sm hover:text-[#F97316]" style={{ color: '#1B3A5C' }}>{w.nombre}</Link>
+                      <p className="text-[11px] text-muted-foreground">{sucursalName(w.sucursal)}</p>
+                      {w.conceptos_list.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {w.conceptos_list.map(c => (
+                            <span key={c} className="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-orange-50 text-orange-700 border border-orange-100">{c}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <p className="font-bold tabular-nums text-sm shrink-0" style={{ color: '#F97316' }}>{fmtCLP(w.total)}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+function Modal({ children, onClose, title }: { children: React.ReactNode; onClose: () => void; title: string }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: 'rgba(15,36,64,0.55)', backdropFilter: 'blur(4px)' }} onClick={onClose}>
+      <div className="bg-white rounded-2xl border border-slate-200 w-full max-w-3xl max-h-[90vh] overflow-hidden flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="flex items-start justify-between px-5 py-4 border-b border-slate-200">
+          <h3 className="text-base font-bold tracking-tight" style={{ color: '#1B3A5C' }}>{title}</h3>
+          <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-700">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="overflow-y-auto p-5">{children}</div>
+      </div>
     </div>
   );
 }
