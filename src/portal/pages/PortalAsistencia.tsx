@@ -514,15 +514,25 @@ export default function PortalAsistencia() {
       <div className="p-card overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-5 pb-3">
           <h3 className="text-sm font-bold tracking-tight" style={{ color: 'hsl(var(--p-text))' }}>Detalle por trabajador</h3>
-          <select
-            className="p-select"
-            style={{ width: 200 }}
-            value={sucursalFilter}
-            onChange={e => setSucursalFilter(e.target.value)}
-          >
-            <option value="">Todas las sucursales</option>
-            {sucursales.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center w-full sm:w-auto">
+            <PortalSearchBar
+              value={search}
+              onChange={setSearch}
+              placeholder="Buscar por nombre, cargo o sucursal…"
+              total={rows.length}
+              results={tabla.length}
+              className="sm:w-80"
+            />
+            <select
+              className="p-select"
+              style={{ width: 200 }}
+              value={sucursalFilter}
+              onChange={e => setSucursalFilter(e.target.value)}
+            >
+              <option value="">Todas las sucursales</option>
+              {sucursales.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
         </div>
 
         {loading ? (
