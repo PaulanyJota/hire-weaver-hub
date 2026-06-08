@@ -69,8 +69,8 @@ interface Historical {
 
 const fmtCLP = (n: number) => '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
 // En Chile el período de pago = mes siguiente al trabajado. Mostramos siempre el mes TRABAJADO.
-const fmtPeriod = (p: string) => shiftedPeriodEs(p);
-const fmtPeriodShort = (p: string) => shiftedPeriodEsShort(p);
+const fmtPeriod = (p: string) => fmtPeriodEs(p);
+const fmtPeriodShort = (p: string) => fmtPeriodShort(p);
 
 export default function PortalComisiones() {
   const { company } = usePortalAuth();
@@ -709,7 +709,7 @@ function TotalHistoricalView({
   // by_period ordenado cronológicamente ascendente
   const periodsAsc = [...(historical.by_period ?? [])].sort((a, b) => (a.period < b.period ? -1 : 1));
   const chartData = periodsAsc.map(p => ({
-    period: shiftedPeriodEsShort(p.period),
+    period: fmtPeriodShort(p.period),
     total: Number(p.total) || 0,
     trabajadores: p.trabajadores,
     delta_mes_pct: p.delta_mes_pct,
@@ -719,7 +719,7 @@ function TotalHistoricalView({
   const latest = periodsAsc[periodsAsc.length - 1];
   const prev = periodsAsc[periodsAsc.length - 2];
   const autoNote = latest && latest.delta_mes_pct !== null && latest.delta_mes_pct < 0
-    ? `⚠️ ${shiftedPeriodEs(latest.period)} bajó ${fmtCLP(Math.abs(Number(latest.delta_mes_abs ?? 0)))} respecto a ${prev ? shiftedPeriodEs(prev.period) : 'mes anterior'} (${Number(latest.delta_mes_pct).toFixed(1)}%)`
+    ? `⚠️ ${fmtPeriodEs(latest.period)} bajó ${fmtCLP(Math.abs(Number(latest.delta_mes_abs ?? 0)))} respecto a ${prev ? fmtPeriodEs(prev.period) : 'mes anterior'} (${Number(latest.delta_mes_pct).toFixed(1)}%)`
     : null;
 
   // Pivot por sucursal con los últimos 2 períodos
@@ -822,7 +822,7 @@ function TotalHistoricalView({
             <tbody>
               {[...periodsAsc].reverse().map(p => (
                 <tr key={p.period} className="border-b border-slate-100">
-                  <td className="py-2 font-semibold" style={{ color: '#1B3A5C' }}>{shiftedPeriodEs(p.period)}</td>
+                  <td className="py-2 font-semibold" style={{ color: '#1B3A5C' }}>{fmtPeriodEs(p.period)}</td>
                   <td className="py-2 text-right font-mono tabular-nums" style={{ color: '#F97316' }}>{fmtCLP(p.total)}</td>
                   <td className="py-2 text-right tabular-nums">{p.trabajadores}</td>
                   <td className="py-2 text-right"><DeltaPill pct={p.delta_mes_pct} /></td>
@@ -848,8 +848,8 @@ function TotalHistoricalView({
               <thead>
                 <tr className="text-[10px] uppercase tracking-wider text-muted-foreground border-b border-slate-200">
                   <th className="text-left px-2 py-2 font-semibold">Sucursal</th>
-                  <th className="text-right px-2 py-2 font-semibold">{lastTwo[0] ? shiftedPeriodEsShort(lastTwo[0]) : '—'}</th>
-                  <th className="text-right px-2 py-2 font-semibold">{lastTwo[1] ? shiftedPeriodEsShort(lastTwo[1]) : '—'}</th>
+                  <th className="text-right px-2 py-2 font-semibold">{lastTwo[0] ? fmtPeriodShort(lastTwo[0]) : '—'}</th>
+                  <th className="text-right px-2 py-2 font-semibold">{lastTwo[1] ? fmtPeriodShort(lastTwo[1]) : '—'}</th>
                   <th className="text-right px-2 py-2 font-semibold">Variación</th>
                   <th className="text-center px-2 py-2 font-semibold">Tend.</th>
                 </tr>
@@ -944,8 +944,8 @@ function TotalHistoricalView({
             <thead>
               <tr className="text-[10px] uppercase tracking-wider text-muted-foreground border-b border-slate-200">
                 <th className="text-left py-2 font-semibold">Concepto</th>
-                <th className="text-right py-2 font-semibold">{lastTwo[0] ? shiftedPeriodEsShort(lastTwo[0]) : '—'}</th>
-                <th className="text-right py-2 font-semibold">{lastTwo[1] ? shiftedPeriodEsShort(lastTwo[1]) : '—'}</th>
+                <th className="text-right py-2 font-semibold">{lastTwo[0] ? fmtPeriodShort(lastTwo[0]) : '—'}</th>
+                <th className="text-right py-2 font-semibold">{lastTwo[1] ? fmtPeriodShort(lastTwo[1]) : '—'}</th>
                 <th className="text-right py-2 font-semibold">Variación</th>
               </tr>
             </thead>
