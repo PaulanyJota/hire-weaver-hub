@@ -17,6 +17,8 @@ import WorkerNameLink from '../components/WorkerNameLink';
 import { useBranchRankingKpis, usePunctualityKpis, useOvertimeKpis, useSalaryKpis } from '../hooks/useBranchRankingKpis';
 import { branchName } from '../constants/branches';
 import lucanoLogo from '@/assets/lucano-logo.png.asset.json';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
+import { sucursalName } from '../lib/sucursales';
 
 interface Worker { id: string; first_name: string; last_name: string; photo_url: string | null; active: boolean; cost_center: string | null }
 interface Att { worker_id: string; date: string; check_in: string | null; worked_hours: number | null; late_minutes: number | null }
