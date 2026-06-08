@@ -5,6 +5,7 @@ import { usePortalAuth } from '@/portal/hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { sucursalName } from '../lib/sucursales';
+import { sortByBranch } from '../constants/branches';
 import { DollarSign, Users, TrendingUp, Building2, Trophy, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { useBranchRankingKpis } from '../hooks/useBranchRankingKpis';
 import {
