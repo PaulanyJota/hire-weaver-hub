@@ -5,8 +5,11 @@ import { usePortalAuth } from '@/portal/hooks/usePortalAuth';
 import { Skeleton } from '@/components/ui/skeleton';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { sucursalName } from '../lib/sucursales';
-import { DollarSign, Users, TrendingUp, Building2, Trophy } from 'lucide-react';
+import { DollarSign, Users, TrendingUp, Building2, Trophy, X, ChevronDown, ChevronRight } from 'lucide-react';
 import { useBranchRankingKpis } from '../hooks/useBranchRankingKpis';
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell,
+} from 'recharts';
 
 const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
 
