@@ -215,10 +215,20 @@ export default function PortalComisiones() {
     setWorkerConcepts(map);
   };
 
+  const loadHistorical = async () => {
+    if (historical || historicalLoading) return;
+    setHistoricalLoading(true);
+    const { data, error } = await supabase.rpc('get_commissions_historical' as any, { p_company_id: companyId });
+    if (error) console.error('[commissions-historical]', error);
+    setHistorical((data as Historical) ?? null);
+    setHistoricalLoading(false);
+  };
+
   const openModal = (m: 'total' | 'concept' | 'branch' | 'workers') => {
     setModal(m);
     if (m === 'concept' || m === 'branch') loadTrend();
     if (m === 'workers') loadWorkerConcepts();
+    if (m === 'total') loadHistorical();
   };
 
   // Concept trend data: amount per period for selectedConcept
