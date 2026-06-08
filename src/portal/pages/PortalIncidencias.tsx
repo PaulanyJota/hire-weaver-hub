@@ -102,6 +102,16 @@ export default function PortalIncidencias() {
         }
       />
 
+      {items.length > 0 && (
+        <PortalSearchBar
+          value={search}
+          onChange={setSearch}
+          placeholder="Buscar por trabajador, tipo o descripción…"
+          total={items.length}
+          results={filtered.length}
+        />
+      )}
+
       {loading ? (
         <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}</div>
       ) : items.length === 0 ? (
@@ -126,7 +136,7 @@ export default function PortalIncidencias() {
                 </tr>
               </thead>
               <tbody>
-                {items.map(i => (
+                {filtered.map(i => (
                   <tr key={i.id}>
                     <td className="text-xs text-muted-foreground">{new Date(i.date).toLocaleDateString('es-CL')}</td>
                     <td>{i.worker?.id ? <WorkerNameLink workerId={i.worker.id} name={`${i.worker.first_name} ${i.worker.last_name}`} /> : <span className="font-semibold">{i.worker?.first_name} {i.worker?.last_name}</span>}</td>
