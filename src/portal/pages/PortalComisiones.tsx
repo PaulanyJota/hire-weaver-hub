@@ -90,6 +90,116 @@ export default function PortalComisiones() {
   );
   const topBranch = summary?.por_sucursal?.[0];
 
+  // Initialize selectedConcept/Branch when summary loads
+  useEffect(() => {
+    if (topConcept && !selectedConcept) setSelectedConcept(topConcept.concept);
+    if (topBranch && !selectedBranch) setSelectedBranch(topBranch.sucursal);
+  }, [topConcept, topBranch]);
+
+  // Load branch detail (workers + concepts for current period)
+  const loadBranchDetail = async (sucursal: string) => {
+    if (branchDetails[sucursal] || !period) return;
+    const start = period.slice(0, 10);
+    const end = (() => {
+      const [y, m] = start.split('-').map(Number);
+      const next = new Date(Date.UTC(y, m, 1));
+      return next.toISOString().slice(0, 10);
+    })();
+    const { data } = await supabase
+      .from('portal_commissions')
+      .select('worker_id, concept, amount, cost_center, portal_workers!inner(first_name, last_name)')
+      .eq('portal_company_id', companyId)
+      .eq('cost_center', sucursal)
+      .gte('period', start)
+      .lt('period', end);
+    const rows = (data ?? []).map((r: any) => {
+      const w = Array.isArray(r.portal_workers) ? r.portal_workers[0] : r.portal_workers;
+      return {
+        worker_id: r.worker_id,
+        nombre: w ? `${w.first_name} ${w.last_name}` : '—',
+        concept: r.concept,
+        amount: Number(r.amount) || 0,
+      };
+    }).sort((a, b) => b.amount - a.amount);
+    setBranchDetails(prev => ({ ...prev, [sucursal]: rows }));
+  };
+
+  // Load multi-period trends (last 3 periods)
+  const loadTrend = async () => {
+    if (allPeriodSummaries.length > 0 || periods.length === 0) return;
+    setTrendLoading(true);
+    const last3 = periods.slice(0, 3);
+    const results = await Promise.all(last3.map(p =>
+      supabase.rpc('get_commissions_summary' as any, { p_company_id: companyId, p_period: p })
+    ));
+    const sums = results.map(r => r.data as Summary).filter(Boolean);
+    setAllPeriodSummaries(sums);
+    setTrendLoading(false);
+  };
+
+  // Load worker → concepts list (for workers modal)
+  const loadWorkerConcepts = async () => {
+    if (Object.keys(workerConcepts).length > 0 || !period) return;
+    const start = period.slice(0, 10);
+    const end = (() => {
+      const [y, m] = start.split('-').map(Number);
+      return new Date(Date.UTC(y, m, 1)).toISOString().slice(0, 10);
+    })();
+    const { data } = await supabase
+      .from('portal_commissions')
+      .select('worker_id, concept')
+      .eq('portal_company_id', companyId)
+      .gte('period', start)
+      .lt('period', end);
+    const map: Record<string, string[]> = {};
+    (data ?? []).forEach((r: any) => {
+      if (!map[r.worker_id]) map[r.worker_id] = [];
+      if (!map[r.worker_id].includes(r.concept)) map[r.worker_id].push(r.concept);
+    });
+    setWorkerConcepts(map);
+  };
+
+  const openModal = (m: 'total' | 'concept' | 'branch' | 'workers') => {
+    setModal(m);
+    if (m === 'concept' || m === 'branch') loadTrend();
+    if (m === 'workers') loadWorkerConcepts();
+  };
+
+  // Concept trend data: amount per period for selectedConcept
+  const conceptTrendData = useMemo(() => {
+    if (!selectedConcept) return [];
+    return allPeriodSummaries.slice().reverse().map(s => {
+      const row = s.por_concepto?.find(c => c.concept === selectedConcept);
+      return { period: fmtPeriod(s.period), total: row?.total ?? 0 };
+    });
+  }, [allPeriodSummaries, selectedConcept]);
+
+  // Branch trend data: amount per period for selectedBranch
+  const branchTrendData = useMemo(() => {
+    if (!selectedBranch) return [];
+    return allPeriodSummaries.slice().reverse().map(s => {
+      const row = s.por_sucursal?.find(b => b.sucursal === selectedBranch);
+      return { period: fmtPeriod(s.period), total: row?.total ?? 0 };
+    });
+  }, [allPeriodSummaries, selectedBranch]);
+
+  // Branch comparative (current period, all branches)
+  const branchComparative = useMemo(() => {
+    if (!summary?.por_sucursal) return [];
+    return summary.por_sucursal.slice().sort((a, b) => b.total - a.total)
+      .map(b => ({ sucursal: sucursalName(b.sucursal), code: b.sucursal, total: b.total }));
+  }, [summary]);
+
+  const conceptList = summary?.por_concepto?.map(c => c.concept) ?? [];
+  const branchList = summary?.por_sucursal?.map(b => b.sucursal) ?? [];
+  const enrichedWorkers = useMemo(() => {
+    return (summary?.top_workers ?? []).slice().sort((a, b) => b.total - a.total).map(w => ({
+      ...w,
+      conceptos_list: workerConcepts[w.worker_id] ?? [],
+    }));
+  }, [summary, workerConcepts]);
+
+
   return (
     <div className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto space-y-6">
       <PortalPageHeader
