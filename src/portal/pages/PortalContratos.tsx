@@ -45,6 +45,8 @@ export default function PortalContratos() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [showVenc, setShowVenc] = useState(false);
+  const [commissionByWorker, setCommissionByWorker] = useState<Record<string, number>>({});
+  const { data: salary } = useSalaryKpis(company?.id ?? LUCANO_COMPANY_ID);
 
   useEffect(() => {
     let cancelled = false;
