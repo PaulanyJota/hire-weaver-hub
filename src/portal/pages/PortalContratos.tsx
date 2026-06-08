@@ -137,6 +137,7 @@ export default function PortalContratos() {
     const masa = rows.reduce((acc, r) => acc + (r.liquid_salary || 0), 0);
     return {
       total,
+      est,
       indef_pct: total ? Math.round((indef / total) * 100) : 0,
       plazo_pct: total ? Math.round((plazo / total) * 100) : 0,
       est_pct: total ? Math.round((est / total) * 100) : 0,
