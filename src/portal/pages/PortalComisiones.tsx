@@ -482,7 +482,7 @@ export default function PortalComisiones() {
           <div className="p-10 text-center text-sm text-muted-foreground">Sin trabajadores con comisión.</div>
         ) : (
           <ul className="divide-y divide-slate-100">
-            {summary.top_workers.slice(0, 10).map((w, idx) => {
+            {(search.trim() ? filteredWorkers : summary.top_workers.slice(0, 10)).map((w, idx) => {
               const key = w.nombre.trim().toLowerCase();
               const pct = pctByName[key];
               const constante = constantSet.has(key);
