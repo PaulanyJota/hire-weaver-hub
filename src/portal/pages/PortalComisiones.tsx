@@ -6,6 +6,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import PortalPageHeader from '../components/PortalPageHeader';
 import { sucursalName } from '../lib/sucursales';
 import { DollarSign, Users, TrendingUp, Building2, Trophy } from 'lucide-react';
+import { useBranchRankingKpis } from '../hooks/useBranchRankingKpis';
 
 const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
 
