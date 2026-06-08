@@ -69,8 +69,17 @@ interface Historical {
 
 const fmtCLP = (n: number) => '$' + Math.round(Number(n) || 0).toLocaleString('es-CL');
 // En Chile el período de pago = mes siguiente al trabajado. Mostramos siempre el mes TRABAJADO.
+// Las comisiones en portal_commissions ya están en el período correcto (no aplican desfase).
 const fmtPeriod = (p: string) => fmtPeriodEs(p);
-const fmtPeriodShort = (p: string) => fmtPeriodShort(p);
+const MESES_CORTOS = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const fmtPeriodShort = (p: string) => {
+  if (!p) return '';
+  const ymd = p.slice(0, 10).split('-');
+  if (ymd.length < 2) return p;
+  const y = Number(ymd[0]); const m = Number(ymd[1]);
+  if (!y || !m) return p;
+  return `${MESES_CORTOS[m - 1]} ${y}`;
+};
 
 export default function PortalComisiones() {
   const { company } = usePortalAuth();
