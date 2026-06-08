@@ -335,6 +335,16 @@ export default function PortalContratos() {
         </div>
       )}
 
+      {/* Banner EST */}
+      {kpis.est > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 flex items-center gap-3">
+          <FileSignature className="w-4 h-4 text-amber-700 shrink-0" />
+          <p className="text-sm text-amber-800">
+            <span className="font-semibold">{kpis.est} trabajador{kpis.est === 1 ? '' : 'es'} EST</span> · Contratos a plazo fijo — recordar renovación oportuna
+          </p>
+        </div>
+      )}
+
       {/* Tabla */}
       <section className="p-card overflow-hidden">
         <div className="px-6 py-4 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -376,12 +386,19 @@ export default function PortalContratos() {
                   Sueldo líquido
                   <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">mes trabajado</span>
                 </th>
+                <th className="px-6 py-3 font-semibold text-right">
+                  Costo {salary?.periodo_label ?? ''}
+                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">sueldo + comisión</span>
+                </th>
               </tr>
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={6} className="p-10 text-center text-muted-foreground">Sin resultados.</td></tr>
-              ) : filtered.map(r => (
+                <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">Sin resultados.</td></tr>
+              ) : filtered.map(r => {
+                const com = commissionByWorker[r.worker_id] ?? 0;
+                const costo = (r.liquid_salary || 0) + com;
+                return (
                 <tr key={r.worker_id} className="border-b border-slate-100 hover:bg-slate-50/60">
                   <td className="px-6 py-3">
                     <Link to={`/portal/trabajadores/${r.worker_id}`} className="font-semibold hover:underline" style={{ color: '#1B3A5C' }}>
@@ -391,9 +408,6 @@ export default function PortalContratos() {
                   </td>
                   <td className="px-4 py-3 text-xs">
                     <span className="font-medium text-slate-700">{r.branch}</span>
-                    {r.cost_center && r.cost_center !== r.branch && (
-                      <span className="ml-1 text-slate-400 font-mono">({r.cost_center})</span>
-                    )}
                   </td>
                   <td className="px-4 py-3"><ContractBadge type={r.contract_type} /></td>
                   <td className="px-4 py-3"><ModalityBadge modality={r.modality} /></td>
@@ -406,12 +420,22 @@ export default function PortalContratos() {
                     title="Sueldo líquido del último mes trabajado (la liquidación se paga al mes siguiente)">
                     {r.liquid_salary > 0 ? fmtCLP(r.liquid_salary) : <span className="text-slate-400 font-normal">—</span>}
                   </td>
+                  <td className="px-6 py-3 text-right font-mono tabular-nums">
+                    {costo > 0 ? (
+                      <>
+                        <span className="font-bold" style={{ color: '#F97316' }}>{fmtCLP(costo)}</span>
+                        {com === 0 && <span className="block text-[10px] text-slate-400 font-normal">sin comisión</span>}
+                      </>
+                    ) : <span className="text-slate-400 font-normal">—</span>}
+                  </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         </div>
       </section>
+
     </div>
   );
 }
