@@ -143,7 +143,10 @@ export default function PortalComisiones() {
     () => summary?.por_concepto?.slice().sort((a, b) => b.total - a.total)[0],
     [summary]
   );
-  const topBranch = summary?.por_sucursal?.[0];
+  const topBranch = useMemo(
+    () => summary?.por_sucursal?.slice().sort((a, b) => b.total - a.total)[0],
+    [summary]
+  );
 
   // Initialize selectedConcept/Branch when summary loads
   useEffect(() => {
