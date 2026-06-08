@@ -78,7 +78,7 @@ export default function SucursalComisiones({ costCenter }: { costCenter: string 
     let cancel = false;
     (async () => {
       setLoading(true);
-      const { data, error } = await supabase.rpc('get_commissions_summary', { p_company_id: companyId });
+      const { data, error } = await (supabase.rpc as any)('get_commissions_summary', { p_company_id: companyId });
       if (cancel) return;
       if (error) console.error('[commissions-summary]', error);
       const rows = ((data ?? []) as SummaryRow[]).filter(r => r.cost_center === costCenter);
