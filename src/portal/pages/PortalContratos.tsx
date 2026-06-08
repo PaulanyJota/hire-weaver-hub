@@ -415,13 +415,13 @@ export default function PortalContratos() {
                 <th className="px-4 py-3 font-semibold">Tipo</th>
                 <th className="px-4 py-3 font-semibold">Modalidad</th>
                 <th className="px-4 py-3 font-semibold">Vencimiento</th>
-                <th className="px-6 py-3 font-semibold text-right" title="Corresponde a la última liquidación. En Chile el pago de un mes refleja el trabajo del mes anterior.">
-                  Sueldo líquido
-                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">mes trabajado</span>
+                <th className="px-4 py-3 font-semibold text-right">
+                  Comisiones
+                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">{salary?.period_label ?? ''}</span>
                 </th>
-                <th className="px-6 py-3 font-semibold text-right">
-                  Costo {salary?.periodo_label ?? ''}
-                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">sueldo + comisión</span>
+                <th className="px-6 py-3 font-semibold text-right" title="Total líquido = base + comisiones + otros bonos del mes trabajado.">
+                  Sueldo líquido total
+                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">{salary?.period_label ?? 'mes trabajado'}</span>
                 </th>
               </tr>
             </thead>
@@ -429,8 +429,9 @@ export default function PortalContratos() {
               {filtered.length === 0 ? (
                 <tr><td colSpan={7} className="p-10 text-center text-muted-foreground">Sin resultados.</td></tr>
               ) : filtered.map(r => {
-                const com = commissionByWorker[r.worker_id] ?? 0;
-                const costo = (r.liquid_salary || 0) + com;
+                const bd = breakdownByWorker[r.worker_id];
+                const com = bd?.commissions ?? commissionByWorker[r.worker_id] ?? 0;
+                const total = bd?.total_liquid ?? ((r.liquid_salary || 0) + com);
                 return (
                 <tr key={r.worker_id} className="border-b border-slate-100 hover:bg-slate-50/60">
                   <td className="px-6 py-3">
@@ -449,17 +450,15 @@ export default function PortalContratos() {
                       ? <span className="text-slate-700">{fmtDate(r.end_date)}</span>
                       : <span className="text-slate-400 italic">Sin vencimiento</span>}
                   </td>
-                  <td className="px-6 py-3 text-right font-mono tabular-nums font-semibold" style={{ color: '#1B3A5C' }}
-                    title="Sueldo líquido del último mes trabajado (la liquidación se paga al mes siguiente)">
-                    {r.liquid_salary > 0 ? fmtCLP(r.liquid_salary) : <span className="text-slate-400 font-normal">—</span>}
+                  <td className="px-4 py-3 text-right font-mono tabular-nums">
+                    {com > 0
+                      ? <span style={{ color: '#B45309' }}>{fmtCLP(com)}</span>
+                      : <span className="text-slate-300">—</span>}
                   </td>
                   <td className="px-6 py-3 text-right font-mono tabular-nums">
-                    {costo > 0 ? (
-                      <>
-                        <span className="font-bold" style={{ color: '#F97316' }}>{fmtCLP(costo)}</span>
-                        {com === 0 && <span className="block text-[10px] text-slate-400 font-normal">sin comisión</span>}
-                      </>
-                    ) : <span className="text-slate-400 font-normal">—</span>}
+                    {total > 0
+                      ? <span className="font-bold" style={{ color: '#F97316' }}>{fmtCLP(total)}</span>
+                      : <span className="text-slate-400 font-normal">—</span>}
                   </td>
                 </tr>
               );
@@ -468,6 +467,70 @@ export default function PortalContratos() {
           </table>
         </div>
       </section>
+
+      {/* Composición del sueldo */}
+      {breakdown.length > 0 && (
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-base font-bold tracking-tight" style={{ color: '#1B3A5C' }}>
+              Composición del sueldo — {salary?.period_label ?? ''}
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">Desglose por trabajador: base líquido, comisiones y otros bonos.</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Kpi icon={<DollarSign className="w-4 h-4" />} label="Masa total" value={fmtCLP(salary?.masa_total ?? 0)} />
+            <Kpi icon={<DollarSign className="w-4 h-4" />} label="Comisiones"
+              value={`${fmtCLP(salary?.masa_commissions ?? 0)}${salary?.masa_total ? ` · ${(((salary?.masa_commissions ?? 0) / salary.masa_total) * 100).toFixed(1)}%` : ''}`} />
+            <Kpi icon={<DollarSign className="w-4 h-4" />} label="Sueldo promedio total" value={fmtCLP(salary?.avg_total ?? 0)} />
+          </div>
+
+          <div className="p-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="p-table w-full">
+                <thead>
+                  <tr className="text-left text-[11px] uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                    <SortHeader label="Trabajador" k="worker_name" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} className="px-6" />
+                    <SortHeader label="Sucursal" k="cost_center" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} />
+                    <SortHeader label="Base líquido" k="base_liquid" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} align="right" />
+                    <SortHeader label="Comisiones" k="commissions" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} align="right" />
+                    <SortHeader label="Otros bonos" k="other_bonuses" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} align="right" />
+                    <SortHeader label="Total líquido" k="total_liquid" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} align="right" className="px-6" />
+                    <SortHeader label="% Comisiones" k="pct_commissions" sortKey={sortKey} sortDir={sortDir} onClick={handleSort} align="right" />
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedBreakdown.map(b => (
+                    <tr key={b.worker_id} className="border-b border-slate-100 hover:bg-slate-50/60">
+                      <td className="px-6 py-3">
+                        <Link to={`/portal/trabajadores/${b.worker_id}`} className="font-semibold hover:underline" style={{ color: '#1B3A5C' }}>
+                          {b.worker_name}
+                        </Link>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-700">{CC_NAME[b.cost_center] ?? b.cost_center}</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums">{fmtCLP(b.base_liquid)}</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums" style={{ color: b.commissions > 0 ? '#B45309' : undefined }}>
+                        {b.commissions > 0 ? fmtCLP(b.commissions) : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums">
+                        {b.other_bonuses > 0 ? fmtCLP(b.other_bonuses) : <span className="text-slate-300">—</span>}
+                      </td>
+                      <td className="px-6 py-3 text-right font-mono tabular-nums font-bold" style={{ color: '#F97316' }}>
+                        {fmtCLP(b.total_liquid)}
+                      </td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-xs text-slate-600">
+                        {Number(b.pct_commissions).toFixed(1)}%
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+      )}
+
+
 
     </div>
   );
