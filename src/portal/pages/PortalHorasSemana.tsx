@@ -28,6 +28,7 @@ export default function PortalHorasSemana() {
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     let cancelled = false;
