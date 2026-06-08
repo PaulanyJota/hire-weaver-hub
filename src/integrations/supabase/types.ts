@@ -1406,6 +1406,7 @@ export type Database = {
           worker_id: string
         }[]
       }
+      get_overtime_kpis: { Args: { p_company_id: string }; Returns: Json }
       get_perfect_attendance: { Args: { p_company_id: string }; Returns: Json }
       get_prestamos_resumen: {
         Args: never
@@ -1432,6 +1433,7 @@ export type Database = {
         Args: { p_company_id: string; p_tolerance_minutes?: number }
         Returns: Json
       }
+      get_salary_kpis: { Args: { p_company_id: string }; Returns: Json }
       get_week_hours: {
         Args: { p_company_id?: string }
         Returns: {
