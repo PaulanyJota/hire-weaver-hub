@@ -106,7 +106,15 @@ export function PortalSidebar() {
               )}
             >
               <item.icon className="w-4 h-4" />
-              <span>{item.label}</span>
+              <span className="flex-1">{item.label}</span>
+              {item.badge === 'pending' && pendingCount > 0 && (
+                <span
+                  className="min-w-[20px] h-5 px-1.5 rounded-full text-[10px] font-bold flex items-center justify-center text-white animate-pulse"
+                  style={{ background: '#F97316' }}
+                >
+                  {pendingCount > 99 ? '99+' : pendingCount}
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>
