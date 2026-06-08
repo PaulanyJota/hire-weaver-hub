@@ -12,6 +12,7 @@ import { useSucursalesCount } from '../hooks/useSucursalesCount';
 import { sucursalGeoIndexByName, sucursalName } from '../lib/sucursales';
 import { sortByBranch } from '../constants/branches';
 import { useBranchRankingKpis, usePerfectAttendance } from '../hooks/useBranchRankingKpis';
+import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 type Row = {
   worker_id: string;
