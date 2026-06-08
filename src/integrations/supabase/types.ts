@@ -1324,6 +1324,7 @@ export type Database = {
           period: string
         }[]
       }
+      get_branch_ranking_kpis: { Args: { p_company_id: string }; Returns: Json }
       get_branches_summary: {
         Args: never
         Returns: {
@@ -1397,6 +1398,7 @@ export type Database = {
           worker_id: string
         }[]
       }
+      get_perfect_attendance: { Args: { p_company_id: string }; Returns: Json }
       get_prestamos_resumen: {
         Args: never
         Returns: {
@@ -1417,6 +1419,10 @@ export type Database = {
           total_pagado_intereses: number
           ultimo_pago_intereses: string
         }[]
+      }
+      get_punctuality_kpis: {
+        Args: { p_company_id: string; p_tolerance_minutes?: number }
+        Returns: Json
       }
       get_week_hours: {
         Args: { p_company_id?: string }

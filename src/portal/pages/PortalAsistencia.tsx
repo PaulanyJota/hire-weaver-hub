@@ -9,7 +9,8 @@ import PortalPageHeader from '../components/PortalPageHeader';
 import AttendanceTeamStatus, { type PresenteRow } from '../components/AttendanceTeamStatus';
 import WorkerNameLink from '../components/WorkerNameLink';
 import { useSucursalesCount } from '../hooks/useSucursalesCount';
-import { sucursalGeoIndexByName } from '../lib/sucursales';
+import { sucursalGeoIndexByName, sucursalName } from '../lib/sucursales';
+import { useBranchRankingKpis, usePerfectAttendance } from '../hooks/useBranchRankingKpis';
 
 type Row = {
   worker_id: string;
@@ -34,6 +35,8 @@ type SortKey = 'nombre' | 'sucursal' | 'ultimo_check_in' | 'dias_marcados' | 'di
 
 export default function PortalAsistencia() {
   const { company } = usePortalAuth();
+  const { data: perfect = [] } = usePerfectAttendance(company?.id);
+  const { data: branchKpis } = useBranchRankingKpis(company?.id);
   const sucursalesCount = useSucursalesCount();
   const [days, setDays] = useState<number>(30);
   const [rows, setRows] = useState<Row[]>([]);
@@ -422,6 +425,82 @@ export default function PortalAsistencia() {
           )}
         </div>
       </div>
+
+      {/* Asistencia perfecta del mes */}
+      <div className="p-card p-5">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-sm font-bold tracking-tight" style={{ color: 'hsl(var(--p-text))' }}>
+            ⭐ Asistencia perfecta · {perfect.length} {perfect.length === 1 ? 'trabajador' : 'trabajadores'}
+          </h3>
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+            Este mes
+          </span>
+        </div>
+        {perfect.length === 0 ? (
+          <EmptyMini text="Aún no hay trabajadores con asistencia perfecta este mes" />
+        ) : (
+          <ul className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            {perfect.map(w => (
+              <li key={w.worker_id} className="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-amber-50/40 border border-slate-100">
+                <div className="min-w-0 flex-1">
+                  <Link to={`/portal/trabajadores/${w.worker_id}`} className="text-sm font-semibold hover:underline" style={{ color: '#1B3A5C' }}>
+                    {w.nombre}
+                  </Link>
+                  <p className="text-[11px] truncate" style={{ color: 'hsl(var(--p-muted))' }}>
+                    {sucursalName(w.sucursal)} · {w.dias_presentes} {w.dias_presentes === 1 ? 'día' : 'días'}
+                  </p>
+                </div>
+                <span className="px-2 py-0.5 rounded-full text-[11px] font-bold tabular-nums border"
+                  style={{ background: 'linear-gradient(135deg,#FCD34D,#F59E0B)', color: '#78350F', borderColor: '#F59E0B' }}>
+                  100%
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+
+      {/* Ranking sucursales asistencia */}
+      <div className="p-card overflow-hidden">
+        <div className="px-5 py-4 border-b border-slate-200">
+          <h3 className="text-sm font-bold tracking-tight" style={{ color: 'hsl(var(--p-text))' }}>🏆 Ranking asistencia últimos 30 días</h3>
+        </div>
+        {!branchKpis ? (
+          <div className="p-5 space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-10 w-full" />)}</div>
+        ) : (branchKpis.ranking_asistencia?.length ?? 0) === 0 ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">Sin datos de asistencia.</div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-muted-foreground border-b border-slate-200">
+                <th className="text-left px-5 py-2 font-semibold">Sucursal</th>
+                <th className="text-right px-3 py-2 font-semibold">Trabajadores</th>
+                <th className="text-right px-3 py-2 font-semibold">Presencias</th>
+                <th className="text-left px-5 py-2 font-semibold w-[40%]">% Asistencia</th>
+              </tr>
+            </thead>
+            <tbody>
+              {branchKpis.ranking_asistencia.map(r => (
+                <tr key={r.sucursal} className="border-b border-slate-100 hover:bg-orange-50/30">
+                  <td className="px-5 py-2.5 font-semibold" style={{ color: '#1B3A5C' }}>{sucursalName(r.sucursal)}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums">{r.trabajadores}</td>
+                  <td className="px-3 py-2.5 text-right tabular-nums">{r.presencias}</td>
+                  <td className="px-5 py-2.5">
+                    <div className="flex items-center gap-3">
+                      <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden">
+                        <div className="h-full rounded-full"
+                          style={{ width: `${Math.min(100, Number(r.pct_asistencia))}%`, background: 'linear-gradient(90deg, #F97316, #EA580C)' }} />
+                      </div>
+                      <span className="text-xs font-bold tabular-nums w-14 text-right" style={{ color: '#EA580C' }}>{r.pct_asistencia}%</span>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+
 
       {/* Tabla detalle */}
       <div className="p-card overflow-hidden">

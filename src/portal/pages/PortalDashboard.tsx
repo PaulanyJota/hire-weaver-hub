@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
-import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity, Menu } from 'lucide-react';
+import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity, Menu, Flame, BarChart3 } from 'lucide-react';
 import { usePortalSidebar } from '../hooks/usePortalSidebar';
 
 import {
@@ -12,6 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
 import PortalDashboardExtras from '../components/PortalDashboardExtras';
 import WorkerNameLink from '../components/WorkerNameLink';
+import { useBranchRankingKpis, usePunctualityKpis } from '../hooks/useBranchRankingKpis';
 
 interface Worker { id: string; first_name: string; last_name: string; photo_url: string | null; active: boolean; cost_center: string | null }
 interface Att { worker_id: string; date: string; check_in: string | null; worked_hours: number | null; late_minutes: number | null }
@@ -35,6 +36,8 @@ const ddMM = (d: string) => {
 
 export default function PortalDashboard() {
   const { profile, company, isNodoAdmin } = usePortalAuth();
+  const { data: punct } = usePunctualityKpis(company?.id);
+  const { data: branchKpis } = useBranchRankingKpis(company?.id);
   const [loading, setLoading] = useState(true);
   const [activeWorkers, setActiveWorkers] = useState(0);
   const [attendanceToday, setAttendanceToday] = useState<Array<{ worker_id: string; check_in: string }>>([]);
@@ -195,8 +198,117 @@ export default function PortalDashboard() {
         })}
       </section>
 
+      {/* KPIs sorpresa — puntualidad / actividad / racha */}
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {/* En turno ahora */}
+        <div className="p-card p-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">En turno ahora</p>
+              {!punct ? <Skeleton className="h-9 w-16 mt-2" /> : (
+                <p className="text-3xl font-bold mt-2 tracking-tight" style={{ color: 'hsl(152 60% 38%)' }}>
+                  {punct.activos_ahora}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">trabajadores con turno activo</p>
+            </div>
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-emerald-50">
+              <span className="relative flex items-center justify-center">
+                <span className="absolute w-3 h-3 rounded-full bg-emerald-400 animate-ping opacity-75" />
+                <span className="relative w-3 h-3 rounded-full bg-emerald-500" />
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Puntualidad semana */}
+        <div className="p-card p-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Puntualidad semana</p>
+              {!punct ? <Skeleton className="h-9 w-20 mt-2" /> : punct.puntualidad_semana === 0 ? (
+                <p className="text-2xl font-bold mt-2 tracking-tight text-slate-400">Calculando...</p>
+              ) : (
+                <p className="text-3xl font-bold mt-2 tracking-tight" style={{ color: '#F97316' }}>
+                  {punct.puntualidad_semana}%
+                </p>
+              )}
+              {punct && punct.puntualidad_semana !== 0 && (
+                <p className={`text-xs mt-1 font-medium ${
+                  punct.delta_puntualidad > 0 ? 'text-emerald-600' :
+                  punct.delta_puntualidad < 0 ? 'text-red-600' : 'text-muted-foreground'
+                }`}>
+                  {punct.delta_puntualidad > 0 ? `↑${punct.delta_puntualidad}% vs semana anterior` :
+                   punct.delta_puntualidad < 0 ? `↓${Math.abs(punct.delta_puntualidad)}% vs semana anterior` :
+                   'igual que la semana anterior'}
+                </p>
+              )}
+            </div>
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-orange-50" style={{ color: '#F97316' }}>
+              <CheckCircle2 className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+
+        {/* Streak sin atrasos */}
+        <div className="p-card p-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">🔥 Sin atrasos</p>
+              {!punct ? <Skeleton className="h-9 w-20 mt-2" /> : (
+                <p className={`text-3xl font-bold mt-2 tracking-tight ${punct.streak_sin_atrasos === 0 ? 'text-slate-400' : ''}`}
+                  style={punct.streak_sin_atrasos === 0 ? undefined : { color: '#F97316' }}>
+                  {punct.streak_sin_atrasos} días
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">racha consecutiva sin atrasos &gt;15min</p>
+            </div>
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-orange-50" style={{ color: '#F97316' }}>
+              <Flame className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Sucursales + Charts enriquecidos */}
       <PortalDashboardExtras />
+
+      {/* KPIs financieros */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="p-card p-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Valor hora del equipo</p>
+              {!branchKpis ? <Skeleton className="h-9 w-28 mt-2" /> : (
+                <p className="text-3xl font-bold mt-2 tracking-tight tabular-nums" style={{ color: '#F97316' }}>
+                  ${Math.round(branchKpis.valor_hora_equipo).toLocaleString('es-CL')}
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">costo promedio por hora trabajada este mes</p>
+            </div>
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-orange-50" style={{ color: '#F97316' }}>
+              <Clock className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+
+        <div className="p-card p-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">ROI incentivos</p>
+              {!branchKpis ? <Skeleton className="h-9 w-20 mt-2" /> : (
+                <p className="text-3xl font-bold mt-2 tracking-tight tabular-nums" style={{ color: '#F97316' }}>
+                  {branchKpis.roi_comisiones_pct}%
+                </p>
+              )}
+              <p className="text-xs text-muted-foreground mt-1">de la masa salarial destinado a comisiones</p>
+            </div>
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-orange-50" style={{ color: '#F97316' }}>
+              <BarChart3 className="w-5 h-5" />
+            </div>
+          </div>
+        </div>
+      </section>
 
       {/* Charts */}
       <section className="grid grid-cols-1 lg:grid-cols-5 gap-4">
