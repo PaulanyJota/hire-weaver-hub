@@ -258,6 +258,40 @@ export default function PortalDashboard() {
         })}
       </section>
 
+      {/* Horas extra del mes — alerta sutil, solo si hay datos */}
+      {overtime && overtime.total_horas_extra > 0 && overtime.top_trabajadores?.length > 0 && (
+        <section className="rounded-2xl border border-red-100 bg-red-50/60 overflow-hidden">
+          <div className="px-5 py-3 border-b border-red-100 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-500" />
+            <h3 className="text-sm font-bold tracking-tight text-red-700">
+              Horas extra este mes — {overtime.trabajadores_afectados} trabajador{overtime.trabajadores_afectados === 1 ? '' : 'es'} afectado{overtime.trabajadores_afectados === 1 ? '' : 's'}
+            </h3>
+            <span className="ml-auto text-[11px] font-mono text-red-700 tabular-nums">{overtime.total_horas_extra.toFixed(1)}h · {overtime.dias_con_extra} días</span>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-red-700/70 border-b border-red-100">
+                <th className="text-left px-5 py-2 font-semibold">Trabajador</th>
+                <th className="text-left px-3 py-2 font-semibold">Sucursal</th>
+                <th className="text-right px-3 py-2 font-semibold">Horas extra</th>
+                <th className="text-right px-5 py-2 font-semibold">Días</th>
+              </tr>
+            </thead>
+            <tbody>
+              {overtime.top_trabajadores.map((t, i) => (
+                <tr key={i} className="border-b border-red-100/60 last:border-0 hover:bg-red-100/40">
+                  <td className="px-5 py-2 font-semibold text-slate-800">{t.nombre}</td>
+                  <td className="px-3 py-2 text-slate-700">{branchName(t.sucursal)}</td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums font-bold text-red-700">{t.horas_extra.toFixed(1)}h</td>
+                  <td className="px-5 py-2 text-right tabular-nums text-slate-700">{t.dias}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
+
       {/* KPIs sorpresa — puntualidad / actividad / racha */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* En turno ahora */}
