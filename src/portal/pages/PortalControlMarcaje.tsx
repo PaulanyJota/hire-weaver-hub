@@ -84,10 +84,20 @@ export default function PortalControlMarcaje() {
   }), [rows]);
 
   // Agrupar por sucursal en orden norte-sur
+  const filteredRows = useMemo(() => {
+    let list = estadoFilter ? rows.filter(r => r.estado === estadoFilter) : rows;
+    if (search.trim()) {
+      list = list.filter(r => matchesSearch([
+        r.nombre, r.rut, r.cargo, r.sucursal_codigo, r.sucursal_nombre, r.estado_label,
+      ], search));
+    }
+    return list;
+  }, [rows, estadoFilter, search]);
+
+  // Agrupar por sucursal en orden norte-sur
   const grupos = useMemo(() => {
-    const filtered = estadoFilter ? rows.filter(r => r.estado === estadoFilter) : rows;
     const map = new Map<string, Row[]>();
-    for (const r of filtered) {
+    for (const r of filteredRows) {
       const key = r.sucursal_nombre ?? 'Sin sucursal';
       const arr = map.get(key) ?? [];
       arr.push(r);
@@ -106,7 +116,7 @@ export default function PortalControlMarcaje() {
         ok: items.filter(i => i.estado === 'marca_ok').length,
         sin: items.filter(i => i.estado === 'registrado_sin_marcar').length,
       }));
-  }, [rows, estadoFilter]);
+  }, [filteredRows]);
 
   const toggle = (s: string) => {
     setExpanded(prev => {
