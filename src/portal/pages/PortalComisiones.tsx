@@ -483,79 +483,20 @@ export default function PortalComisiones() {
           modal === 'branch' ? 'Evolución por sucursal' :
           'Trabajadores con comisión'
         }>
-          {/* MODAL TOTAL */}
-          {modal === 'total' && summary && (
-            <div className="space-y-2">
-              {porSucursalSorted.map(s => {
-                const isOpen = expandedBranch === s.sucursal;
-                const rows = branchDetails[s.sucursal];
-                const total = rows ? rows.reduce((a, b) => a + b.amount, 0) : s.total;
-                return (
-                  <div key={s.sucursal} className="rounded-xl border border-slate-200 overflow-hidden">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const next = isOpen ? null : s.sucursal;
-                        setExpandedBranch(next);
-                        if (next) loadBranchDetail(next);
-                      }}
-                      className="w-full px-4 py-3 flex items-center gap-3 hover:bg-orange-50/40 text-left"
-                    >
-                      {isOpen ? <ChevronDown className="w-4 h-4 text-slate-500" /> : <ChevronRight className="w-4 h-4 text-slate-500" />}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-bold text-sm" style={{ color: '#1B3A5C' }}>{sucursalName(s.sucursal)}</p>
-                        <p className="text-[11px] text-muted-foreground">{s.trabajadores} trabajador{s.trabajadores === 1 ? '' : 'es'}</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-mono tabular-nums font-bold text-sm" style={{ color: '#F97316' }}>{fmtCLP(s.total)}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <div className="w-24 h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${Math.min(100, Number(s.pct))}%`, background: 'linear-gradient(90deg,#F97316,#EA580C)' }} />
-                          </div>
-                          <span className="text-[10px] font-bold tabular-nums" style={{ color: '#EA580C' }}>{s.pct}%</span>
-                        </div>
-                      </div>
-                    </button>
-                    {isOpen && (
-                      <div className="border-t border-slate-200 bg-slate-50/50">
-                        {!rows ? (
-                          <div className="p-4 space-y-2">{[1,2].map(i => <Skeleton key={i} className="h-8 w-full" />)}</div>
-                        ) : rows.length === 0 ? (
-                          <p className="p-4 text-xs text-muted-foreground text-center">Sin detalle.</p>
-                        ) : (
-                          <>
-                            <table className="w-full text-xs">
-                              <thead>
-                                <tr className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                                  <th className="text-left px-4 py-2 font-semibold">Trabajador</th>
-                                  <th className="text-left px-3 py-2 font-semibold">Concepto</th>
-                                  <th className="text-right px-4 py-2 font-semibold">Monto</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                {rows.map((r, i) => (
-                                  <tr key={i} className="border-t border-slate-200">
-                                    <td className="px-4 py-2">
-                                      <Link to={`/portal/trabajadores/${r.worker_id}`} className="font-semibold hover:text-[#F97316]" style={{ color: '#1B3A5C' }}>{r.nombre}</Link>
-                                    </td>
-                                    <td className="px-3 py-2 text-muted-foreground">{r.concept}</td>
-                                    <td className="px-4 py-2 text-right font-mono tabular-nums" style={{ color: '#F97316' }}>{fmtCLP(r.amount)}</td>
-                                  </tr>
-                                ))}
-                                <tr className="border-t-2 border-orange-300 bg-orange-50/50">
-                                  <td colSpan={2} className="px-4 py-2 text-[11px] uppercase tracking-wider font-bold" style={{ color: '#EA580C' }}>Total sucursal</td>
-                                  <td className="px-4 py-2 text-right font-mono tabular-nums font-bold" style={{ color: '#EA580C' }}>{fmtCLP(total)}</td>
-                                </tr>
-                              </tbody>
-                            </table>
-                          </>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
+          {/* MODAL TOTAL — Análisis histórico con 3 tabs */}
+          {modal === 'total' && (
+            <TotalHistoricalView
+              historical={historical}
+              loading={historicalLoading}
+              activeTab={totalTab}
+              setActiveTab={setTotalTab}
+              porSucursalSorted={porSucursalSorted}
+              expandedBranch={expandedBranch}
+              setExpandedBranch={setExpandedBranch}
+              branchDetails={branchDetails}
+              loadBranchDetail={loadBranchDetail}
+              summary={summary}
+            />
           )}
 
           {/* MODAL CONCEPT TREND */}
