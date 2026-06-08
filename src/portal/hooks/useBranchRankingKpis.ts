@@ -66,3 +66,52 @@ export function usePerfectAttendance(companyId?: string | null) {
     staleTime: 60_000,
   });
 }
+
+export interface OvertimeKpis {
+  total_horas_extra: number;
+  total_mes_anterior: number;
+  delta_pct: number;
+  trabajadores_afectados: number;
+  dias_con_extra: number;
+  nivel_alerta: 'ok' | 'warning' | 'critical';
+  top_trabajadores: Array<{ nombre: string; sucursal: string; horas_extra: number; dias: number }>;
+}
+
+export function useOvertimeKpis(companyId?: string | null) {
+  const cid = companyId ?? LUCANO_COMPANY_ID;
+  return useQuery<OvertimeKpis | null>({
+    queryKey: ['overtime-kpis', cid],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_overtime_kpis' as any, { p_company_id: cid });
+      if (error) { console.error('[overtime-kpis]', error); return null; }
+      return (data as OvertimeKpis) ?? null;
+    },
+    staleTime: 60_000,
+  });
+}
+
+export interface SalaryKpis {
+  periodo_label: string;
+  sueldo_min: number;
+  sueldo_max: number;
+  sueldo_promedio: number;
+  sueldo_mediana: number;
+  masa_est: number;
+  masa_outsourcing: number;
+  masa_total: number;
+  comision_sobre_sueldo: Array<{ nombre: string; sucursal: string; sueldo: number; comision: number; pct_comision: number }>;
+  constantes: Array<{ worker_id: string; nombre: string; sucursal: string }>;
+}
+
+export function useSalaryKpis(companyId?: string | null) {
+  const cid = companyId ?? LUCANO_COMPANY_ID;
+  return useQuery<SalaryKpis | null>({
+    queryKey: ['salary-kpis', cid],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc('get_salary_kpis' as any, { p_company_id: cid });
+      if (error) { console.error('[salary-kpis]', error); return null; }
+      return (data as SalaryKpis) ?? null;
+    },
+    staleTime: 60_000,
+  });
+}

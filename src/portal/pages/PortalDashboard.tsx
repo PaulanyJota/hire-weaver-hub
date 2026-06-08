@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
-import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity, Menu, Flame, BarChart3 } from 'lucide-react';
+import { Users, CheckCircle2, Clock, Timer, TrendingUp, Activity, Menu, Flame, BarChart3, AlertTriangle, DollarSign } from 'lucide-react';
 import { usePortalSidebar } from '../hooks/usePortalSidebar';
 
 import {
@@ -12,7 +12,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { PortalAvatar } from '../components/Avatar';
 import PortalDashboardExtras from '../components/PortalDashboardExtras';
 import WorkerNameLink from '../components/WorkerNameLink';
-import { useBranchRankingKpis, usePunctualityKpis } from '../hooks/useBranchRankingKpis';
+import { useBranchRankingKpis, usePunctualityKpis, useOvertimeKpis, useSalaryKpis } from '../hooks/useBranchRankingKpis';
+import { branchName } from '../constants/branches';
 
 interface Worker { id: string; first_name: string; last_name: string; photo_url: string | null; active: boolean; cost_center: string | null }
 interface Att { worker_id: string; date: string; check_in: string | null; worked_hours: number | null; late_minutes: number | null }
@@ -38,6 +39,8 @@ export default function PortalDashboard() {
   const { profile, company, isNodoAdmin } = usePortalAuth();
   const { data: punct } = usePunctualityKpis(company?.id);
   const { data: branchKpis } = useBranchRankingKpis(company?.id);
+  const { data: overtime } = useOvertimeKpis(company?.id);
+  const { data: salary } = useSalaryKpis(company?.id);
   const [loading, setLoading] = useState(true);
   const [activeWorkers, setActiveWorkers] = useState(0);
   const [attendanceToday, setAttendanceToday] = useState<Array<{ worker_id: string; check_in: string }>>([]);
@@ -46,6 +49,18 @@ export default function PortalDashboard() {
   const [monthAtt, setMonthAtt] = useState<Att[]>([]);
   const [workersById, setWorkersById] = useState<Record<string, Worker>>({});
   const [incidents, setIncidents] = useState<IncidentRow[]>([]);
+  const [commTotal, setCommTotal] = useState<{ total: number; delta_pct: number | null } | null>(null);
+
+  useEffect(() => {
+    let cancel = false;
+    (async () => {
+      const { data } = await supabase.rpc('get_commissions_historical' as any, { p_company_id: company?.id ?? '11111111-1111-1111-1111-111111111111' });
+      if (cancel) return;
+      const first = (data as any)?.by_period?.[0];
+      if (first) setCommTotal({ total: Number(first.total) || 0, delta_pct: first.delta_mes_pct == null ? null : Number(first.delta_mes_pct) });
+    })();
+    return () => { cancel = true; };
+  }, [company?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -129,10 +144,42 @@ export default function PortalDashboard() {
   const today = new Date().toLocaleDateString('es-CL', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   const firstName = profile?.full_name.split(' ')[0] ?? '';
 
-  const cards = [
+  // KPI Horas extra (invertido: pocas = bueno)
+  const otTotal = overtime?.total_horas_extra ?? 0;
+  const otNivel = overtime?.nivel_alerta ?? 'ok';
+  const otDelta = overtime?.delta_pct ?? 0;
+  const otAccent = otNivel === 'critical' ? '#DC2626' : otNivel === 'warning' ? '#F97316' : '#64748B';
+  const otGlow = otNivel === 'critical' ? 'hsl(0 80% 55% / 0.18)' : otNivel === 'warning' ? 'hsl(25 95% 53% / 0.18)' : 'hsl(215 16% 47% / 0.12)';
+  const otSub = otNivel === 'critical' ? 'Requiere atención inmediata' : otNivel === 'warning' ? 'Requiere seguimiento' : 'Sin horas extra relevantes ✓';
+
+  const commValue = commTotal ? `$${Math.round(commTotal.total).toLocaleString('es-CL')}` : '—';
+  const commDelta = commTotal?.delta_pct ?? null;
+  const periodoLabel = salary?.periodo_label ?? '';
+
+  const cards: Array<any> = [
     { label: 'Trabajadores activos', value: activeWorkers, icon: Users, glow: 'hsl(213 78% 29% / 0.15)', accent: 'hsl(213 78% 29%)', to: '/portal/trabajadores' },
     { label: 'Asistencias hoy', value: kpiAttendanceToday, sub: `${attendanceRate}% del equipo`, icon: CheckCircle2, glow: 'hsl(152 60% 45% / 0.18)', accent: 'hsl(152 60% 38%)', to: '/portal/asistencias-hoy' },
-    { label: 'Horas semana', value: kpiHoursWeek.toFixed(0), sub: 'horas registradas', icon: Clock, glow: 'hsl(199 89% 48% / 0.18)', accent: 'hsl(199 89% 42%)', to: '/portal/horas-semana' },
+    {
+      label: 'Horas extra',
+      value: overtime ? `${otTotal.toFixed(1)}h` : '—',
+      sub: otSub,
+      icon: otNivel === 'ok' ? Clock : AlertTriangle,
+      glow: otGlow,
+      accent: otAccent,
+      delta: otDelta,
+      pulse: otNivel === 'critical',
+      kind: 'overtime',
+    },
+    {
+      label: periodoLabel ? `Comisiones ${periodoLabel}` : 'Comisiones',
+      value: commValue,
+      sub: commDelta == null ? 'total del equipo' : (commDelta >= 0 ? `↑${commDelta.toFixed(1)}% vs mes anterior` : `↓${Math.abs(commDelta).toFixed(1)}% vs mes anterior`),
+      subColor: commDelta == null ? undefined : (commDelta >= 0 ? '#059669' : '#DC2626'),
+      icon: DollarSign,
+      glow: 'hsl(25 95% 53% / 0.18)',
+      accent: '#F97316',
+      to: '/portal/comisiones',
+    },
     { label: 'Atrasos semana', value: kpiLateWeek, sub: 'minutos acumulados', icon: Timer, glow: 'hsl(25 95% 53% / 0.18)', accent: 'hsl(25 90% 45%)' },
   ];
 
@@ -164,8 +211,14 @@ export default function PortalDashboard() {
 
 
       {/* KPIs */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 p-stagger">
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 p-stagger">
         {cards.map(c => {
+          const isOvertime = c.kind === 'overtime';
+          const deltaNode = isOvertime && overtime && otTotal > 0 ? (
+            <p className={`text-[11px] mt-1 font-bold ${otDelta > 0 ? 'text-red-600' : otDelta < 0 ? 'text-emerald-600' : 'text-muted-foreground'}`}>
+              {otDelta > 0 ? `↑${otDelta.toFixed(1)}% vs mes anterior` : otDelta < 0 ? `↓${Math.abs(otDelta).toFixed(1)}% vs mes anterior` : 'igual que mes anterior'}
+            </p>
+          ) : null;
           const inner = (
             <div className="flex items-start justify-between">
               <div>
@@ -173,7 +226,10 @@ export default function PortalDashboard() {
                 {loading ? <Skeleton className="h-9 w-20 mt-2" /> : (
                   <p className="text-3xl font-bold mt-2 tracking-tight" style={{ color: c.accent }}>{c.value}</p>
                 )}
-                {c.sub && !loading && <p className="text-xs text-muted-foreground mt-1">{c.sub}</p>}
+                {c.sub && !loading && (
+                  <p className="text-xs mt-1" style={{ color: c.subColor ?? 'hsl(var(--muted-foreground))' }}>{c.sub}</p>
+                )}
+                {deltaNode}
               </div>
               <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
                 style={{ background: `${c.accent}15`, color: c.accent }}>
@@ -181,12 +237,13 @@ export default function PortalDashboard() {
               </div>
             </div>
           );
+          const extraClass = c.pulse ? ' ring-2 ring-red-400/60 animate-pulse' : '';
           if (c.to) {
             return (
               <Link
                 key={c.label}
                 to={c.to}
-                className="p-kpi cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all"
+                className={`p-kpi cursor-pointer hover:-translate-y-0.5 hover:shadow-lg transition-all${extraClass}`}
                 style={{ ['--p-kpi-glow' as any]: c.glow }}
               >
                 {inner}
@@ -194,12 +251,46 @@ export default function PortalDashboard() {
             );
           }
           return (
-            <div key={c.label} className="p-kpi" style={{ ['--p-kpi-glow' as any]: c.glow }}>
+            <div key={c.label} className={`p-kpi${extraClass}`} style={{ ['--p-kpi-glow' as any]: c.glow }}>
               {inner}
             </div>
           );
         })}
       </section>
+
+      {/* Horas extra del mes — alerta sutil, solo si hay datos */}
+      {overtime && overtime.total_horas_extra > 0 && overtime.top_trabajadores?.length > 0 && (
+        <section className="rounded-2xl border border-red-100 bg-red-50/60 overflow-hidden">
+          <div className="px-5 py-3 border-b border-red-100 flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-red-500" />
+            <h3 className="text-sm font-bold tracking-tight text-red-700">
+              Horas extra este mes — {overtime.trabajadores_afectados} trabajador{overtime.trabajadores_afectados === 1 ? '' : 'es'} afectado{overtime.trabajadores_afectados === 1 ? '' : 's'}
+            </h3>
+            <span className="ml-auto text-[11px] font-mono text-red-700 tabular-nums">{overtime.total_horas_extra.toFixed(1)}h · {overtime.dias_con_extra} días</span>
+          </div>
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-[10px] uppercase tracking-wider text-red-700/70 border-b border-red-100">
+                <th className="text-left px-5 py-2 font-semibold">Trabajador</th>
+                <th className="text-left px-3 py-2 font-semibold">Sucursal</th>
+                <th className="text-right px-3 py-2 font-semibold">Horas extra</th>
+                <th className="text-right px-5 py-2 font-semibold">Días</th>
+              </tr>
+            </thead>
+            <tbody>
+              {overtime.top_trabajadores.map((t, i) => (
+                <tr key={i} className="border-b border-red-100/60 last:border-0 hover:bg-red-100/40">
+                  <td className="px-5 py-2 font-semibold text-slate-800">{t.nombre}</td>
+                  <td className="px-3 py-2 text-slate-700">{branchName(t.sucursal)}</td>
+                  <td className="px-3 py-2 text-right font-mono tabular-nums font-bold text-red-700">{t.horas_extra.toFixed(1)}h</td>
+                  <td className="px-5 py-2 text-right tabular-nums text-slate-700">{t.dias}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      )}
+
 
       {/* KPIs sorpresa — puntualidad / actividad / racha */}
       <section className="grid grid-cols-1 sm:grid-cols-3 gap-4">
