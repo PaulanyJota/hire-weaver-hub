@@ -245,7 +245,7 @@ export default function PortalSolicitudes() {
                         {periods.length > 0 ? (
                           <div className="flex flex-wrap gap-1.5">
                             {periods.map(period => (
-                              <span key={`${r.id}-${period}`} className="px-2 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">
+                              <span key={`${r.id}-${period}`} className="px-2 py-1 rounded-full text-[11px] font-semibold bg-muted text-muted-foreground">
                                 {period}
                               </span>
                             ))}
@@ -267,7 +267,7 @@ export default function PortalSolicitudes() {
               const st = STATUS_META[r.status] ?? STATUS_META.pendiente;
               const periods = normalizePeriods(r.periods);
               return (
-                <article key={r.id} className="rounded-xl border border-border bg-white p-4 space-y-3">
+                <article key={r.id} className="rounded-xl border border-border bg-card p-4 space-y-3">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-semibold text-sm">{tipoLabel}</p>
@@ -290,7 +290,7 @@ export default function PortalSolicitudes() {
                   {periods.length > 0 && (
                     <div className="flex flex-wrap gap-1.5">
                       {periods.map(period => (
-                        <span key={`${r.id}-mobile-${period}`} className="px-2 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">
+                        <span key={`${r.id}-mobile-${period}`} className="px-2 py-1 rounded-full text-[11px] font-semibold bg-muted text-muted-foreground">
                           {period}
                         </span>
                       ))}

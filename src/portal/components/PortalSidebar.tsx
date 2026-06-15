@@ -33,7 +33,7 @@ export function PortalSidebar() {
       const { count } = await supabase
         .from('portal_approval_requests')
         .select('id', { count: 'exact', head: true })
-        .in('status', ['pendiente', 'en_proceso']);
+        .in('status', ['pendiente', 'in_progress', 'en_proceso']);
       if (active) setPendingCount(count ?? 0);
     };
     load();
