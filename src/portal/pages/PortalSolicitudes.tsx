@@ -61,8 +61,17 @@ const BRANCH_OPTIONS = Object.entries(BRANCH_ORDER)
 
 const DEFAULT_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
 
-function fmtDate(d: string) {
-  return new Date(d).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' });
+function fmtDate(d: string | null | undefined) {
+  if (!d) return '—';
+  const parsed = new Date(d);
+  if (Number.isNaN(parsed.getTime())) return '—';
+  return parsed.toLocaleDateString('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function normalizePeriods(periods: RequestRow['periods'] | string | null | undefined): string[] {
+  if (!periods) return [];
+  if (Array.isArray(periods)) return periods.filter(Boolean).map(String);
+  return String(periods).split(',').map(p => p.trim()).filter(Boolean);
 }
 
 function lastPeriods(n: number): { iso: string; label: string }[] {
@@ -90,13 +99,15 @@ export default function PortalSolicitudes() {
     setLoading(true);
     setLoadError(null);
     try {
-      const companyId = company?.id ?? DEFAULT_COMPANY_ID;
-      const { data, error } = await (supabase as any).rpc('get_document_requests', { p_company_id: companyId });
+      const { data, error } = await (supabase as any).rpc('get_document_requests', {
+        p_company_id: DEFAULT_COMPANY_ID,
+        p_limit: 50,
+      });
       if (error) throw error;
-      setRows((data ?? []) as RequestRow[]);
+      setRows(Array.isArray(data) ? (data as RequestRow[]) : []);
     } catch (e: any) {
       console.error('[solicitudes] load error', e);
-      setLoadError(e?.message ?? 'No pudimos cargar las solicitudes.');
+      setLoadError('No se pudieron cargar las solicitudes');
       setRows([]);
     } finally {
       setLoading(false);
@@ -108,8 +119,8 @@ export default function PortalSolicitudes() {
   const kpis = useMemo(() => {
     const monthStart = new Date(); monthStart.setDate(1); monthStart.setHours(0, 0, 0, 0);
     const inMonth = rows.filter(r => new Date(r.submitted_at) >= monthStart);
-    const pendientes = rows.filter(r => ['pendiente', 'en_proceso'].includes(r.status)).length;
-    const completadas = rows.filter(r => ['completada', 'aprobada'].includes(r.status)).length;
+    const pendientes = rows.filter(r => ['pendiente', 'in_progress', 'en_proceso'].includes(r.status)).length;
+    const completadas = rows.filter(r => ['completed', 'completada', 'aprobada'].includes(r.status)).length;
     return { total: inMonth.length, pendientes, completadas, avg: 0 };
   }, [rows]);
 

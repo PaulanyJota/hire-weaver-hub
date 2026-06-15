@@ -1,6 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Home, Users, AlertTriangle, Settings, LogOut, Clock, ShieldCheck, X, FileText, DollarSign, ClipboardList } from 'lucide-react';
+import { Home, Users, AlertTriangle, Settings, LogOut, Clock, ShieldCheck, X, FileText, DollarSign } from 'lucide-react';
 import { NodoWillLogo } from '@/components/NodoWillLogo';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,7 +15,7 @@ const items = [
   { to: '/portal/control-marcaje', label: 'Control de marcaje', icon: ShieldCheck },
   { to: '/portal/contratos', label: 'Contratos', icon: FileText },
   { to: '/portal/comisiones', label: 'Comisiones', icon: DollarSign },
-  { to: '/portal/solicitudes', label: 'Solicitudes', icon: ClipboardList, adminOnly: true, badge: 'pending' as const },
+  { to: '/portal/solicitudes', label: 'Solicitudes', icon: FileText, adminOnly: true, badge: 'pending' as const },
   { to: '/portal/incidencias', label: 'Incidencias', icon: AlertTriangle },
   { to: '/portal/configuracion', label: 'Configuración', icon: Settings, adminOnly: true },
 ];
