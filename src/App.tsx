@@ -17,7 +17,6 @@ import PortalDashboard from "@/portal/pages/PortalDashboard";
 import PortalTrabajadores from "@/portal/pages/PortalTrabajadores";
 import PortalTrabajadorDetalle from "@/portal/pages/PortalTrabajadorDetalle";
 import PortalAsistencia from "@/portal/pages/PortalAsistencia";
-import PortalAprobaciones from "@/portal/pages/PortalAprobaciones";
 import PortalSolicitudes from "@/portal/pages/PortalSolicitudes";
 import PortalIncidencias from "@/portal/pages/PortalIncidencias";
 import PortalConfiguracion from "@/portal/pages/PortalConfiguracion";
@@ -71,11 +70,7 @@ const App = () => (
                     />
                     <Route
                       path="aprobaciones"
-                      element={
-                        <PortalProtectedRoute adminOnly>
-                          <PortalAprobaciones />
-                        </PortalProtectedRoute>
-                      }
+                      element={<Navigate to="/portal/solicitudes" replace />}
                     />
                     <Route path="incidencias" element={<PortalIncidencias />} />
                     <Route
