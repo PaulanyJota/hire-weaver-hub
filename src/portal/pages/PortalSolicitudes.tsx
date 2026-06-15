@@ -46,8 +46,10 @@ const TYPES: Array<{
 const TYPE_LABELS: Record<string, string> = Object.fromEntries(TYPES.map(t => [t.key, t.label]));
 
 const STATUS_META: Record<string, { label: string; bg: string; color: string }> = {
-  pendiente: { label: 'Pendiente', bg: 'rgba(249,115,22,0.12)', color: '#C2410C' },
+  pendiente: { label: 'Pendiente', bg: 'rgba(251,191,36,0.18)', color: '#92400E' },
+  in_progress: { label: 'En proceso', bg: 'rgba(59,130,246,0.12)', color: '#1D4ED8' },
   en_proceso: { label: 'En proceso', bg: 'rgba(59,130,246,0.12)', color: '#1D4ED8' },
+  completed: { label: 'Completada', bg: 'rgba(34,197,94,0.12)', color: '#15803D' },
   completada: { label: 'Completada', bg: 'rgba(34,197,94,0.12)', color: '#15803D' },
   aprobada: { label: 'Completada', bg: 'rgba(34,197,94,0.12)', color: '#15803D' },
   rechazada: { label: 'Rechazada', bg: 'rgba(239,68,68,0.12)', color: '#B91C1C' },
@@ -191,8 +193,7 @@ export default function PortalSolicitudes() {
         />
         {loadError ? (
           <div className="mt-3 p-4 rounded-xl border border-destructive/30 bg-destructive/5 text-sm">
-            <p className="font-semibold text-destructive mb-1">No pudimos cargar las solicitudes</p>
-            <p className="text-muted-foreground text-xs">{loadError}</p>
+            <p className="font-semibold text-destructive mb-1">{loadError}</p>
             <button onClick={load} className="mt-2 text-xs font-semibold" style={{ color: '#F97316' }}>
               Reintentar
             </button>
@@ -201,42 +202,55 @@ export default function PortalSolicitudes() {
           <div className="space-y-2 mt-3">{[1,2,3].map(i => <Skeleton key={i} className="h-12 w-full rounded-xl" />)}</div>
         ) : filtered.length === 0 ? (
           <div className="py-12 text-center text-sm text-muted-foreground">
-            {rows.length === 0 ? 'No hay solicitudes aún.' : 'Sin resultados para tu búsqueda.'}
+            {rows.length === 0 ? 'No hay solicitudes registradas' : 'Sin resultados para tu búsqueda.'}
           </div>
         ) : (
-          <div className="overflow-x-auto mt-3 -mx-2">
-            <table className="w-full text-sm">
+          <>
+          <div className="hidden md:block overflow-x-auto mt-3 rounded-xl border border-border">
+            <table className="p-table">
               <thead>
-                <tr className="text-left text-[11px] uppercase tracking-wider text-muted-foreground border-b border-border">
-                  <th className="px-2 py-2 font-semibold">Tipo</th>
-                  <th className="px-2 py-2 font-semibold">Solicitante</th>
-                  <th className="px-2 py-2 font-semibold">Detalle</th>
-                  <th className="px-2 py-2 font-semibold">Fecha</th>
-                  <th className="px-2 py-2 font-semibold">Estado</th>
+                <tr>
+                  <th>Documento</th>
+                  <th>Alcance</th>
+                  <th>Solicitante</th>
+                  <th>Estado</th>
+                  <th>Fecha</th>
+                  <th>Períodos</th>
                 </tr>
               </thead>
               <tbody>
                 {filtered.map(r => {
                   const docKey = r.doc_type ?? '';
                   const tipoLabel = r.doc_label ?? TYPE_LABELS[docKey] ?? docKey ?? '—';
-                  const detalle = r.scope_label
-                    ?? (r.scope === 'all' ? 'Toda la empresa' : r.reason ?? '—');
+                  const scopeLabel = r.scope_label ?? (r.scope === 'all' ? 'Toda la empresa' : r.scope ?? '—');
                   const st = STATUS_META[r.status] ?? STATUS_META.pendiente;
+                  const periods = normalizePeriods(r.periods);
                   return (
-                    <tr key={r.id} className="border-b border-border/60 hover:bg-muted/30">
-                      <td className="px-2 py-2.5 font-medium">{tipoLabel}</td>
-                      <td className="px-2 py-2.5">{r.requestor_name ?? '—'}</td>
-                      <td className="px-2 py-2.5 text-muted-foreground">{detalle}</td>
-                      <td className="px-2 py-2.5 text-muted-foreground">{fmtDate(r.submitted_at)}</td>
-                      <td className="px-2 py-2.5">
+                    <tr key={r.id}>
+                      <td className="font-medium">{tipoLabel}</td>
+                      <td className="text-muted-foreground">{scopeLabel}</td>
+                      <td>{r.requestor_name ?? '—'}</td>
+                      <td>
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold"
                           style={{ background: st.bg, color: st.color }}>
                           {r.status === 'pendiente' && <Clock3 className="w-3 h-3" />}
-                          {r.status === 'en_proceso' && <Loader2 className="w-3 h-3" />}
-                          {(r.status === 'completada' || r.status === 'aprobada') && <CheckCircle2 className="w-3 h-3" />}
+                          {(r.status === 'in_progress' || r.status === 'en_proceso') && <Loader2 className="w-3 h-3" />}
+                          {(['completed', 'completada', 'aprobada'].includes(r.status)) && <CheckCircle2 className="w-3 h-3" />}
                           {r.status === 'rechazada' && <AlertCircle className="w-3 h-3" />}
                           {st.label}
                         </span>
+                      </td>
+                      <td className="text-muted-foreground">{fmtDate(r.submitted_at)}</td>
+                      <td>
+                        {periods.length > 0 ? (
+                          <div className="flex flex-wrap gap-1.5">
+                            {periods.map(period => (
+                              <span key={`${r.id}-${period}`} className="px-2 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">
+                                {period}
+                              </span>
+                            ))}
+                          </div>
+                        ) : <span className="text-muted-foreground">—</span>}
                       </td>
                     </tr>
                   );
@@ -245,6 +259,48 @@ export default function PortalSolicitudes() {
 
             </table>
           </div>
+          <div className="md:hidden mt-3 space-y-3">
+            {filtered.map(r => {
+              const docKey = r.doc_type ?? '';
+              const tipoLabel = r.doc_label ?? TYPE_LABELS[docKey] ?? docKey ?? '—';
+              const scopeLabel = r.scope_label ?? (r.scope === 'all' ? 'Toda la empresa' : r.scope ?? '—');
+              const st = STATUS_META[r.status] ?? STATUS_META.pendiente;
+              const periods = normalizePeriods(r.periods);
+              return (
+                <article key={r.id} className="rounded-xl border border-border bg-white p-4 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm">{tipoLabel}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{scopeLabel}</p>
+                    </div>
+                    <span className="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold" style={{ background: st.bg, color: st.color }}>
+                      {st.label}
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <p className="text-muted-foreground">Solicitante</p>
+                      <p className="font-medium mt-0.5">{r.requestor_name ?? '—'}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Fecha</p>
+                      <p className="font-medium mt-0.5">{fmtDate(r.submitted_at)}</p>
+                    </div>
+                  </div>
+                  {periods.length > 0 && (
+                    <div className="flex flex-wrap gap-1.5">
+                      {periods.map(period => (
+                        <span key={`${r.id}-mobile-${period}`} className="px-2 py-1 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-600">
+                          {period}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+          </>
         )}
       </section>
 
