@@ -351,7 +351,11 @@ export default function PortalDashboardExtras() {
                     <a.icon className="w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold truncate" style={{ color: '#1B3A5C' }}>{a.text}</p>
+                    {a.worker_id ? (
+                      <Link to={`/portal/trabajadores/${a.worker_id}`} className="text-sm font-semibold truncate block hover:text-[#1D9E75] transition-colors" style={{ color: '#1B3A5C' }}>{a.text}</Link>
+                    ) : (
+                      <p className="text-sm font-semibold truncate" style={{ color: '#1B3A5C' }}>{a.text}</p>
+                    )}
                     <p className="text-xs text-muted-foreground truncate">{a.sub}</p>
                   </div>
                 </li>
