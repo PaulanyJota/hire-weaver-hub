@@ -269,7 +269,9 @@ export default function PortalContratos() {
         <Kpi icon={<FileText className="w-4 h-4" />} label="% Indefinidos" value={`${kpis.indef_pct}%`} />
         <Kpi icon={<FileText className="w-4 h-4" />} label="% Plazo fijo" value={`${kpis.plazo_pct}%`} />
         <Kpi icon={<Briefcase className="w-4 h-4" />} label="% EST" value={`${kpis.est_pct}%`} />
-        <Kpi icon={<DollarSign className="w-4 h-4" />} label="Masa salarial" value={fmtCLP(kpis.masa)} />
+        {SHOW_SALARY_ANALYTICS && (
+          <Kpi icon={<DollarSign className="w-4 h-4" />} label="Masa salarial" value={fmtCLP(kpis.masa)} />
+        )}
       </div>
 
       {/* Dispersión salarial + Donut Base/Comisiones */}
