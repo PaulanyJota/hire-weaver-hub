@@ -89,7 +89,7 @@ function lastPeriods(n: number): { iso: string; label: string }[] {
 }
 
 export default function PortalSolicitudes() {
-  const { profile, company } = usePortalAuth();
+  const { profile, company, user } = usePortalAuth();
   const { toast } = useToast();
   const [rows, setRows] = useState<RequestRow[]>([]);
   const [loading, setLoading] = useState(true);
