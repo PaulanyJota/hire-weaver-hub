@@ -336,12 +336,13 @@ function KpiCard({ label, value, accent, pulse }: { label: string; value: string
 interface WorkerMini { id: string; first_name: string; last_name: string; rut: string | null; cost_center: string | null; }
 
 function SolicitudModal({
-  type, onClose, onSent, requestorDefault, companyId,
+  type, onClose, onSent, requestorDefault, requestorEmail, companyId,
 }: {
   type: SolicitudType;
   onClose: () => void;
   onSent: () => void;
   requestorDefault: string;
+  requestorEmail: string;
   companyId: string | null;
 }) {
   const { toast } = useToast();
@@ -349,7 +350,7 @@ function SolicitudModal({
 
   const [requestor, setRequestor] = useState(requestorDefault);
   const [scope, setScope] = useState<'worker' | 'branch' | 'all'>('worker');
-  const [worker, setWorker] = useState<WorkerMini | null>(null);
+  const [workers, setWorkers] = useState<WorkerMini[]>([]);
   const [branch, setBranch] = useState<string>(BRANCH_OPTIONS[0].code);
   const [periods, setPeriods] = useState<string[]>([]);
   const [format, setFormat] = useState<'pdf' | 'excel'>('pdf');
@@ -362,8 +363,9 @@ function SolicitudModal({
   // Worker search
   const [q, setQ] = useState('');
   const [results, setResults] = useState<WorkerMini[]>([]);
+  const isWorkerScope = scope === 'worker' || ['accidente', 'contrato', 'remuneraciones'].includes(type);
   useEffect(() => {
-    if (scope !== 'worker') return;
+    if (!isWorkerScope) return;
     if (q.trim().length < 2) { setResults([]); return; }
     const t = setTimeout(async () => {
       const { data } = await supabase
@@ -375,65 +377,84 @@ function SolicitudModal({
       setResults((data ?? []) as any);
     }, 200);
     return () => clearTimeout(t);
-  }, [q, scope]);
+  }, [q, isWorkerScope]);
+
+  const addWorker = (w: WorkerMini) => {
+    setWorkers(prev => prev.some(x => x.id === w.id) ? prev : [...prev, w]);
+    setQ('');
+    setResults([]);
+  };
+  const removeWorker = (id: string) => setWorkers(prev => prev.filter(w => w.id !== id));
 
   const months6 = useMemo(() => lastPeriods(6), []);
   const showScope = type !== 'accidente'; // accidente siempre individual
-  const showWorkerScope = type === 'liquidacion' ? 3 : 2; // liquidacion permite "all"
+  const canSubmit = isWorkerScope ? workers.length > 0 : true;
 
   const submit = async () => {
     if (!requestor.trim()) { toast({ title: 'Indica tu nombre', variant: 'destructive' }); return; }
-    if (type === 'accidente' && !worker) { toast({ title: 'Selecciona un trabajador', variant: 'destructive' }); return; }
-    if ((type === 'contrato' || type === 'remuneraciones') && !worker) {
-      toast({ title: 'Selecciona un trabajador', variant: 'destructive' }); return;
-    }
-    if (scope === 'worker' && !worker && type !== 'accidente' && type !== 'contrato' && type !== 'remuneraciones') {
-      toast({ title: 'Selecciona un trabajador', variant: 'destructive' }); return;
+    if (isWorkerScope && workers.length === 0) {
+      toast({ title: 'Selecciona al menos un trabajador', variant: 'destructive' }); return;
     }
     if (type === 'liquidacion' && periods.length === 0) {
       toast({ title: 'Selecciona al menos un período', variant: 'destructive' }); return;
     }
 
     setSubmitting(true);
-    const effectiveScope = ['accidente', 'contrato', 'remuneraciones'].includes(type) ? 'worker' : scope;
-    const payload: any = {
-      portal_company_id: companyId,
-      request_type: 'otro',           // enum requirement
-      doc_type: type,
-      status: 'pendiente',
-      requestor_name: requestor.trim(),
-      reason: notes.trim() || null,
-      scope: effectiveScope,
-      scope_value: effectiveScope === 'branch' ? branch : effectiveScope === 'worker' ? (worker?.id ?? null) : null,
-      worker_id: effectiveScope === 'worker' ? (worker?.id ?? null) : null,
-      workers_affected: effectiveScope === 'worker' && worker
-        ? [worker.id]
-        : effectiveScope === 'branch'
-          ? `all_branch:${branch}`
-          : effectiveScope === 'all' ? 'all_company' : null,
-      periods: type === 'liquidacion' ? periods : null,
-      format: type === 'liquidacion' ? format : null,
-      details: {
-        type,
-        ...(type === 'contrato' ? { contract_kind: contractKind } : {}),
-        ...(type === 'remuneraciones' ? { purpose } : {}),
-        ...(type === 'accidente' ? { incident_date: incidentDate || null } : {}),
-        ...(type === 'liquidacion' ? { periods, format } : {}),
-        scope: effectiveScope,
-        branch: effectiveScope === 'branch' ? branch : null,
-        worker: worker ? { id: worker.id, name: `${worker.first_name} ${worker.last_name}`, rut: worker.rut } : null,
-      },
-    };
 
-    const { error } = await supabase.from('portal_approval_requests').insert(payload);
-    setSubmitting(false);
-    if (error) {
-      console.error(error);
-      toast({ title: 'No pudimos enviar la solicitud', description: error.message, variant: 'destructive' });
-      return;
+    try {
+      if (isWorkerScope) {
+        // Multi-worker flow — ONE RPC call with all selected workers
+        const detailsExtras: any = {
+          ...(type === 'contrato' ? { contract_kind: contractKind } : {}),
+          ...(type === 'remuneraciones' ? { purpose } : {}),
+          ...(type === 'accidente' ? { incident_date: incidentDate || null } : {}),
+          ...(type === 'liquidacion' ? { periods, format } : {}),
+        };
+        const { error } = await (supabase as any).rpc('create_document_request_multi', {
+          p_company_id: DEFAULT_COMPANY_ID,
+          p_doc_type: type,
+          p_workers: workers.map(w => ({ id: w.id, name: `${w.first_name} ${w.last_name}`.trim() })),
+          p_requestor_name: requestor.trim(),
+          p_requestor_email: requestorEmail || null,
+          p_reason: notes.trim() || null,
+          p_periods: type === 'liquidacion' ? periods : null,
+          p_format: 'pdf',
+          p_details: detailsExtras,
+        });
+        if (error) throw error;
+      } else {
+        // Branch / all — keep existing insert flow
+        const payload: any = {
+          portal_company_id: companyId,
+          request_type: 'otro',
+          doc_type: type,
+          status: 'pendiente',
+          requestor_name: requestor.trim(),
+          reason: notes.trim() || null,
+          scope,
+          scope_value: scope === 'branch' ? branch : null,
+          worker_id: null,
+          workers_affected: scope === 'branch' ? `all_branch:${branch}` : 'all_company',
+          periods: type === 'liquidacion' ? periods : null,
+          format: type === 'liquidacion' ? format : null,
+          details: {
+            type,
+            ...(type === 'liquidacion' ? { periods, format } : {}),
+            scope,
+            branch: scope === 'branch' ? branch : null,
+          },
+        };
+        const { error } = await supabase.from('portal_approval_requests').insert(payload);
+        if (error) throw error;
+      }
+      toast({ title: '✅ Solicitud enviada', description: 'Recibirás respuesta en máximo 24 horas hábiles.' });
+      onSent();
+    } catch (e: any) {
+      console.error('[solicitudes] submit error', e);
+      toast({ title: 'No pudimos enviar la solicitud', description: e?.message ?? 'Error desconocido', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
     }
-    toast({ title: '✅ Solicitud enviada', description: 'Recibirás respuesta en máximo 24 horas hábiles.' });
-    onSent();
   };
 
   return (
