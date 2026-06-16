@@ -15,6 +15,10 @@ import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
 
+// Feature flag — ocultar análisis salarial (masa, dispersión, comisiones).
+// Cambiar a true para reactivar la composición salarial y comisiones.
+const SHOW_SALARY_ANALYTICS = false;
+
 const fmtCLP = (n: number | null | undefined) =>
   n == null || Number(n) === 0 ? '—' : '$' + Math.round(Number(n)).toLocaleString('es-CL');
 
