@@ -131,7 +131,7 @@ export default function PortalDashboardExtras() {
 
   // Próximas alertas
   const alerts = useMemo(() => {
-    const out: Array<{ kind: 'aniversario' | 'contrato' | 'sin_marca'; text: string; sub: string; color: string; icon: any }> = [];
+    const out: Array<{ kind: 'aniversario' | 'contrato' | 'sin_marca'; worker_id?: string; text: string; sub: string; color: string; icon: any }> = [];
     const now = new Date();
     const in30 = new Date(); in30.setDate(in30.getDate() + 30);
 
