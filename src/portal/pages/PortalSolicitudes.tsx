@@ -504,49 +504,62 @@ function SolicitudModal({
             </Field>
           )}
 
-          {/* Worker picker */}
-          {(scope === 'worker' || ['accidente', 'contrato', 'remuneraciones'].includes(type)) && (
-            <Field label="Trabajador">
-              {worker ? (
-                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-border bg-muted/40">
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm truncate">{worker.first_name} {worker.last_name}</p>
-                    <p className="text-[11px] text-muted-foreground truncate">
-                      {worker.rut ?? '—'} · {BRANCH_NAMES[worker.cost_center ?? ''] ?? worker.cost_center ?? 'Sin sucursal'}
-                    </p>
-                  </div>
-                  <button className="text-xs text-[#F97316] font-semibold" onClick={() => setWorker(null)}>Cambiar</button>
+          {/* Worker picker — multi-select */}
+          {isWorkerScope && (
+            <Field label={`Trabajadores${workers.length > 0 ? ` · ${workers.length} seleccionado${workers.length === 1 ? '' : 's'}` : ''}`}>
+              {workers.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {workers.map(w => (
+                    <span
+                      key={w.id}
+                      className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full text-xs font-medium border border-[#F97316]/40 bg-[#F97316]/10 text-[#9A3412]"
+                      title={`${w.rut ?? ''} · ${BRANCH_NAMES[w.cost_center ?? ''] ?? w.cost_center ?? ''}`}
+                    >
+                      {w.first_name} {w.last_name}
+                      <button
+                        type="button"
+                        onClick={() => removeWorker(w.id)}
+                        className="w-4 h-4 rounded-full inline-flex items-center justify-center hover:bg-[#F97316]/20"
+                        aria-label="Quitar"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
                 </div>
-              ) : (
+              )}
+              <div className="relative">
                 <div className="relative">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input
-                      value={q}
-                      onChange={e => setQ(e.target.value)}
-                      placeholder="Nombre o RUT…"
-                      className="p-input w-full pl-9"
-                      autoFocus
-                    />
-                  </div>
-                  {results.length > 0 && (
-                    <div className="mt-1 max-h-48 overflow-auto rounded-lg border border-border bg-card shadow-sm">
-                      {results.map(w => (
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    value={q}
+                    onChange={e => setQ(e.target.value)}
+                    placeholder="Buscar por nombre o RUT…"
+                    className="p-input w-full pl-9"
+                    autoFocus
+                  />
+                </div>
+                {results.length > 0 && (
+                  <div className="mt-1 max-h-48 overflow-auto rounded-lg border border-border bg-card shadow-sm">
+                    {results
+                      .filter(r => !workers.some(w => w.id === r.id))
+                      .map(w => (
                         <button
                           key={w.id}
-                          onClick={() => { setWorker(w); setQ(''); setResults([]); }}
+                          type="button"
+                          onClick={() => addWorker(w)}
                           className="w-full text-left px-3 py-2 hover:bg-muted text-sm border-b border-border/60 last:border-b-0"
                         >
                           <p className="font-medium">{w.first_name} {w.last_name}</p>
                           <p className="text-[11px] text-muted-foreground">{w.rut ?? '—'} · {BRANCH_NAMES[w.cost_center ?? ''] ?? w.cost_center ?? '—'}</p>
                         </button>
                       ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
             </Field>
           )}
+
 
           {/* Branch picker */}
           {scope === 'branch' && type !== 'contrato' && type !== 'remuneraciones' && type !== 'accidente' && (
