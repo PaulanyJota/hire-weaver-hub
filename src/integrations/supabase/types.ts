@@ -989,11 +989,14 @@ export type Database = {
           active: boolean
           area: string | null
           birth_date: string | null
+          buk_base_wage: number | null
           buk_company_id: number | null
+          buk_contract_end_date: string | null
           buk_contract_type: string | null
           buk_days: Json | null
           buk_employee_id: string | null
           buk_synced_at: string | null
+          buk_weekly_hours: number | null
           cost_center: string | null
           created_at: string
           division: string | null
@@ -1016,11 +1019,14 @@ export type Database = {
           active?: boolean
           area?: string | null
           birth_date?: string | null
+          buk_base_wage?: number | null
           buk_company_id?: number | null
+          buk_contract_end_date?: string | null
           buk_contract_type?: string | null
           buk_days?: Json | null
           buk_employee_id?: string | null
           buk_synced_at?: string | null
+          buk_weekly_hours?: number | null
           cost_center?: string | null
           created_at?: string
           division?: string | null
@@ -1043,11 +1049,14 @@ export type Database = {
           active?: boolean
           area?: string | null
           birth_date?: string | null
+          buk_base_wage?: number | null
           buk_company_id?: number | null
+          buk_contract_end_date?: string | null
           buk_contract_type?: string | null
           buk_days?: Json | null
           buk_employee_id?: string | null
           buk_synced_at?: string | null
+          buk_weekly_hours?: number | null
           cost_center?: string | null
           created_at?: string
           division?: string | null
@@ -1486,6 +1495,23 @@ export type Database = {
         }[]
       }
       get_contracts_kpis: { Args: { p_company_id?: string }; Returns: Json }
+      get_contratos_por_vencer: {
+        Args: { p_company_id: string; p_dias?: number }
+        Returns: {
+          cargo: string
+          contract_type: string
+          cost_center: string
+          dias_restantes: number
+          end_date: string
+          full_name: string
+          modality: string
+          rut: string
+          start_date: string
+          sucursal: string
+          urgencia: string
+          worker_id: string
+        }[]
+      }
       get_document_requests: {
         Args: { p_company_id: string; p_limit?: number }
         Returns: {
