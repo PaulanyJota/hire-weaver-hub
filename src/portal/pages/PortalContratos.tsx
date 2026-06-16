@@ -501,7 +501,7 @@ export default function PortalContratos() {
       </section>
 
       {/* Composición del sueldo */}
-      {breakdown.length > 0 && (
+      {SHOW_SALARY_ANALYTICS && breakdown.length > 0 && (
         <section className="space-y-4">
           <div>
             <h2 className="text-base font-bold tracking-tight" style={{ color: '#1B3A5C' }}>
