@@ -145,6 +145,7 @@ export default function PortalDashboardExtras() {
           const years = anniv.getFullYear() - hd.getFullYear();
           out.push({
             kind: 'aniversario',
+            worker_id: w.id,
             text: `${w.first_name} ${w.last_name}`,
             sub: `${years} año${years !== 1 ? 's' : ''} en ${diffDays === 0 ? 'hoy' : `${diffDays}d`}`,
             color: '#3DA5E0',
