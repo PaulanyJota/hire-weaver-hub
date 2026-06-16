@@ -310,6 +310,7 @@ export default function PortalSolicitudes() {
           onClose={() => setOpenType(null)}
           onSent={() => { setOpenType(null); load(); }}
           requestorDefault={profile?.full_name ?? ''}
+          requestorEmail={user?.email ?? ''}
           companyId={company?.id ?? null}
         />
       )}
