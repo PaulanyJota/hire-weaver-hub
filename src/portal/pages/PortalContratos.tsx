@@ -53,6 +53,7 @@ export default function PortalContratos() {
   const [search, setSearch] = useState('');
   const [showVenc, setShowVenc] = useState(false);
   const [commissionByWorker, setCommissionByWorker] = useState<Record<string, number>>({});
+  const [horasExtrasByWorker, setHorasExtrasByWorker] = useState<Record<string, number>>({});
   const { data: salary } = useSalaryKpis(company?.id ?? LUCANO_COMPANY_ID);
   const { data: breakdown = [] } = useSalaryBreakdown(company?.id ?? LUCANO_COMPANY_ID, null);
   const breakdownByWorker = useMemo(() => {
