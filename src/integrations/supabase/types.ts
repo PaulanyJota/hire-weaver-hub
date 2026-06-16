@@ -1337,6 +1337,20 @@ export type Database = {
         }
         Returns: string
       }
+      create_document_request_multi: {
+        Args: {
+          p_company_id: string
+          p_details?: Json
+          p_doc_type: string
+          p_format?: string
+          p_periods?: string[]
+          p_reason?: string
+          p_requestor_email?: string
+          p_requestor_name: string
+          p_workers: Json
+        }
+        Returns: string
+      }
       get_attendance_ranking: {
         Args: { p_days?: number }
         Returns: {
