@@ -203,10 +203,7 @@ export default function PortalDashboardExtras() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {branchesOrdenadas.map(b => {
-              const sinMarcaje = b.pct_asistencia_hoy === 0 && b.turno_promedio_inicio === '—';
-              const pctColor =
-                b.pct_asistencia_hoy >= 80 ? '#1D9E75' :
-                b.pct_asistencia_hoy >= 50 ? '#F97316' : '#dc2626';
+              const sinMarcaje = b.workers_marcaron_hoy === 0 && b.turno_promedio_inicio === '—';
               return (
                 <Link
                   key={b.cost_center}
@@ -231,13 +228,13 @@ export default function PortalDashboardExtras() {
                   </div>
                   <div className="mt-3 space-y-1 text-xs">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Asistencia hoy</span>
+                      <span className="text-muted-foreground">Presentes hoy</span>
                       {sinMarcaje ? (
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500 border border-slate-200">
                           Sin marcaje configurado
                         </span>
                       ) : (
-                        <span className="font-semibold tabular-nums" style={{ color: pctColor }}>{b.pct_asistencia_hoy}%</span>
+                        <span className="font-semibold tabular-nums" style={{ color: '#1B3A5C' }}>{b.workers_marcaron_hoy}</span>
                       )}
                     </div>
                     <div className="flex items-center justify-between">
