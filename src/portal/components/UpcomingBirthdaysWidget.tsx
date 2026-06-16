@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Cake } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { branchName } from '../constants/branches';
 
 interface BirthdayRow {
+  worker_id: string | null;
   worker_name: string;
   cost_center: string | null;
   birth_date: string | null;
