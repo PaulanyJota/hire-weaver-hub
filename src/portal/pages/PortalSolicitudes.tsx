@@ -643,7 +643,7 @@ function SolicitudModal({
           <button onClick={onClose} className="p-btn-ghost px-4 py-2 text-sm">Cancelar</button>
           <button
             onClick={submit}
-            disabled={submitting}
+            disabled={submitting || !canSubmit}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg text-white disabled:opacity-50"
             style={{ background: '#F97316' }}
           >
