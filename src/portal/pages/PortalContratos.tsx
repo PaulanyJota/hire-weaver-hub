@@ -15,6 +15,10 @@ import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
 
 const LUCANO_COMPANY_ID = '11111111-1111-1111-1111-111111111111';
 
+// Feature flag — ocultar análisis salarial (masa, dispersión, comisiones).
+// Cambiar a true para reactivar la composición salarial y comisiones.
+const SHOW_SALARY_ANALYTICS = false;
+
 const fmtCLP = (n: number | null | undefined) =>
   n == null || Number(n) === 0 ? '—' : '$' + Math.round(Number(n)).toLocaleString('es-CL');
 
@@ -49,6 +53,7 @@ export default function PortalContratos() {
   const [search, setSearch] = useState('');
   const [showVenc, setShowVenc] = useState(false);
   const [commissionByWorker, setCommissionByWorker] = useState<Record<string, number>>({});
+  const [horasExtrasByWorker, setHorasExtrasByWorker] = useState<Record<string, number>>({});
   const { data: salary } = useSalaryKpis(company?.id ?? LUCANO_COMPANY_ID);
   const { data: breakdown = [] } = useSalaryBreakdown(company?.id ?? LUCANO_COMPANY_ID, null);
   const breakdownByWorker = useMemo(() => {
@@ -157,6 +162,38 @@ export default function PortalContratos() {
     return () => { cancelled = true; };
   }, [company?.id]);
 
+  // Carga horas extras del último período por sucursal (vía get_branch_payroll)
+  useEffect(() => {
+    if (rows.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const cid = company?.id ?? LUCANO_COMPANY_ID;
+      const ccs = Array.from(new Set(rows.map(r => r.cost_center).filter(Boolean)));
+      const map: Record<string, number> = {};
+      await Promise.all(ccs.map(async (cc) => {
+        try {
+          const { data: pData } = await supabase.rpc('get_branch_periods' as any, {
+            p_company_id: cid, p_cost_center: cc,
+          });
+          const periods = (pData ?? []).map((r: any) => r.period as string);
+          if (!periods.length) return;
+          const { data, error } = await supabase.rpc('get_branch_payroll' as any, {
+            p_company_id: cid, p_cost_center: cc, p_period: periods[0],
+          });
+          if (error) { console.error('[branch-payroll]', cc, error); return; }
+          (data ?? []).forEach((r: any) => {
+            const v = Number(r.horas_extras ?? 0);
+            if (v) map[r.worker_id] = (map[r.worker_id] ?? 0) + v;
+          });
+        } catch (e) {
+          console.error('[horas-extras]', cc, e);
+        }
+      }));
+      if (!cancelled) setHorasExtrasByWorker(map);
+    })();
+    return () => { cancelled = true; };
+  }, [company?.id, rows]);
+
   const kpis = useMemo(() => {
     const total = rows.length;
     const indef = rows.filter(r => r.contract_type === 'indefinido').length;
@@ -232,11 +269,13 @@ export default function PortalContratos() {
         <Kpi icon={<FileText className="w-4 h-4" />} label="% Indefinidos" value={`${kpis.indef_pct}%`} />
         <Kpi icon={<FileText className="w-4 h-4" />} label="% Plazo fijo" value={`${kpis.plazo_pct}%`} />
         <Kpi icon={<Briefcase className="w-4 h-4" />} label="% EST" value={`${kpis.est_pct}%`} />
-        <Kpi icon={<DollarSign className="w-4 h-4" />} label="Masa salarial" value={fmtCLP(kpis.masa)} />
+        {SHOW_SALARY_ANALYTICS && (
+          <Kpi icon={<DollarSign className="w-4 h-4" />} label="Masa salarial" value={fmtCLP(kpis.masa)} />
+        )}
       </div>
 
       {/* Dispersión salarial + Donut Base/Comisiones */}
-      {salary && (
+      {SHOW_SALARY_ANALYTICS && salary && (
         <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           <div className="lg:col-span-2 p-card p-5 space-y-4">
             <div>
@@ -408,10 +447,10 @@ export default function PortalContratos() {
                 <th className="px-4 py-3 font-semibold">Modalidad</th>
                 <th className="px-4 py-3 font-semibold">Vencimiento</th>
                 <th className="px-4 py-3 font-semibold text-right">
-                  Comisiones
-                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">{salary?.period_label ?? ''}</span>
+                  Horas extras
+                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">{salary?.period_label ?? 'mes trabajado'}</span>
                 </th>
-                <th className="px-6 py-3 font-semibold text-right" title="Total líquido = base + comisiones + otros bonos del mes trabajado.">
+                <th className="px-6 py-3 font-semibold text-right" title="Total líquido del mes trabajado.">
                   Sueldo líquido total
                   <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">{salary?.period_label ?? 'mes trabajado'}</span>
                 </th>
@@ -424,6 +463,7 @@ export default function PortalContratos() {
                 const bd = breakdownByWorker[r.worker_id];
                 const com = bd?.commissions ?? commissionByWorker[r.worker_id] ?? 0;
                 const total = bd?.total_liquid ?? ((r.liquid_salary || 0) + com);
+                const hext = horasExtrasByWorker[r.worker_id] ?? 0;
                 return (
                 <tr key={r.worker_id} className="border-b border-slate-100 hover:bg-slate-50/60">
                   <td className="px-6 py-3">
@@ -443,8 +483,8 @@ export default function PortalContratos() {
                       : <span className="text-slate-400 italic">Sin vencimiento</span>}
                   </td>
                   <td className="px-4 py-3 text-right font-mono tabular-nums">
-                    {com > 0
-                      ? <span style={{ color: '#B45309' }}>{fmtCLP(com)}</span>
+                    {hext > 0
+                      ? <span style={{ color: '#1D9E75' }}>{fmtCLP(hext)}</span>
                       : <span className="text-slate-300">—</span>}
                   </td>
                   <td className="px-6 py-3 text-right font-mono tabular-nums">
@@ -461,7 +501,7 @@ export default function PortalContratos() {
       </section>
 
       {/* Composición del sueldo */}
-      {breakdown.length > 0 && (
+      {SHOW_SALARY_ANALYTICS && breakdown.length > 0 && (
         <section className="space-y-4">
           <div>
             <h2 className="text-base font-bold tracking-tight" style={{ color: '#1B3A5C' }}>
