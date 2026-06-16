@@ -165,6 +165,7 @@ export default function PortalDashboardExtras() {
         if (w && w.active) {
           out.push({
             kind: 'contrato',
+            worker_id: w.id,
             text: `${w.first_name} ${w.last_name}`,
             sub: `Contrato vence en ${diffDays}d`,
             color: '#F97316',
