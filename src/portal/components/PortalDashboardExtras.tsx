@@ -131,7 +131,7 @@ export default function PortalDashboardExtras() {
 
   // Próximas alertas
   const alerts = useMemo(() => {
-    const out: Array<{ kind: 'aniversario' | 'contrato' | 'sin_marca'; text: string; sub: string; color: string; icon: any }> = [];
+    const out: Array<{ kind: 'aniversario' | 'contrato' | 'sin_marca'; worker_id?: string; text: string; sub: string; color: string; icon: any }> = [];
     const now = new Date();
     const in30 = new Date(); in30.setDate(in30.getDate() + 30);
 
@@ -145,6 +145,7 @@ export default function PortalDashboardExtras() {
           const years = anniv.getFullYear() - hd.getFullYear();
           out.push({
             kind: 'aniversario',
+            worker_id: w.id,
             text: `${w.first_name} ${w.last_name}`,
             sub: `${years} año${years !== 1 ? 's' : ''} en ${diffDays === 0 ? 'hoy' : `${diffDays}d`}`,
             color: '#3DA5E0',
@@ -164,6 +165,7 @@ export default function PortalDashboardExtras() {
         if (w && w.active) {
           out.push({
             kind: 'contrato',
+            worker_id: w.id,
             text: `${w.first_name} ${w.last_name}`,
             sub: `Contrato vence en ${diffDays}d`,
             color: '#F97316',
@@ -349,7 +351,11 @@ export default function PortalDashboardExtras() {
                     <a.icon className="w-4 h-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold truncate" style={{ color: '#1B3A5C' }}>{a.text}</p>
+                    {a.worker_id ? (
+                      <Link to={`/portal/trabajadores/${a.worker_id}`} className="text-sm font-semibold truncate block hover:text-[#1D9E75] transition-colors" style={{ color: '#1B3A5C' }}>{a.text}</Link>
+                    ) : (
+                      <p className="text-sm font-semibold truncate" style={{ color: '#1B3A5C' }}>{a.text}</p>
+                    )}
                     <p className="text-xs text-muted-foreground truncate">{a.sub}</p>
                   </div>
                 </li>

@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Cake } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { branchName } from '../constants/branches';
 
 interface BirthdayRow {
+  worker_id: string | null;
   worker_name: string;
   cost_center: string | null;
   birth_date: string | null;
@@ -95,7 +97,16 @@ export default function UpcomingBirthdaysWidget({ companyId }: Props) {
                 className="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white px-3 py-2"
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-800 truncate">{r.worker_name}</p>
+                  {r.worker_id ? (
+                    <Link
+                      to={`/portal/trabajadores/${r.worker_id}`}
+                      className="text-sm font-semibold text-slate-800 truncate block cursor-pointer transition-colors hover:text-[#1D9E75]"
+                    >
+                      {r.worker_name}
+                    </Link>
+                  ) : (
+                    <p className="text-sm font-semibold text-slate-800 truncate">{r.worker_name}</p>
+                  )}
                   <p className="text-[11px] text-slate-500 truncate">
                     {r.cost_center ? branchName(r.cost_center) : '—'}
                     {ddmm && ` · ${ddmm}`}
