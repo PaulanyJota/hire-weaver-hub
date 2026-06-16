@@ -228,7 +228,9 @@ export default function PortalSolicitudes() {
                   return (
                     <tr key={r.id}>
                       <td className="font-medium">{tipoLabel}</td>
-                      <td className="text-muted-foreground">{scopeLabel}</td>
+                      <td className="text-muted-foreground max-w-[260px]">
+                        <span className="block truncate" title={scopeLabel}>{scopeLabel}</span>
+                      </td>
                       <td>{r.requestor_name ?? '—'}</td>
                       <td>
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold"
