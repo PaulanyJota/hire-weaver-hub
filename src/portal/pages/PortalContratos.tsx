@@ -162,6 +162,38 @@ export default function PortalContratos() {
     return () => { cancelled = true; };
   }, [company?.id]);
 
+  // Carga horas extras del último período por sucursal (vía get_branch_payroll)
+  useEffect(() => {
+    if (rows.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      const cid = company?.id ?? LUCANO_COMPANY_ID;
+      const ccs = Array.from(new Set(rows.map(r => r.cost_center).filter(Boolean)));
+      const map: Record<string, number> = {};
+      await Promise.all(ccs.map(async (cc) => {
+        try {
+          const { data: pData } = await supabase.rpc('get_branch_periods' as any, {
+            p_company_id: cid, p_cost_center: cc,
+          });
+          const periods = (pData ?? []).map((r: any) => r.period as string);
+          if (!periods.length) return;
+          const { data, error } = await supabase.rpc('get_branch_payroll' as any, {
+            p_company_id: cid, p_cost_center: cc, p_period: periods[0],
+          });
+          if (error) { console.error('[branch-payroll]', cc, error); return; }
+          (data ?? []).forEach((r: any) => {
+            const v = Number(r.horas_extras ?? 0);
+            if (v) map[r.worker_id] = (map[r.worker_id] ?? 0) + v;
+          });
+        } catch (e) {
+          console.error('[horas-extras]', cc, e);
+        }
+      }));
+      if (!cancelled) setHorasExtrasByWorker(map);
+    })();
+    return () => { cancelled = true; };
+  }, [company?.id, rows]);
+
   const kpis = useMemo(() => {
     const total = rows.length;
     const indef = rows.filter(r => r.contract_type === 'indefinido').length;
