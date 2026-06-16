@@ -203,10 +203,7 @@ export default function PortalDashboardExtras() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {branchesOrdenadas.map(b => {
-              const sinMarcaje = b.pct_asistencia_hoy === 0 && b.turno_promedio_inicio === '—';
-              const pctColor =
-                b.pct_asistencia_hoy >= 80 ? '#1D9E75' :
-                b.pct_asistencia_hoy >= 50 ? '#F97316' : '#dc2626';
+              const sinMarcaje = b.workers_marcaron_hoy === 0 && b.turno_promedio_inicio === '—';
               return (
                 <Link
                   key={b.cost_center}
