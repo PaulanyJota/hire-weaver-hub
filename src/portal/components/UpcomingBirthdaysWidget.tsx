@@ -30,7 +30,7 @@ export default function UpcomingBirthdaysWidget({ companyId }: Props) {
       try {
         const { data, error } = await supabase.rpc('get_upcoming_birthdays' as any, {
           p_company_id: companyId ?? COMPANY_ID_FALLBACK,
-          p_days: 60,
+          p_days_ahead: 90,
         });
         if (cancelled) return;
         if (error) {
