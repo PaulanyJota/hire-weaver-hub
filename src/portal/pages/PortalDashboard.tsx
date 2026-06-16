@@ -43,7 +43,7 @@ const ddMM = (d: string) => {
 export default function PortalDashboard() {
   const { profile, company, isNodoAdmin } = usePortalAuth();
   const { data: punct } = usePunctualityKpis(company?.id);
-  const { data: branchKpis } = useBranchRankingKpis(company?.id);
+  
   const { data: overtime } = useOvertimeKpis(company?.id);
   const { data: salary } = useSalaryKpis(company?.id);
   const [loading, setLoading] = useState(true);
