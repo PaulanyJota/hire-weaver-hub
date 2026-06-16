@@ -1436,6 +1436,7 @@ export type Database = {
         Returns: {
           cargo: string
           comisiones: number
+          horas_extras: number
           nombre: string
           rut: string
           sueldo_liquido: number
