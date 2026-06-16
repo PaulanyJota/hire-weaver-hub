@@ -89,7 +89,7 @@ function lastPeriods(n: number): { iso: string; label: string }[] {
 }
 
 export default function PortalSolicitudes() {
-  const { profile, company } = usePortalAuth();
+  const { profile, company, user } = usePortalAuth();
   const { toast } = useToast();
   const [rows, setRows] = useState<RequestRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -228,7 +228,9 @@ export default function PortalSolicitudes() {
                   return (
                     <tr key={r.id}>
                       <td className="font-medium">{tipoLabel}</td>
-                      <td className="text-muted-foreground">{scopeLabel}</td>
+                      <td className="text-muted-foreground max-w-[260px]">
+                        <span className="block truncate" title={scopeLabel}>{scopeLabel}</span>
+                      </td>
                       <td>{r.requestor_name ?? '—'}</td>
                       <td>
                         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold"
@@ -310,6 +312,7 @@ export default function PortalSolicitudes() {
           onClose={() => setOpenType(null)}
           onSent={() => { setOpenType(null); load(); }}
           requestorDefault={profile?.full_name ?? ''}
+          requestorEmail={user?.email ?? ''}
           companyId={company?.id ?? null}
         />
       )}
@@ -333,12 +336,13 @@ function KpiCard({ label, value, accent, pulse }: { label: string; value: string
 interface WorkerMini { id: string; first_name: string; last_name: string; rut: string | null; cost_center: string | null; }
 
 function SolicitudModal({
-  type, onClose, onSent, requestorDefault, companyId,
+  type, onClose, onSent, requestorDefault, requestorEmail, companyId,
 }: {
   type: SolicitudType;
   onClose: () => void;
   onSent: () => void;
   requestorDefault: string;
+  requestorEmail: string;
   companyId: string | null;
 }) {
   const { toast } = useToast();
@@ -346,7 +350,7 @@ function SolicitudModal({
 
   const [requestor, setRequestor] = useState(requestorDefault);
   const [scope, setScope] = useState<'worker' | 'branch' | 'all'>('worker');
-  const [worker, setWorker] = useState<WorkerMini | null>(null);
+  const [workers, setWorkers] = useState<WorkerMini[]>([]);
   const [branch, setBranch] = useState<string>(BRANCH_OPTIONS[0].code);
   const [periods, setPeriods] = useState<string[]>([]);
   const [format, setFormat] = useState<'pdf' | 'excel'>('pdf');
@@ -359,8 +363,9 @@ function SolicitudModal({
   // Worker search
   const [q, setQ] = useState('');
   const [results, setResults] = useState<WorkerMini[]>([]);
+  const isWorkerScope = scope === 'worker' || ['accidente', 'contrato', 'remuneraciones'].includes(type);
   useEffect(() => {
-    if (scope !== 'worker') return;
+    if (!isWorkerScope) return;
     if (q.trim().length < 2) { setResults([]); return; }
     const t = setTimeout(async () => {
       const { data } = await supabase
@@ -372,65 +377,84 @@ function SolicitudModal({
       setResults((data ?? []) as any);
     }, 200);
     return () => clearTimeout(t);
-  }, [q, scope]);
+  }, [q, isWorkerScope]);
+
+  const addWorker = (w: WorkerMini) => {
+    setWorkers(prev => prev.some(x => x.id === w.id) ? prev : [...prev, w]);
+    setQ('');
+    setResults([]);
+  };
+  const removeWorker = (id: string) => setWorkers(prev => prev.filter(w => w.id !== id));
 
   const months6 = useMemo(() => lastPeriods(6), []);
   const showScope = type !== 'accidente'; // accidente siempre individual
-  const showWorkerScope = type === 'liquidacion' ? 3 : 2; // liquidacion permite "all"
+  const canSubmit = isWorkerScope ? workers.length > 0 : true;
 
   const submit = async () => {
     if (!requestor.trim()) { toast({ title: 'Indica tu nombre', variant: 'destructive' }); return; }
-    if (type === 'accidente' && !worker) { toast({ title: 'Selecciona un trabajador', variant: 'destructive' }); return; }
-    if ((type === 'contrato' || type === 'remuneraciones') && !worker) {
-      toast({ title: 'Selecciona un trabajador', variant: 'destructive' }); return;
-    }
-    if (scope === 'worker' && !worker && type !== 'accidente' && type !== 'contrato' && type !== 'remuneraciones') {
-      toast({ title: 'Selecciona un trabajador', variant: 'destructive' }); return;
+    if (isWorkerScope && workers.length === 0) {
+      toast({ title: 'Selecciona al menos un trabajador', variant: 'destructive' }); return;
     }
     if (type === 'liquidacion' && periods.length === 0) {
       toast({ title: 'Selecciona al menos un período', variant: 'destructive' }); return;
     }
 
     setSubmitting(true);
-    const effectiveScope = ['accidente', 'contrato', 'remuneraciones'].includes(type) ? 'worker' : scope;
-    const payload: any = {
-      portal_company_id: companyId,
-      request_type: 'otro',           // enum requirement
-      doc_type: type,
-      status: 'pendiente',
-      requestor_name: requestor.trim(),
-      reason: notes.trim() || null,
-      scope: effectiveScope,
-      scope_value: effectiveScope === 'branch' ? branch : effectiveScope === 'worker' ? (worker?.id ?? null) : null,
-      worker_id: effectiveScope === 'worker' ? (worker?.id ?? null) : null,
-      workers_affected: effectiveScope === 'worker' && worker
-        ? [worker.id]
-        : effectiveScope === 'branch'
-          ? `all_branch:${branch}`
-          : effectiveScope === 'all' ? 'all_company' : null,
-      periods: type === 'liquidacion' ? periods : null,
-      format: type === 'liquidacion' ? format : null,
-      details: {
-        type,
-        ...(type === 'contrato' ? { contract_kind: contractKind } : {}),
-        ...(type === 'remuneraciones' ? { purpose } : {}),
-        ...(type === 'accidente' ? { incident_date: incidentDate || null } : {}),
-        ...(type === 'liquidacion' ? { periods, format } : {}),
-        scope: effectiveScope,
-        branch: effectiveScope === 'branch' ? branch : null,
-        worker: worker ? { id: worker.id, name: `${worker.first_name} ${worker.last_name}`, rut: worker.rut } : null,
-      },
-    };
 
-    const { error } = await supabase.from('portal_approval_requests').insert(payload);
-    setSubmitting(false);
-    if (error) {
-      console.error(error);
-      toast({ title: 'No pudimos enviar la solicitud', description: error.message, variant: 'destructive' });
-      return;
+    try {
+      if (isWorkerScope) {
+        // Multi-worker flow — ONE RPC call with all selected workers
+        const detailsExtras: any = {
+          ...(type === 'contrato' ? { contract_kind: contractKind } : {}),
+          ...(type === 'remuneraciones' ? { purpose } : {}),
+          ...(type === 'accidente' ? { incident_date: incidentDate || null } : {}),
+          ...(type === 'liquidacion' ? { periods, format } : {}),
+        };
+        const { error } = await (supabase as any).rpc('create_document_request_multi', {
+          p_company_id: DEFAULT_COMPANY_ID,
+          p_doc_type: type,
+          p_workers: workers.map(w => ({ id: w.id, name: `${w.first_name} ${w.last_name}`.trim() })),
+          p_requestor_name: requestor.trim(),
+          p_requestor_email: requestorEmail || null,
+          p_reason: notes.trim() || null,
+          p_periods: type === 'liquidacion' ? periods : null,
+          p_format: 'pdf',
+          p_details: detailsExtras,
+        });
+        if (error) throw error;
+      } else {
+        // Branch / all — keep existing insert flow
+        const payload: any = {
+          portal_company_id: companyId,
+          request_type: 'otro',
+          doc_type: type,
+          status: 'pendiente',
+          requestor_name: requestor.trim(),
+          reason: notes.trim() || null,
+          scope,
+          scope_value: scope === 'branch' ? branch : null,
+          worker_id: null,
+          workers_affected: scope === 'branch' ? `all_branch:${branch}` : 'all_company',
+          periods: type === 'liquidacion' ? periods : null,
+          format: type === 'liquidacion' ? format : null,
+          details: {
+            type,
+            ...(type === 'liquidacion' ? { periods, format } : {}),
+            scope,
+            branch: scope === 'branch' ? branch : null,
+          },
+        };
+        const { error } = await supabase.from('portal_approval_requests').insert(payload);
+        if (error) throw error;
+      }
+      toast({ title: '✅ Solicitud enviada', description: 'Recibirás respuesta en máximo 24 horas hábiles.' });
+      onSent();
+    } catch (e: any) {
+      console.error('[solicitudes] submit error', e);
+      toast({ title: 'No pudimos enviar la solicitud', description: e?.message ?? 'Error desconocido', variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
     }
-    toast({ title: '✅ Solicitud enviada', description: 'Recibirás respuesta en máximo 24 horas hábiles.' });
-    onSent();
   };
 
   return (
@@ -480,49 +504,62 @@ function SolicitudModal({
             </Field>
           )}
 
-          {/* Worker picker */}
-          {(scope === 'worker' || ['accidente', 'contrato', 'remuneraciones'].includes(type)) && (
-            <Field label="Trabajador">
-              {worker ? (
-                <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-border bg-muted/40">
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm truncate">{worker.first_name} {worker.last_name}</p>
-                    <p className="text-[11px] text-muted-foreground truncate">
-                      {worker.rut ?? '—'} · {BRANCH_NAMES[worker.cost_center ?? ''] ?? worker.cost_center ?? 'Sin sucursal'}
-                    </p>
-                  </div>
-                  <button className="text-xs text-[#F97316] font-semibold" onClick={() => setWorker(null)}>Cambiar</button>
+          {/* Worker picker — multi-select */}
+          {isWorkerScope && (
+            <Field label={`Trabajadores${workers.length > 0 ? ` · ${workers.length} seleccionado${workers.length === 1 ? '' : 's'}` : ''}`}>
+              {workers.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 mb-2">
+                  {workers.map(w => (
+                    <span
+                      key={w.id}
+                      className="inline-flex items-center gap-1.5 pl-2.5 pr-1 py-1 rounded-full text-xs font-medium border border-[#F97316]/40 bg-[#F97316]/10 text-[#9A3412]"
+                      title={`${w.rut ?? ''} · ${BRANCH_NAMES[w.cost_center ?? ''] ?? w.cost_center ?? ''}`}
+                    >
+                      {w.first_name} {w.last_name}
+                      <button
+                        type="button"
+                        onClick={() => removeWorker(w.id)}
+                        className="w-4 h-4 rounded-full inline-flex items-center justify-center hover:bg-[#F97316]/20"
+                        aria-label="Quitar"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
                 </div>
-              ) : (
+              )}
+              <div className="relative">
                 <div className="relative">
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                    <input
-                      value={q}
-                      onChange={e => setQ(e.target.value)}
-                      placeholder="Nombre o RUT…"
-                      className="p-input w-full pl-9"
-                      autoFocus
-                    />
-                  </div>
-                  {results.length > 0 && (
-                    <div className="mt-1 max-h-48 overflow-auto rounded-lg border border-border bg-card shadow-sm">
-                      {results.map(w => (
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    value={q}
+                    onChange={e => setQ(e.target.value)}
+                    placeholder="Buscar por nombre o RUT…"
+                    className="p-input w-full pl-9"
+                    autoFocus
+                  />
+                </div>
+                {results.length > 0 && (
+                  <div className="mt-1 max-h-48 overflow-auto rounded-lg border border-border bg-card shadow-sm">
+                    {results
+                      .filter(r => !workers.some(w => w.id === r.id))
+                      .map(w => (
                         <button
                           key={w.id}
-                          onClick={() => { setWorker(w); setQ(''); setResults([]); }}
+                          type="button"
+                          onClick={() => addWorker(w)}
                           className="w-full text-left px-3 py-2 hover:bg-muted text-sm border-b border-border/60 last:border-b-0"
                         >
                           <p className="font-medium">{w.first_name} {w.last_name}</p>
                           <p className="text-[11px] text-muted-foreground">{w.rut ?? '—'} · {BRANCH_NAMES[w.cost_center ?? ''] ?? w.cost_center ?? '—'}</p>
                         </button>
                       ))}
-                    </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
             </Field>
           )}
+
 
           {/* Branch picker */}
           {scope === 'branch' && type !== 'contrato' && type !== 'remuneraciones' && type !== 'accidente' && (
@@ -606,7 +643,7 @@ function SolicitudModal({
           <button onClick={onClose} className="p-btn-ghost px-4 py-2 text-sm">Cancelar</button>
           <button
             onClick={submit}
-            disabled={submitting}
+            disabled={submitting || !canSubmit}
             className="inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-lg text-white disabled:opacity-50"
             style={{ background: '#F97316' }}
           >
