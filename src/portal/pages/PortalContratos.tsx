@@ -447,10 +447,10 @@ export default function PortalContratos() {
                 <th className="px-4 py-3 font-semibold">Modalidad</th>
                 <th className="px-4 py-3 font-semibold">Vencimiento</th>
                 <th className="px-4 py-3 font-semibold text-right">
-                  Comisiones
-                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">{salary?.period_label ?? ''}</span>
+                  Horas extras
+                  <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">{salary?.period_label ?? 'mes trabajado'}</span>
                 </th>
-                <th className="px-6 py-3 font-semibold text-right" title="Total líquido = base + comisiones + otros bonos del mes trabajado.">
+                <th className="px-6 py-3 font-semibold text-right" title="Total líquido del mes trabajado.">
                   Sueldo líquido total
                   <span className="block text-[9px] font-normal normal-case tracking-normal text-slate-400">{salary?.period_label ?? 'mes trabajado'}</span>
                 </th>
@@ -463,6 +463,7 @@ export default function PortalContratos() {
                 const bd = breakdownByWorker[r.worker_id];
                 const com = bd?.commissions ?? commissionByWorker[r.worker_id] ?? 0;
                 const total = bd?.total_liquid ?? ((r.liquid_salary || 0) + com);
+                const hext = horasExtrasByWorker[r.worker_id] ?? 0;
                 return (
                 <tr key={r.worker_id} className="border-b border-slate-100 hover:bg-slate-50/60">
                   <td className="px-6 py-3">
@@ -482,8 +483,8 @@ export default function PortalContratos() {
                       : <span className="text-slate-400 italic">Sin vencimiento</span>}
                   </td>
                   <td className="px-4 py-3 text-right font-mono tabular-nums">
-                    {com > 0
-                      ? <span style={{ color: '#B45309' }}>{fmtCLP(com)}</span>
+                    {hext > 0
+                      ? <span style={{ color: '#1D9E75' }}>{fmtCLP(hext)}</span>
                       : <span className="text-slate-300">—</span>}
                   </td>
                   <td className="px-6 py-3 text-right font-mono tabular-nums">
