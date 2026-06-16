@@ -30,7 +30,7 @@ export default function UpcomingBirthdaysWidget({ companyId }: Props) {
       try {
         const { data, error } = await supabase.rpc('get_upcoming_birthdays' as any, {
           p_company_id: companyId ?? COMPANY_ID_FALLBACK,
-          p_days: 60,
+          p_days_ahead: 90,
         });
         if (cancelled) return;
         if (error) {
@@ -62,7 +62,7 @@ export default function UpcomingBirthdaysWidget({ companyId }: Props) {
         </div>
         <div className="min-w-0">
           <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Próximos cumpleaños</p>
-          <p className="text-xs text-slate-500">Siguientes 60 días</p>
+          <p className="text-xs text-slate-500">Siguientes 90 días</p>
         </div>
       </div>
 
@@ -73,18 +73,21 @@ export default function UpcomingBirthdaysWidget({ companyId }: Props) {
       ) : visible.length === 0 ? (
         <div className="flex-1 flex items-center justify-center text-center py-6">
           <p className="text-xs text-slate-500 leading-relaxed">
-            🎂 Sin cumpleaños próximos registrados<br />
-            <span className="text-slate-400">datos en sincronización</span>
+            No hay cumpleaños próximos
           </p>
         </div>
       ) : (
         <ul className="space-y-2 overflow-y-auto pr-1" style={{ maxHeight: 280 }}>
-          {visible.slice(0, 50).map((r, i) => {
+          {[...visible].sort((a,b) => (a.days_until ?? 0) - (b.days_until ?? 0)).slice(0, 50).map((r, i) => {
             const d = r.days_until ?? 0;
             let badge: { text: string; bg: string; color: string };
             if (d === 0) badge = { text: '🎂 HOY', bg: '#F97316', color: '#fff' };
             else if (d <= 7) badge = { text: 'Esta semana', bg: '#FEF3C7', color: '#B45309' };
             else badge = { text: `en ${d} días`, bg: '#F1F5F9', color: '#475569' };
+
+            const ddmm = r.birthday_this_year
+              ? r.birthday_this_year.slice(5, 10).split('-').reverse().join('-')
+              : (r.birth_date ? r.birth_date.slice(5, 10).split('-').reverse().join('-') : '');
 
             return (
               <li
@@ -95,6 +98,7 @@ export default function UpcomingBirthdaysWidget({ companyId }: Props) {
                   <p className="text-sm font-semibold text-slate-800 truncate">{r.worker_name}</p>
                   <p className="text-[11px] text-slate-500 truncate">
                     {r.cost_center ? branchName(r.cost_center) : '—'}
+                    {ddmm && ` · ${ddmm}`}
                     {r.age_turning != null && ` · cumple ${r.age_turning}`}
                   </p>
                 </div>

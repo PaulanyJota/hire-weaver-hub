@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { usePortalAuth } from '../hooks/usePortalAuth';
-import { Users, CheckCircle2, Clock, TrendingUp, Activity, Menu, Flame, BarChart3, DollarSign } from 'lucide-react';
+import { Users, CheckCircle2, Clock, TrendingUp, Activity, Menu, Flame, DollarSign } from 'lucide-react';
 import { usePortalSidebar } from '../hooks/usePortalSidebar';
 
 import {
@@ -14,7 +14,7 @@ import { PortalAvatar } from '../components/Avatar';
 import PortalDashboardExtras from '../components/PortalDashboardExtras';
 import UpcomingBirthdaysWidget from '../components/UpcomingBirthdaysWidget';
 import WorkerNameLink from '../components/WorkerNameLink';
-import { useBranchRankingKpis, usePunctualityKpis, useOvertimeKpis, useSalaryKpis } from '../hooks/useBranchRankingKpis';
+import { usePunctualityKpis, useOvertimeKpis, useSalaryKpis } from '../hooks/useBranchRankingKpis';
 import { branchName } from '../constants/branches';
 import lucanoLogo from '@/assets/lucano-logo.png.asset.json';
 import PortalSearchBar, { matchesSearch } from '../components/PortalSearchBar';
@@ -43,7 +43,7 @@ const ddMM = (d: string) => {
 export default function PortalDashboard() {
   const { profile, company, isNodoAdmin } = usePortalAuth();
   const { data: punct } = usePunctualityKpis(company?.id);
-  const { data: branchKpis } = useBranchRankingKpis(company?.id);
+  
   const { data: overtime } = useOvertimeKpis(company?.id);
   const { data: salary } = useSalaryKpis(company?.id);
   const [loading, setLoading] = useState(true);
@@ -419,42 +419,6 @@ export default function PortalDashboard() {
       {/* Sucursales + Charts enriquecidos */}
       <PortalDashboardExtras />
 
-      {/* KPIs financieros */}
-      <section className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div className="p-card p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Valor hora del equipo</p>
-              {!branchKpis ? <Skeleton className="h-9 w-28 mt-2" /> : (
-                <p className="text-3xl font-bold mt-2 tracking-tight tabular-nums" style={{ color: '#F97316' }}>
-                  ${Math.round(branchKpis.valor_hora_equipo).toLocaleString('es-CL')}
-                </p>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">costo promedio por hora trabajada este mes</p>
-            </div>
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-orange-50" style={{ color: '#F97316' }}>
-              <Clock className="w-5 h-5" />
-            </div>
-          </div>
-        </div>
-
-        <div className="p-card p-5">
-          <div className="flex items-start justify-between">
-            <div>
-              <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">ROI incentivos</p>
-              {!branchKpis ? <Skeleton className="h-9 w-20 mt-2" /> : (
-                <p className="text-3xl font-bold mt-2 tracking-tight tabular-nums" style={{ color: '#F97316' }}>
-                  {branchKpis.roi_comisiones_pct}%
-                </p>
-              )}
-              <p className="text-xs text-muted-foreground mt-1">de la masa salarial destinado a comisiones</p>
-            </div>
-            <div className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0 bg-orange-50" style={{ color: '#F97316' }}>
-              <BarChart3 className="w-5 h-5" />
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Charts */}
       <section className="grid grid-cols-1 lg:grid-cols-5 gap-4">
